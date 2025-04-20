@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Booking HomeStay</title>
+    <!-- styles bootstrap-->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <!-- css -->
+    <link rel="stylesheet" href="stylesSearch.css" />
+    <!-- icon -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+  </head>
+  <body>
+    <nav
+      class="navbar navbar-expand-lg navbar-light bg-light"
+      style="
+        width: 100%;
+        opacity: 80%;
+
+        z-index: 1000;
+        top: 0;
+        left: 0;
+      "
+    >
+      <!-- Logo bên trái -->
+      <a class="navbar-brand" href="/Home/Home.html">
+        <img
+          src="./image/image/logo/logo.jpg"
+          alt="Logo"
+          style="
+            margin: 0px;
+            padding: 0px;
+            width: 100px;
+            height: 100px;
+            position: absolute;
+            margin-top: -50px;
+            margin-left: 70px;
+          "
+          class="logo"
+        />
+      </a>
+      <div class="container kt">
+        <!-- Nút Toggle khi màn hình nhỏ -->
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Danh mục menu (Căn giữa) -->
+        <div
+          class="collapse navbar-collapse justify-content-center"
+          id="navbarNav"
+        >
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="/src/views/Home/Home.html"
+                style="font-weight: bold"
+                >TRANG CHỦ</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="#Home.html#intro"
+                style="font-weight: bold"
+                >GIỚI THIỆU</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="Home.html#CH" style="font-weight: bold"
+                >CĂN HỘ</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#LH" style="font-weight: bold"
+                >LIÊN HỆ</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="Home.html#DG" style="font-weight: bold"
+                >ĐÁNH GIÁ</a
+              >
+            </li>
+          </ul>
+        </div>
+
+        <!-- Nút Đăng nhập (Bên phải) -->
+        <button class="btn btn-primary">ĐĂNG NHẬP</button>
+      </div>
+    </nav>
+
+    <div
+      class="card shadow-sm mb-5"
+      style="
+        margin-top: 70px;
+        max-width: 1300px;
+        margin-left: auto;
+        margin-right: auto;
+      "
+    >
+      <div class="card-body">
+        <form class="row g-3">
+          <div class="col-md-3">
+            <label for="checkin" class="form-label">Ngày nhận phòng</label>
+            <input
+              type="date"
+              class="form-control"
+              id="checkin"
+              name="checkin"
+            />
+          </div>
+          <div class="col-md-3">
+            <label for="checkout" class="form-label">Ngày trả phòng</label>
+            <input
+              type="date"
+              class="form-control"
+              id="checkout"
+              name="checkout"
+            />
+          </div>
+          <div class="col-md-2">
+            <label for="adults" class="form-label">Người lớn</label>
+            <input
+              type="number"
+              class="form-control"
+              id="adults"
+              name="adults"
+              min="1"
+              value="2"
+            />
+          </div>
+          <div class="col-md-2">
+            <label for="children" class="form-label">Trẻ em</label>
+            <input
+              type="number"
+              class="form-control"
+              id="children"
+              name="children"
+              min="0"
+              value="0"
+            />
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">
+              Tìm kiếm
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="container py-5" style="margin-top: -40px">
+      <h2 class="mb-4">Tìm thấy 6 homestay phù hợp</h2>
+
+      <!-- Danh sách homestay -->
+      <div class="row gy-4">
+        <!-- Homestay 1 -->
+        <div class="col-md-12 homestay-wrapper">
+          <h4>Homestay Biển Xanh</h4>
+          <p><strong>Địa điểm:</strong> Phú Quốc, Kiên Giang</p>
+          <div class="mb-4">
+            <img
+              src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"
+              alt="Ảnh Homestay Biển Xanh"
+              class="img-fluid rounded"
+              style="height: 300px; width: 100%; object-fit: cover"
+            />
+          </div>
+          <div class="row gy-4">
+            <!-- Căn phòng 1 trong Homestay -->
+            <div class="col-md-6">
+              <div class="card shadow-sm homestay-card">
+                <div class="row g-0">
+                  <div class="col-md-5">
+                    <img
+                      src="https://i.postimg.cc/6p59Vvbv/420179187.jpg"
+                      class="rounded-start w-100 h-100"
+                      alt="Homestay Biển"
+                    />
+                  </div>
+                  <div class="col-md-7">
+                    <div class="card-body">
+                      <h5 class="card-title">Phòng Gia đình (3-4 người)</h5>
+                      <p class="mb-2"><strong>Giá từ:</strong> 850.000đ/đêm</p>
+                      <div class="mb-3">
+                        <span class="feature-badge">Wifi</span>
+                        <span class="feature-badge">Bếp riêng</span>
+                        <span class="feature-badge">View biển</span>
+                      </div>
+                      <a href="#" class="btn btn-outline-primary btn-sm"
+                        >Xem chi tiết</a
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Căn phòng 2 trong Homestay -->
+            <div class="col-md-6">
+              <div class="card shadow-sm homestay-card">
+                <div class="row g-0">
+                  <div class="col-md-5">
+                    <img
+                      src="https://i.postimg.cc/6p59Vvbv/420179187.jpg"
+                      class="rounded-start w-100 h-100"
+                      alt="Homestay Biển"
+                    />
+                  </div>
+                  <div class="col-md-7">
+                    <div class="card-body">
+                      <h5 class="card-title">Phòng VIP (2 người)</h5>
+                      <p class="mb-2">
+                        <strong>Giá từ:</strong> 1.200.000đ/đêm
+                      </p>
+                      <div class="mb-3">
+                        <span class="feature-badge">Bồn tắm</span>
+                        <span class="feature-badge">View biển</span>
+                      </div>
+                      <a href="#" class="btn btn-outline-primary btn-sm"
+                        >Xem chi tiết</a
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Homestay 2 -->
+        <div class="col-md-12 homestay-wrapper">
+          <h4>Villa Nhóm Đông</h4>
+          <p><strong>Địa điểm:</strong> Đà Lạt, Lâm Đồng</p>
+          <img
+            src="https://via.placeholder.com/1200x500?text=Villa+Nhóm+Đông"
+            class="img-fluid mb-4"
+            alt="Villa Nhóm Đông"
+          />
+          <div class="row gy-4">
+            <!-- Căn phòng 1 trong Homestay -->
+            <div class="col-md-6">
+              <div class="card shadow-sm homestay-card">
+                <div class="row g-0">
+                  <div class="col-md-5">
+                    <img
+                      src="https://via.placeholder.com/400x250?text=Homestay3"
+                      class="rounded-start w-100 h-100"
+                      alt="Homestay Nhóm"
+                    />
+                  </div>
+                  <div class="col-md-7">
+                    <div class="card-body">
+                      <h5 class="card-title">Phòng Nhóm (8-10 người)</h5>
+                      <p class="mb-2">
+                        <strong>Giá từ:</strong> 1.500.000đ/đêm
+                      </p>
+                      <div class="mb-3">
+                        <span class="feature-badge">BBQ ngoài trời</span>
+                        <span class="feature-badge">Sân thượng</span>
+                        <span class="feature-badge">Chỗ đậu xe</span>
+                      </div>
+                      <a href="#" class="btn btn-outline-primary btn-sm"
+                        >Xem chi tiết</a
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Căn phòng 2 trong Homestay -->
+            <div class="col-md-6">
+              <div class="card shadow-sm homestay-card">
+                <div class="row g-0">
+                  <div class="col-md-5">
+                    <img
+                      src="https://via.placeholder.com/400x250?text=Homestay4"
+                      class="rounded-start w-100 h-100"
+                      alt="Homestay Nhóm"
+                    />
+                  </div>
+                  <div class="col-md-7">
+                    <div class="card-body">
+                      <h5 class="card-title">Phòng Cao cấp (5-6 người)</h5>
+                      <p class="mb-2">
+                        <strong>Giá từ:</strong> 2.000.000đ/đêm
+                      </p>
+                      <div class="mb-3">
+                        <span class="feature-badge">Sân thượng</span>
+                        <span class="feature-badge">Bếp riêng</span>
+                      </div>
+                      <a href="#" class="btn btn-outline-primary btn-sm"
+                        >Xem chi tiết</a
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="bg-light py-4" style="width: 100%" id="LH">
+      <div class="container" style="margin-top: 20px">
+        <div class="row">
+          <!-- Cột Liên Hệ -->
+          <div class="col-md-4">
+            <h5 class="fw-bold">LIÊN HỆ CHÚNG TÔI</h5>
+            <p><i class="fas fa-envelope"></i> Email: 23521265@gm.uit.edu.vn</p>
+            <p><i class="fas fa-phone"></i> Số điện thoại: 080-678-963-210</p>
+            <p>
+              <i class="fas fa-map-marker-alt"></i> Địa chỉ: 183B/19, quận Cam,
+              thành phố Sài Gòn
+            </p>
+          </div>
+
+          <!-- Cột Mạng Xã Hội -->
+          <div class="col-md-4 text-left">
+            <h5 class="fw-bold">MẠNG XÃ HỘI</h5>
+            <p><i class="fab fa-instagram"></i> Instagram</p>
+            <p><i class="fab fa-facebook"></i> Facebook</p>
+            <p><i class="fab fa-youtube"></i> Youtube</p>
+            <p><i class="fab fa-twitter"></i> Twitter</p>
+          </div>
+
+          <!-- Cột Bản Đồ -->
+          <div class="col-md-4 text-end">
+            <h5 class="fw-bold">MAPS</h5>
+            <iframe
+              src="https://www.google.com/maps?q=Vũng+Tàu&output=embed"
+              width="100%"
+              height="150"
+              style="border: 0"
+              allowfullscreen=""
+              loading="lazy"
+            >
+            </iframe>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <div class="text-center mt-3">
+      <p class="mb-0">© 2025 - All Rights Reserved</p>
+    </div>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+      ;
+    ></script>
+    <script>
+      // Lấy query param từ URL
+      const params = new URLSearchParams(window.location.search);
+
+      // Đặt giá trị cho các input nếu tìm thấy
+      document.getElementById("checkin").value = params.get("checkin") || "";
+      document.getElementById("checkout").value = params.get("checkout") || "";
+      document.getElementById("adults").value = params.get("adults") || "0";
+      document.getElementById("children").value = params.get("children") || "0";
+    </script>
+  </body>
+</html>

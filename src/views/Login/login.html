@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng nhập</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background: linear-gradient(135deg, #f8f5f2, #f2e8dc);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      .auth-box {
+        background-color: #e1d0bf;
+        opacity: 90%;
+        padding: 40px 30px;
+        border-radius: 20px;
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.08);
+        width: 100%;
+        max-width: 400px;
+        position: relative;
+      }
+
+      .auth-box h3 {
+        text-align: center;
+        font-weight: 700;
+        margin-bottom: 30px;
+        color: #333;
+      }
+
+      .form-label {
+        font-weight: 600;
+      }
+
+      .btn-primary {
+        background-color: #000;
+        border: none;
+        width: 100%;
+        padding: 12px;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: background-color 0.3s ease;
+      }
+
+      .btn-primary:hover {
+        background-color: #333;
+      }
+
+      .btn-google {
+        background-color: #db4437;
+        color: white;
+        border: none;
+        width: 100%;
+        padding: 12px;
+        margin-top: 15px;
+        border-radius: 8px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.3s ease;
+      }
+
+      .btn-google:hover {
+        background-color: #c1352d;
+      }
+
+      .btn-google img {
+        width: 22px;
+        height: 22px;
+        margin-left: 12px;
+      }
+
+      .form-check-label {
+        font-size: 14px;
+        color: #555;
+      }
+
+      .toggle-auth {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 14px;
+      }
+
+      .toggle-auth a {
+        font-weight: 600;
+        color: #000;
+        text-decoration: none;
+      }
+
+      .toggle-auth a:hover {
+        text-decoration: underline;
+      }
+
+      .float-end.toggle-auth {
+        font-size: 14px;
+        color: #007bff;
+        margin-top: 5px;
+      }
+
+      .text-center.mt-3 {
+        font-size: 14px;
+        color: #888;
+      }
+      .close-btn {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        background: none;
+        border: none;
+        font-size: 22px;
+        font-weight: bold;
+        color: #888;
+        cursor: pointer;
+        transition: color 0.2s ease;
+      }
+
+      .close-btn:hover {
+        color: #000;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="auth-box">
+      <button
+        class="close-btn"
+        onclick="window.location.href='/src/views/Home/Home.html'"
+      >
+        &times;
+      </button>
+
+      <h3>Đăng nhập</h3>
+      <form action="/login" method="POST">
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          <input
+            type="email"
+            class="form-control"
+            name="email"
+            placeholder="Nhập email"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Mật khẩu</label>
+          <input
+            type="password"
+            class="form-control"
+            name="password"
+            placeholder="Nhập mật khẩu"
+            required
+          />
+        </div>
+        <div class="mb-3 d-flex justify-content-between align-items-center">
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" />
+            <label class="form-check-label">Ghi nhớ</label>
+          </div>
+          <a class="float-end toggle-auth" href="forgot.html">Quên mật khẩu?</a>
+        </div>
+        <button type="submit" class="btn btn-primary">Đăng nhập</button>
+        <div class="text-center mt-3">hoặc</div>
+        <button type="button" class="btn btn-google">
+          Đăng nhập bằng Google
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_2013_Google.png"
+            alt="Google"
+          />
+        </button>
+        <div class="toggle-auth">
+          Bạn chưa có tài khoản?
+          <a href="SignUp.html">Đăng ký ngay</a>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>
