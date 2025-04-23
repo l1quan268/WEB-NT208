@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Booking HomeStay</title>
+    <!-- styles bootstrap-->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <!-- css -->
+    <link rel="stylesheet" href="/styleshome.css" />
+    <!-- icon -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+  </head>
+  <body>
+    <nav
+      class="navbar navbar-expand-lg navbar-light bg-light"
+      style="
+        width: 100%;
+        opacity: 80%;
+        position: fixed;
+        z-index: 1000;
+        top: 0;
+        left: 0;
+      "
+    >
+      <!-- Logo bên trái -->
+      <a class="navbar-brand" href="/Home/Home.html">
+        <img
+          src="./image/image/logo/logo.jpg"
+          alt="Logo"
+          style="
+            margin: 0px;
+            padding: 0px;
+            width: 100px;
+            height: 100px;
+            position: absolute;
+            margin-top: -50px;
+            margin-left: 70px;
+          "
+          class="logo"
+        />
+      </a>
+      <div class="container kt">
+        <!-- Nút Toggle khi màn hình nhỏ -->
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Danh mục menu (Căn giữa) -->
+        <div
+          class="collapse navbar-collapse justify-content-center"
+          id="navbarNav"
+        >
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" href="Home.html" style="font-weight: bold"
+                >TRANG CHỦ</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#intro" style="font-weight: bold"
+                >GIỚI THIỆU</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#CH" style="font-weight: bold"
+                >CĂN HỘ</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#LH" style="font-weight: bold"
+                >LIÊN HỆ</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#DG" style="font-weight: bold"
+                >ĐÁNH GIÁ</a
+              >
+            </li>
+          </ul>
+        </div>
+
+        <!-- Nút Đăng nhập/Đăng xuất (Bên phải) -->
+        <% if (user) { %>
+        <div class="dropdown">
+          <button
+            class="btn btn-primary dropdown-toggle"
+            type="button"
+            id="dropdownMenuButton"
+            data-bs-toggle="dropdown"
+          >
+            Xin chào, <%= user.name %>
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <li><a class="dropdown-item" href="/profile">Hồ sơ</a></li>
+            <li><a class="dropdown-item" href="/logout">Đăng xuất</a></li>
+          </ul>
+        </div>
+        <% } else { %>
+        <button class="btn btn-primary" onclick="window.location.href='/login'">
+          ĐĂNG NHẬP
+        </button>
+        <% } %>
+      </div>
+    </nav>
+
+    <img src="image/main.jpg" alt="" width="100%" />
+
+    <form
+      class="d-flex flex-wrap justify-content-center p-3 rounded-5 mb-0"
+      style="margin-top: -70px; background-color: #e1d0bf; opacity: 95%"
+      action="/search"
+      method="get"
+    >
+      <!-- Ô nhập ngày nhận -->
+      <div class="m-2">
+        <label
+          for="checkin"
+          class="form-label"
+          style="
+            display: flex;
+            justify-content: center;
+            margin-top: 0;
+            color: #707070;
+            font-size: 18px;
+          "
+          >Ngày nhận</label
+        >
+        <input type="date" class="form-control" id="checkin" name="checkin" />
+      </div>
+
+      <!-- Ngày trả -->
+      <div class="m-2">
+        <label
+          for="checkout"
+          class="form-label"
+          style="
+            display: flex;
+            justify-content: center;
+            margin-top: 0;
+            color: #707070;
+            font-size: 18px;
+          "
+          >Ngày trả</label
+        >
+        <input type="date" class="form-control" id="checkout" name="checkout" />
+      </div>
+
+      <!-- Người lớn -->
+      <div class="m-2">
+        <label
+          for="adults"
+          class="form-label"
+          style="
+            display: flex;
+            justify-content: center;
+            margin-top: 0;
+            color: #707070;
+            font-size: 18px;
+          "
+          >Người lớn</label
+        >
+        <input type="number" class="form-control" id="adults" name="adults" />
+      </div>
+
+      <!-- Trẻ em -->
+      <div class="m-2">
+        <label
+          for="children"
+          class="form-label"
+          style="
+            display: flex;
+            justify-content: center;
+            margin-top: 0;
+            color: #707070;
+            font-size: 18px;
+          "
+          >Trẻ em</label
+        >
+        <input
+          type="number"
+          class="form-control"
+          id="children"
+          name="children"
+        />
+      </div>
+
+      <!-- Nút tìm -->
+      <div class="m-2 align-self-end">
+        <button type="submit" class="btn btn-dark">Tìm</button>
+      </div>
+    </form>
+
+    <div class="container custom-container" style="margin-top: 5px">
+      <div class="row align-items-center">
+        <div class="col-md-6 image-container">
+          <img
+            src="./image/home.jpg"
+            alt="Sweet-Home Vũng Tàu"
+            class="imagehome"
+          />
+        </div>
+        <div class="col-md-6 content" id="intro">
+          <br />
+          <br />
+          <h2>MỘT CẤP ĐỘ HOÀN TOÀN MỚI CỦA SWEET-HOME VŨNG TÀU</h2>
+          <p>
+            Bạn đang tìm kiếm một không gian nghỉ dưỡng lý tưởng tại Vũng Tàu?
+            Sweethome Vũng Tàu chính là lựa chọn hoàn hảo dành cho bạn! Với hệ
+            thống homestay hiện đại, đầy đủ tiện nghi, chúng tôi mang đến cho
+            bạn một kỳ nghỉ thoải mái như ở chính ngôi nhà của mình.
+          </p>
+          <p>
+            Không gian ấm cúng & tiện nghi: Mỗi homestay tại Sweathome được
+            thiết kế theo phong cách tinh tế, gần gũi với thiên nhiên, có phòng
+            khách, bếp, phòng ngủ rộng rãi và ban công thoáng đãng.
+          </p>
+          <p>
+            Vị trí thuận lợi: Nằm gần bãi biển Vũng Tàu, chỉ mất vài phút di
+            chuyển, bạn có thể tận hưởng không khí trong lành, tắm biển hay khám
+            phá các điểm du lịch nổi tiếng.
+          </p>
+          <p>
+            Dịch vụ chuyên nghiệp: Chúng tôi cung cấp nhiều tiện ích như bếp tự
+            nấu, BBQ ngoài trời, xe đạp miễn phí, hỗ trợ đặt tour tham quan, đảm
+            bảo mang đến trải nghiệm trọn vẹn nhất cho khách hàng.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="villa-container" id="CH">
+      <h5 class="text-uppercase text-muted">Ưu đãi trong ngày</h5>
+      <h2 class="mb-4">Nơi sự thư giãn hòa quyện với sự sang trọng</h2>
+
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+          <div class="villa-card">
+            <img src="./image/image/home1.jpg" alt="Villa 1" />
+            <div class="villa-info">
+              <h6>Yellow House Vũng Tàu</h6>
+              <ul>
+                <li>Phường 11</li>
+                <li>4 phòng ngủ</li>
+                <li>Sân vườn BBQ</li>
+                <li>8 người</li>
+              </ul>
+              <a href="#">>> Xem chi tiết</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="villa-card">
+            <img src="./image/image/home2.jpg" alt="Villa 2" />
+            <div class="villa-info">
+              <h6>BL Villa Vũng Tàu</h6>
+              <ul>
+                <li>Phường 11</li>
+                <li>3 phòng ngủ</li>
+                <li>View đẹp</li>
+                <li>6 người</li>
+              </ul>
+              <a href="#">>> Xem chi tiết</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="villa-card">
+            <img src="./image/image/home3.jpg" alt="Villa 3" />
+            <div class="villa-info">
+              <h6>Daisy 18 Villa</h6>
+              <ul>
+                <li>Phường 4</li>
+                <li>6 phòng ngủ</li>
+                <li>BBQ</li>
+                <li>18 người</li>
+              </ul>
+              <a href="#">>> Xem chi tiết</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="villa-card">
+            <img src="./image/image/home4.jpg" alt="Villa 4" />
+            <div class="villa-info">
+              <h6>Chill Home Vũng Tàu</h6>
+              <ul>
+                <li>Phường 10</li>
+                <li>2 phòng ngủ</li>
+                <li>BBQ</li>
+                <li>6 người</li>
+              </ul>
+              <a href="#">>> Xem chi tiết</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="villa-card">
+            <img src="./image/image/home5.jpg" alt="Villa 5" />
+            <div class="villa-info">
+              <h6>Linh 2 Villa</h6>
+              <ul>
+                <li>Phường 9</li>
+                <li>5 phòng ngủ</li>
+                <li>Sân BBQ</li>
+                <li>10 người</li>
+              </ul>
+              <a href="#">>> Xem chi tiết</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="villa-card">
+            <img src="./image/image/home6.jpg" alt="Villa 6" />
+            <div class="villa-info">
+              <h6>Nery 2 Villa</h6>
+              <ul>
+                <li>Phường 11</li>
+                <li>4 phòng ngủ</li>
+                <li>Sân BBQ</li>
+                <li>8 người</li>
+              </ul>
+              <a href="#">>> Xem chi tiết</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="villa-card">
+            <img src="./image/image/home7.jpg" alt="Villa 7" />
+            <div class="villa-info">
+              <h6>Daisy 8 Villa</h6>
+              <ul>
+                <li>Phường 10</li>
+                <li>3 phòng ngủ</li>
+                <li>View rừng thông</li>
+                <li>10 người</li>
+              </ul>
+              <a href="#">>> Xem chi tiết</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="villa-card">
+            <img src="./image/image/home8.jpg" alt="Villa 8" />
+            <div class="villa-info">
+              <h6>Sunny Villa</h6>
+              <ul>
+                <li>Phường 8</li>
+                <li>8 phòng ngủ</li>
+                <li>Sân vườn</li>
+                <li>24 người</li>
+              </ul>
+              <a href="#">>> Xem chi tiết</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        class="btn-view-more"
+        style="background-color: #e1d0bf; opacity: 90%"
+      >
+        <a
+          href="/src/views/Search/Search.html"
+          style="text-decoration: none; color: #a48464"
+          >XEM THÊM</a
+        >
+      </button>
+    </div>
+
+    <div class="service-section">
+      <img src="./image/image/bbq.jpg" alt="BBQ Party" />
+      <div class="service-content">
+        <h6 class="text-uppercase text-muted">Dịch Vụ Của Chúng Tôi</h6>
+        <h2>Mang đến những khoảnh khắc khó quên</h2>
+        <ul class="service-list">
+          <li><i class="fas fa-golf-ball"></i> Free Wifi</li>
+          <li><i class="fas fa-dumbbell"></i> Bể bơi</li>
+          <li><i class="fas fa-swimmer"></i> Tour tham quan địa phương</li>
+          <li><i class="fas fa-utensils"></i> Bữa ăn ngoài trời</li>
+          <li><i class="fas fa-car"></i> Thuê xe miễn phí</li>
+          <li><i class="fas fa-spa"></i> Ngoài ra còn nhiều dịch vụ khác</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Tiện ích Homestay Nổi Bật -->
+    <section class="container py-5" style="border-radius: 1rem">
+      <h3 class="text-center mb-5 fw-bold">
+        ✨ Tiện ích nổi bật của Homestay ✨
+      </h3>
+
+      <div class="row g-4">
+        <!-- Tiện ích cơ bản -->
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100 border-0 shadow hover-shadow rounded-4">
+            <div class="card-body">
+              <div class="mb-3 d-flex align-items-center">
+                <div
+                  class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-3"
+                  style="width: 50px; height: 50px; font-size: 1.5rem"
+                >
+                  🌐
+                </div>
+                <h5 class="mb-0 fw-semibold">Tiện ích cơ bản</h5>
+              </div>
+              <ul class="list-unstyled ps-3">
+                <li>• Free Wifi</li>
+                <li>• Điều hòa nhiệt độ</li>
+                <li>• Tủ lạnh mini</li>
+                <li>• TV màn hình phẳng</li>
+                <li>• Máy sấy tóc</li>
+                <li>• Bàn làm việc</li>
+                <li>• Ấm đun nước điện</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tiện nghi phòng -->
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100 border-0 shadow hover-shadow rounded-4">
+            <div class="card-body">
+              <div class="mb-3 d-flex align-items-center">
+                <div
+                  class="bg-success text-white rounded-circle d-flex justify-content-center align-items-center me-3"
+                  style="width: 50px; height: 50px; font-size: 1.5rem"
+                >
+                  🛏
+                </div>
+                <h5 class="mb-0 fw-semibold">Tiện nghi phòng</h5>
+              </div>
+              <ul class="list-unstyled ps-3">
+                <li>• Giường King-size</li>
+                <li>• Phòng tắm riêng</li>
+                <li>• Ban công riêng</li>
+                <li>• View đẹp</li>
+                <li>• Máy giặt riêng</li>
+                <li>• Bồn tắm</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dịch vụ hỗ trợ -->
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100 border-0 shadow hover-shadow rounded-4">
+            <div class="card-body">
+              <div class="mb-3 d-flex align-items-center">
+                <div
+                  class="bg-warning text-white rounded-circle d-flex justify-content-center align-items-center me-3"
+                  style="width: 50px; height: 50px; font-size: 1.5rem"
+                >
+                  🧼
+                </div>
+                <h5 class="mb-0 fw-semibold">Dịch vụ hỗ trợ</h5>
+              </div>
+              <ul class="list-unstyled ps-3">
+                <li>• Dọn phòng hàng ngày</li>
+                <li>• Giặt là</li>
+                <li>• Lễ tân 24/7</li>
+                <li>• Gửi hành lý</li>
+                <li>• Shuttle sân bay</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ăn uống -->
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100 border-0 shadow hover-shadow rounded-4">
+            <div class="card-body">
+              <div class="mb-3 d-flex align-items-center">
+                <div
+                  class="bg-danger text-white rounded-circle d-flex justify-content-center align-items-center me-3"
+                  style="width: 50px; height: 50px; font-size: 1.5rem"
+                >
+                  🍽
+                </div>
+                <h5 class="mb-0 fw-semibold">Ăn uống</h5>
+              </div>
+              <ul class="list-unstyled ps-3">
+                <li>• Bữa sáng miễn phí</li>
+                <li>• Nhà hàng tại chỗ</li>
+                <li>• Bếp riêng</li>
+                <li>• BBQ ngoài trời</li>
+                <li>• Mini bar</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Giải trí -->
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100 border-0 shadow hover-shadow rounded-4">
+            <div class="card-body">
+              <div class="mb-3 d-flex align-items-center">
+                <div
+                  class="bg-info text-white rounded-circle d-flex justify-content-center align-items-center me-3"
+                  style="width: 50px; height: 50px; font-size: 1.5rem"
+                >
+                  🏊
+                </div>
+                <h5 class="mb-0 fw-semibold">Giải trí & Thể thao</h5>
+              </div>
+              <ul class="list-unstyled ps-3">
+                <li>• Hồ bơi</li>
+                <li>• Phòng gym</li>
+                <li>• Thuê xe</li>
+                <li>• Tour địa phương</li>
+                <li>• Khu vui chơi</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- An toàn -->
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100 border-0 shadow hover-shadow rounded-4">
+            <div class="card-body">
+              <div class="mb-3 d-flex align-items-center">
+                <div
+                  class="bg-dark text-white rounded-circle d-flex justify-content-center align-items-center me-3"
+                  style="width: 50px; height: 50px; font-size: 1.5rem"
+                >
+                  🔐
+                </div>
+                <h5 class="mb-0 fw-semibold">An toàn & Bảo mật</h5>
+              </div>
+              <ul class="list-unstyled ps-3">
+                <li>• Camera an ninh</li>
+                <li>• Két sắt</li>
+                <li>• Thẻ từ</li>
+                <li>• Bảo vệ 24/7</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div
+      class="container py-5 row justify-content-center"
+      style="background-color: white"
+    >
+      <h3 class="text-center text-muted mb-4">Nhận xét của các chuyên gia</h3>
+
+      <!-- Chuyên gia nhận xét -->
+      <div class="row g-4 justify-content-center">
+        <!-- Card 1 -->
+        <div class="col-md-4">
+          <div class="card shadow-sm border-0 rounded-4 text-center p-3">
+            <img
+              src="https://i.postimg.cc/L5QZbyWW/Anh-profile-57.webp"
+              class="rounded-circle mx-auto"
+              style="width: 90px; height: 90px"
+              alt="Avatar"
+            />
+            <h6 class="mt-3 mb-1 fw-bold text-warning">Trương Nam</h6>
+            <div class="text-warning mb-2">⭐⭐⭐⭐⭐</div>
+            <p class="text-muted small">
+              Nơi này khiến tôi có cảm giác như ở nhà, làm tôi cảm thấy rất
+              thoải mái và dễ chịu
+            </p>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="col-md-4">
+          <div class="card shadow-sm border-0 rounded-4 text-center p-3">
+            <img
+              src="https://i.postimg.cc/76VzgPnw/hinh-anh-chan-dung.jpg"
+              class="rounded-circle mx-auto"
+              style="width: 90px; height: 90px"
+              alt="Avatar"
+            />
+            <h6 class="mt-3 mb-1 fw-bold text-warning">Xuân Mai</h6>
+            <div class="text-warning mb-2">⭐⭐⭐⭐⭐</div>
+            <p class="text-muted small">
+              Vâng khá là tuyệt nhỉ mọi người, tôi thích dịch vụ ở đây. Nhân
+              viên khá là thân thiện
+            </p>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="col-md-4">
+          <div class="card shadow-sm border-0 rounded-4 text-center p-3">
+            <img
+              src="https://i.postimg.cc/m2h9HszW/Anh-chan-dung.jpg"
+              class="rounded-circle mx-auto"
+              style="width: 90px; height: 90px"
+              alt="Avatar"
+            />
+            <h6 class="mt-3 mb-1 fw-bold text-warning">Bảo Ngọc</h6>
+            <div class="text-warning mb-2">⭐⭐⭐⭐⭐</div>
+            <p class="text-muted small">
+              Bữa tiệc ngoài trời khá thú vị, điều đó giúp tôi có thể kết bạn
+              với nhau
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Đánh giá khách hàng -->
+      <div class="text-center my-5">
+        <hr class="w-25 mx-auto border-2 border-secondary opacity-50 mb-2" />
+        <h5 class="fw-bold text-uppercase">Đánh Giá Của Khách Hàng</h5>
+        <hr class="w-25 mx-auto border-2 border-secondary opacity-50 mt-2" />
+      </div>
+
+      <div class="col-md-7">
+        <div class="review-section">
+          <h5 class="text-center fw-bold" style="margin-bottom: 30px">
+            ĐỂ LẠI LỜI NHẬN XÉT CHO CHÚNG TÔI
+          </h5>
+          <form>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Họ và tên"
+                />
+              </div>
+              <div class="col-md-6">
+                <input type="email" class="form-control" placeholder="Email" />
+              </div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Số điện thoại"
+                />
+              </div>
+              <div class="col-md-6 d-flex align-items-center">
+                <div class="star-rating">
+                  <i class="fas fa-star" data-value="1"></i>
+                  <i class="fas fa-star" data-value="2"></i>
+                  <i class="fas fa-star" data-value="3"></i>
+                  <i class="fas fa-star" data-value="4"></i>
+                  <i class="fas fa-star" data-value="5"></i>
+                </div>
+              </div>
+            </div>
+            <div class="mb-3">
+              <textarea
+                class="form-control"
+                rows="4"
+                placeholder="Nhận xét"
+              ></textarea>
+            </div>
+            <div class="text-center">
+              <button type="reset" class="btn btn-light me-2">Xóa</button>
+              <button
+                type="submit"
+                class="btn btn-warning"
+                style="
+                  --bs-btn-bg: #a48464a3;
+                  --bs-btn-border-color: none;
+                  --bs-btn-hover-bg: #a48464;
+                  opacity: 80%;
+                  border-color: none;
+                "
+              >
+                Gửi
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <footer class="bg-light py-4" style="width: 100%" id="LH">
+      <div class="container" style="margin-top: 20px">
+        <div class="row">
+          <!-- Cột Liên Hệ -->
+          <div class="col-md-4">
+            <h5 class="fw-bold">LIÊN HỆ CHÚNG TÔI</h5>
+            <p><i class="fas fa-envelope"></i> Email: 23521265@gm.uit.edu.vn</p>
+            <p><i class="fas fa-phone"></i> Số điện thoại: 080-678-963-210</p>
+            <p>
+              <i class="fas fa-map-marker-alt"></i> Địa chỉ: 183B/19, quận Cam,
+              thành phố Sài Gòn
+            </p>
+          </div>
+
+          <!-- Cột Mạng Xã Hội -->
+          <div class="col-md-4 text-left">
+            <h5 class="fw-bold">MẠNG XÃ HỘI</h5>
+            <a
+              href="https://www.instagram.com"
+              target="_blank"
+              class="d-block text-decoration-none text-dark mb-2"
+            >
+              <i class="fab fa-instagram"></i> Instagram
+            </a>
+            <a
+              href="https://www.facebook.com"
+              target="_blank"
+              class="d-block text-decoration-none text-dark mb-2"
+            >
+              <i class="fab fa-facebook"></i> Facebook
+            </a>
+            <a
+              href="https://www.youtube.com"
+              target="_blank"
+              class="d-block text-decoration-none text-dark mb-2"
+            >
+              <i class="fab fa-youtube"></i> Youtube
+            </a>
+            <a
+              href="https://www.twitter.com"
+              target="_blank"
+              class="d-block text-decoration-none text-dark mb-2"
+            >
+              <i class="fab fa-twitter"></i> Twitter
+            </a>
+          </div>
+
+          <!-- Cột Bản Đồ -->
+          <div class="col-md-4 text-end">
+            <h5 class="fw-bold">MAPS</h5>
+            <iframe
+              src="https://www.google.com/maps?q=Vũng+Tàu&output=embed"
+              width="100%"
+              height="150"
+              style="border: 0"
+              allowfullscreen=""
+              loading="lazy"
+            >
+            </iframe>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <div class="text-center mt-3">
+      <p class="mb-0">© 2025 - All Rights Reserved</p>
+    </div>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+      ;
+    ></script>
+
+    <script>
+      // Xử lý chọn sao đánh giá
+      document.querySelectorAll(".star-rating i").forEach((star) => {
+        star.addEventListener("click", function () {
+          let value = this.getAttribute("data-value");
+          document.querySelectorAll(".star-rating i").forEach((s) => {
+            s.classList.remove("active");
+            if (s.getAttribute("data-value") <= value) {
+              s.classList.add("active");
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
