@@ -28,6 +28,7 @@ let initWebRoutes = (app) => {
       `Session count: ${req.session.count}, Session ID: ${req.sessionID}`
     );
   });
+  return app.use("/", router);
 };
 
 module.exports = initWebRoutes;
