@@ -149,14 +149,26 @@ let postLogin = async (req, res) => {
 };
 
 let getLogout = (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.log(err);
-    }
-    res.redirect("/");
-  });
-};
+  // Kiểm tra xem session có tồn tại không
+  if (req.session) {
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Lỗi khi đăng xuất:", err);
+        // Nếu có lỗi, chuyển hướng về trang chủ với thông báo lỗi (nếu bạn có cơ chế hiển thị flash message)
+        return res.redirect("/?logoutError=1");
+      }
 
+      // Xóa cookie session (nếu sử dụng cookie-based session)
+      res.clearCookie("connect.sid"); // hoặc tên cookie session của bạn
+
+      // Chuyển hướng về trang chủ với thông báo đăng xuất thành công
+      res.redirect("/?logoutSuccess=1");
+    });
+  } else {
+    // Nếu không có session, vẫn chuyển hướng về trang chủ
+    res.redirect("/");
+  }
+};
 let searchRoom = async (req, res) => {
   const checkin = req.query.checkin || "";
   const checkout = req.query.checkout || "";

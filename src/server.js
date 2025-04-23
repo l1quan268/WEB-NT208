@@ -4,6 +4,7 @@ import session from "express-session"; // Thêm dòng này
 import viewEngine from "./config/viewEngine";
 import initWebRoutes from "./route/web";
 import connectDB from "./config/connectDb";
+import passport from "./config/passport";
 require("dotenv").config();
 
 const app = express();
@@ -21,6 +22,8 @@ app.use(
     },
   })
 );
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Các middleware khác (giữ nguyên)
 app.use(bodyParser.json());

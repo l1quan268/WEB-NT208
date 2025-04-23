@@ -99,8 +99,41 @@ let handleUserLogin = async (email, password) => {
     }
   });
 };
+let getUserById = async (user_id) => {
+  try {
+    const user = await db.User.findOne({ where: { user_id } });
+    return user;
+  } catch (error) {
+    throw error;
+  }
+};
+let findOrCreateGoogleUser = async (profile) => {
+  try {
+    let user = await db.User.findOne({
+      where: { email: profile.emails[0].value },
+    });
+
+    if (user) {
+      return user;
+    }
+
+    // Nếu chưa có user, tạo mới
+    let newUser = await db.User.create({
+      name: profile.displayName,
+      email: profile.emails[0].value,
+      gender: "male", // Hoặc profile.gender nếu Google trả về
+      password_hash: "", // Vì dùng Google nên không cần mật khẩu
+    });
+
+    return newUser;
+  } catch (error) {
+    throw error;
+  }
+};
 
 module.exports = {
   createUser: createNewUser,
   handleUserLogin: handleUserLogin,
+  getUserById: getUserById,
+  findOrCreateGoogleUser: findOrCreateGoogleUser,
 };
