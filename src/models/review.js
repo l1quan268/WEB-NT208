@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.BIGINT,
         allowNull: false,
       },
-      homestay_id: {
+      room_type_id: {
         type: DataTypes.BIGINT,
         allowNull: false,
       },

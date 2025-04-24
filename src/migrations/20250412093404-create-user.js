@@ -25,7 +25,7 @@ module.exports = {
       },
       password_hash: {
         type: Sequelize.STRING(255),
-        allowNull: false,
+        allowNull: true,
       },
       reset_token_hash: {
         type: Sequelize.STRING(64),

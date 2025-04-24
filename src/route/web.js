@@ -1,7 +1,6 @@
 import express from "express";
 import homeController from "../controllers/homeController";
 import passport from "passport";
-
 let router = express.Router();
 
 let initWebRoutes = (app) => {
@@ -44,6 +43,11 @@ let initWebRoutes = (app) => {
       res.redirect("/");
     }
   );
+
+  router.get("/forget-password", homeController.getForgotPassword);
+  router.post("/forget-password", homeController.postForgotPassword);
+  router.get("/reset-password/:token", homeController.getResetPassword);
+  router.post("/reset-password/:token", homeController.postResetPassword);
 
   router.get("/test-session", (req, res) => {
     if (!req.session) {

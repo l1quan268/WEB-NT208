@@ -13,21 +13,21 @@ module.exports = {
         type: Sequelize.BIGINT,
         allowNull: false,
         references: {
-          model: 'Users',
-          key: 'user_id',
+          model: "Users",
+          key: "user_id",
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT',
+        onUpdate: "CASCADE",
+        onDelete: "RESTRICT",
       },
-      homestay_id: {
+      room_type_id: {
         type: Sequelize.BIGINT,
         allowNull: false,
         references: {
-          model: 'Homestays',
-          key: 'homestay_id',
+          model: "RoomTypes",
+          key: "room_type_id",
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT',
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
       rating: {
         type: Sequelize.INTEGER,
@@ -40,12 +40,12 @@ module.exports = {
       created_at: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
       },
     });
 
-    await queryInterface.addIndex('Reviews', ['user_id']);
-    await queryInterface.addIndex('Reviews', ['homestay_id']);
+    await queryInterface.addIndex("Reviews", ["user_id"]);
+    await queryInterface.addIndex("Reviews", ["room_type_id"]);
   },
 
   async down(queryInterface, Sequelize) {
