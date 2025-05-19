@@ -27,7 +27,7 @@ let getSignUp = (req, res) => {
 let getLogin = (req, res) => {
   return res.render("Login/login.ejs", {
     error: null,
-    success: null, // Thêm dòng này
+    success: null,
   });
 };
 
@@ -198,7 +198,8 @@ let postForgotPassword = async (req, res) => {
     // Tạo token ngẫu nhiên
     const token = crypto.randomBytes(32).toString("hex");
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-
+    console.log("Token gửi qua email:", token);
+    console.log("Token được lưu vào DB (băm):", hashedToken);
     // Lưu token và hạn sử dụng vào DB
     await db.User.update(
       {
