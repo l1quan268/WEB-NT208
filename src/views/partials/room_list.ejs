@@ -1,0 +1,88 @@
+<div class="row">
+  <% if (rooms.length === 0) { %>
+  <p>Không tìm thấy phòng phù hợp.</p>
+  <% } %> <% rooms.forEach(room => { %>
+  <div class="col-md-6 col-lg-4 mb-4">
+    <div
+      class="card h-100 d-flex flex-column shadow-sm border-0"
+      style="transition: 0.3s"
+    >
+      <img
+        src="<%= room.thumbnail %>"
+        class="card-img-top"
+        alt="<%= room.name %>"
+        style="height: 180px; object-fit: cover"
+      />
+
+      <div class="card-body d-flex flex-column">
+        <h5 class="card-title mb-2 fw-semibold"><%= room.name %></h5>
+
+        <% if (room.price < 500000) { %>
+        <span
+          class="badge rounded-pill mb-1 px-3 py-1 text-white"
+          style="background-color: #28a745"
+          >🌼 Tiết kiệm</span
+        >
+        <% } %> <% if (room.avg_rating && room.avg_rating >= 4.5) { %>
+        <span
+          class="badge rounded-pill mb-2 px-3 py-1 text-white"
+          style="background-color: #dc3545"
+          >🔥 Yêu thích</span
+        >
+        <% } %> <% if (room.avg_rating) { %>
+        <p class="text-warning mb-2">
+          ⭐ <%= room.avg_rating %>/5
+          <span class="text-muted">(<%= room.review_count %> đánh giá)</span>
+        </p>
+        <% } %> <% if (room.available_after) { %>
+        <p class="text-danger mb-2" style="font-size: 0.9rem; font-weight: 500">
+          ⚠️ Phòng hiện đã được đặt. Có sẵn sau
+          <strong>
+            <%= new Date(room.available_after).toLocaleDateString("vi-VN")
+            %></strong
+          >
+        </p>
+        <% } %>
+        <p class="card-text flex-grow-1" style="font-size: 0.95rem">
+          <strong>Mô tả:</strong>
+          <% if (room.description?.toLowerCase().includes("nhà nguyên căn")) {
+          %> Nhà nguyên căn <% } else if
+          (room.description?.toLowerCase().includes("phòng riêng trong căn hộ"))
+          { %> Phòng riêng trong căn hộ <% } else { %> Không xác định <% } %>
+          <br />
+
+          <strong>Giá:</strong>
+          <span class="price-tag">
+            <%= Number(room.price).toLocaleString('vi-VN', { style: 'currency',
+            currency: 'VND' }) %>
+          </span>
+          <small class="text-muted"> / đêm</small><br />
+
+          <strong>Địa chỉ:</strong> <%= room.address %><br />
+
+          <strong>Dịch vụ:</strong>
+          <% if (room.services?.length) { %> <% room.services.forEach(service =>
+          { %>
+          <span class="service-badge d-inline-block"><%= service %></span>
+          <% }) %> <% } else { %>
+          <span class="text-muted">Không có</span>
+          <% } %>
+        </p>
+
+        <a
+          href="#"
+          class="btn mt-auto px-3 py-2 fw-semibold"
+          style="
+            background-color: #a59a81;
+            color: white;
+            border-radius: 30px;
+            transition: 0.2s;
+          "
+        >
+          Xem chi tiết
+        </a>
+      </div>
+    </div>
+  </div>
+  <% }) %>
+</div>

@@ -13,6 +13,7 @@ let initWebRoutes = (app) => {
   router.get("/logout", homeController.getLogout);
 
   router.get("/search", homeController.searchRoom);
+  router.get("/search/ajax", homeController.searchRoomAjax);
 
   // Bắt đầu quá trình xác thực với Google
   router.get(

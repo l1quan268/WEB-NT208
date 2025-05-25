@@ -48,3 +48,77 @@
   --bs-btn-disabled-bg: #0d6efd;
   --bs-btn-disabled-border-color: #0d6efd;
 }
+.nav_bar {
+  width: 100%;
+  background-color: #e1d0bf;
+  opacity: 75%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 0px;
+  position: fixed;
+}
+@media (max-width: 992px) {
+  .logo {
+    display: none;
+  }
+  .kt {
+    padding-left: 0;
+  }
+}
+.card {
+  transition: 0.3s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+}
+.search-box {
+  background-color: #e7ded1;
+  border-radius: 30px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 950px;
+  margin: 120px auto 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.badge {
+  font-size: 0.85rem;
+  padding: 5px 10px;
+  border-radius: 15px;
+}
+.service-badge {
+  background-color: #f5f0e6; /* sáng hơn, nhẹ nhàng hơn */
+  color: #5a4a3b; /* nâu đậm dễ đọc */
+  font-size: 0.85rem;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* nhẹ thôi */
+}
+.price-tag {
+  /* background-color: #f5f0e6; */
+  color: #5a4a3b;
+  font-weight: 600;
+  /* padding: 10px; */
+  border-radius: 12px;
+  display: inline-block;
+}
+.service-badge {
+  background-color: #f5f0e6;
+  color: #5a4a3b;
+  font-size: 0.85rem;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+  margin-right: 6px;
+  margin-bottom: 6px;
+  display: inline-block;
+  vertical-align: middle;
+}

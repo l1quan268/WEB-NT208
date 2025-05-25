@@ -273,141 +273,87 @@
     </div>
     <div class="villa-container" id="CH">
       <h5 class="text-uppercase text-muted">Ưu đãi trong ngày</h5>
+      <!-- Home.ejs - Danh sách 8 phòng + Xem tất cả -->
       <h2 class="mb-4">Nơi sự thư giãn hòa quyện với sự sang trọng</h2>
+      <div class="row mt-3">
+        <% if (rooms.length === 0) { %>
+        <p>Không có phòng nào để hiển thị.</p>
+        <% } %> <% rooms.slice(0, 8).forEach(function(room) { %>
+        <div class="col-md-6 col-lg-3 mb-4">
+          <div
+            class="card h-100 d-flex flex-column shadow-sm border-0"
+            style="transition: 0.3s"
+          >
+            <img
+              src="<%= room.thumbnail %>"
+              class="card-img-top"
+              alt="<%= room.name %>"
+              style="height: 180px; object-fit: cover"
+            />
+            <div class="card-body d-flex flex-column">
+              <h5 class="card-title mb-2 fw-semibold"><%= room.name %></h5>
 
-      <div class="row g-4">
-        <div class="col-md-6 col-lg-3">
-          <div class="villa-card">
-            <img src="./image/image/home1.jpg" alt="Villa 1" />
-            <div class="villa-info">
-              <h6>Yellow House Vũng Tàu</h6>
-              <ul>
-                <li>Phường 11</li>
-                <li>4 phòng ngủ</li>
-                <li>Sân vườn BBQ</li>
-                <li>8 người</li>
-              </ul>
-              <a href="#">>> Xem chi tiết</a>
+              <% if (room.price < 500000) { %>
+              <span
+                class="badge rounded-pill mb-1 px-3 py-1 text-white"
+                style="background-color: #28a745"
+                >🌼 Tiết kiệm</span
+              >
+              <% } %> <% if (room.avg_rating && room.avg_rating >= 4.5) { %>
+              <span
+                class="badge rounded-pill mb-2 px-3 py-1 text-white"
+                style="background-color: #dc3545"
+                >🔥 Yêu thích</span
+              >
+              <% } %> <% if (room.avg_rating) { %>
+              <p class="text-warning mb-2">
+                ⭐ <%= room.avg_rating %>/5
+                <span class="text-muted"
+                  >(<%= room.review_count %> đánh giá)</span
+                >
+              </p>
+              <% } %>
+
+              <p class="card-text flex-grow-1" style="font-size: 0.95rem">
+                <strong>Giá:</strong>
+                <%= Number(room.price).toLocaleString('vi-VN', { style:
+                'currency', currency: 'VND' }) %>
+                <small class="text-muted"> / đêm</small><br />
+
+                <strong>Địa chỉ:</strong> <%= room.address %><br />
+
+                <strong>Dịch vụ:</strong>
+                <% if (room.services && room.services.length > 0) { %> <%
+                room.services.forEach(function(service) { %>
+                <span class="badge bg-secondary me-1"><%= service %></span>
+                <% }) %> <% } else { %>
+                <span class="text-muted">Không có</span>
+                <% } %>
+              </p>
+
+              <a
+                href="#"
+                class="btn mt-auto px-3 py-2 fw-semibold"
+                style="
+                  background-color: #a59a81;
+                  color: white;
+                  border-radius: 30px;
+                  transition: 0.2s;
+                "
+              >
+                Xem chi tiết
+              </a>
             </div>
           </div>
         </div>
-        <div class="col-md-6 col-lg-3">
-          <div class="villa-card">
-            <img src="./image/image/home2.jpg" alt="Villa 2" />
-            <div class="villa-info">
-              <h6>BL Villa Vũng Tàu</h6>
-              <ul>
-                <li>Phường 11</li>
-                <li>3 phòng ngủ</li>
-                <li>View đẹp</li>
-                <li>6 người</li>
-              </ul>
-              <a href="#">>> Xem chi tiết</a>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6 col-lg-3">
-          <div class="villa-card">
-            <img src="./image/image/home3.jpg" alt="Villa 3" />
-            <div class="villa-info">
-              <h6>Daisy 18 Villa</h6>
-              <ul>
-                <li>Phường 4</li>
-                <li>6 phòng ngủ</li>
-                <li>BBQ</li>
-                <li>18 người</li>
-              </ul>
-              <a href="#">>> Xem chi tiết</a>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6 col-lg-3">
-          <div class="villa-card">
-            <img src="./image/image/home4.jpg" alt="Villa 4" />
-            <div class="villa-info">
-              <h6>Chill Home Vũng Tàu</h6>
-              <ul>
-                <li>Phường 10</li>
-                <li>2 phòng ngủ</li>
-                <li>BBQ</li>
-                <li>6 người</li>
-              </ul>
-              <a href="#">>> Xem chi tiết</a>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6 col-lg-3">
-          <div class="villa-card">
-            <img src="./image/image/home5.jpg" alt="Villa 5" />
-            <div class="villa-info">
-              <h6>Linh 2 Villa</h6>
-              <ul>
-                <li>Phường 9</li>
-                <li>5 phòng ngủ</li>
-                <li>Sân BBQ</li>
-                <li>10 người</li>
-              </ul>
-              <a href="#">>> Xem chi tiết</a>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6 col-lg-3">
-          <div class="villa-card">
-            <img src="./image/image/home6.jpg" alt="Villa 6" />
-            <div class="villa-info">
-              <h6>Nery 2 Villa</h6>
-              <ul>
-                <li>Phường 11</li>
-                <li>4 phòng ngủ</li>
-                <li>Sân BBQ</li>
-                <li>8 người</li>
-              </ul>
-              <a href="#">>> Xem chi tiết</a>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6 col-lg-3">
-          <div class="villa-card">
-            <img src="./image/image/home7.jpg" alt="Villa 7" />
-            <div class="villa-info">
-              <h6>Daisy 8 Villa</h6>
-              <ul>
-                <li>Phường 10</li>
-                <li>3 phòng ngủ</li>
-                <li>View rừng thông</li>
-                <li>10 người</li>
-              </ul>
-              <a href="#">>> Xem chi tiết</a>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6 col-lg-3">
-          <div class="villa-card">
-            <img src="./image/image/home8.jpg" alt="Villa 8" />
-            <div class="villa-info">
-              <h6>Sunny Villa</h6>
-              <ul>
-                <li>Phường 8</li>
-                <li>8 phòng ngủ</li>
-                <li>Sân vườn</li>
-                <li>24 người</li>
-              </ul>
-              <a href="#">>> Xem chi tiết</a>
-            </div>
-          </div>
-        </div>
+        <% }) %>
       </div>
 
-      <button
-        class="btn-view-more"
-        style="background-color: #e1d0bf; opacity: 90%"
-      >
-        <a
-          href="/src/views/Search/Search.html"
-          style="text-decoration: none; color: #a48464"
-          >XEM THÊM</a
+      <div class="text-center mt-4">
+        <a href="/search" class="btn btn-outline-dark px-4 py-2 fw-semibold"
+          >XEM TẤT CẢ</a
         >
-      </button>
+      </div>
     </div>
 
     <div class="service-section">

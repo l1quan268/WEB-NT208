@@ -2,220 +2,104 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Booking Homestay</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    />
+    <title>Trang chủ</title>
     <style>
-      body {
-        font-family: "Roboto", sans-serif;
+      .room-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
       }
-      .feature-badge {
-        display: inline-block;
-        background-color: #e9ecef;
-        padding: 5px 10px;
-        border-radius: 15px;
-        margin-right: 5px;
-        font-size: 0.9rem;
+      .room-card {
+        flex: 1 1 calc(25% - 20px);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+        min-width: 200px;
+        max-width: 240px;
+      }
+      .room-card img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+      }
+      .room-info {
+        padding: 10px;
+        font-size: 14px;
+      }
+      .btn-container {
+        margin-top: 20px;
+        text-align: center;
+      }
+      .btn {
+        padding: 8px 16px;
+        margin: 0 5px;
+        background-color: #a59a81;
+        color: white;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+      }
+      .hidden {
+        display: none;
       }
     </style>
   </head>
   <body>
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <div class="container">
-        <a class="navbar-brand" href="#">
-          <img
-            src="https://via.placeholder.com/100"
-            alt="Logo"
-            width="80"
-            height="80"
-          />
-        </a>
-        <div class="collapse navbar-collapse justify-content-center">
-          <ul class="navbar-nav">
-            <li class="nav-item"><a class="nav-link" href="#">TRANG CHỦ</a></li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">GIỚI THIỆU</a>
-            </li>
-            <li class="nav-item"><a class="nav-link" href="#">CĂN HỘ</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">LIÊN HỆ</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">ĐÁNH GIÁ</a></li>
-          </ul>
-        </div>
-        <button class="btn btn-primary">ĐĂNG NHẬP</button>
-      </div>
-    </nav>
+    <h2>Nơi sự thư giãn hòa quyện với sự sang trọng</h2>
 
-    <!-- FORM TÌM KIẾM -->
-    <form
-      class="d-flex flex-wrap justify-content-center p-4 bg-light rounded shadow my-4 mx-auto"
-      style="max-width: 1200px"
-    >
-      <div class="m-2">
-        <label for="checkin" class="form-label">Ngày nhận</label>
-        <input type="date" class="form-control" id="checkin" />
+    <div class="room-grid" id="room-list">
+      <!-- 4 phòng đầu tiên -->
+      <div class="room-card">
+        <img src="https://i.postimg.cc/XYYFV1HF/pic2.jpg" />
+        <div class="room-info">Phòng 1</div>
       </div>
-      <div class="m-2">
-        <label for="checkout" class="form-label">Ngày trả</label>
-        <input type="date" class="form-control" id="checkout" />
+      <div class="room-card">
+        <img src="https://i.postimg.cc/XYYFV1HF/pic2.jpg" />
+        <div class="room-info">Phòng 2</div>
       </div>
-      <div class="m-2">
-        <label for="adults" class="form-label">Người lớn</label>
-        <input type="number" class="form-control" id="adults" value="2" />
+      <div class="room-card">
+        <img src="https://i.postimg.cc/XYYFV1HF/pic2.jpg" />
+        <div class="room-info">Phòng 3</div>
       </div>
-      <div class="m-2">
-        <label for="children" class="form-label">Trẻ em</label>
-        <input type="number" class="form-control" id="children" value="0" />
-      </div>
-      <div class="m-2 align-self-end">
-        <button type="submit" class="btn btn-dark">Tìm</button>
-      </div>
-    </form>
-
-    <!-- KẾT QUẢ -->
-    <div class="container">
-      <h2 class="mb-4">Tìm thấy 2 homestay phù hợp</h2>
-
-      <!-- Homestay 1 -->
-      <div class="mb-5">
-        <h4>Homestay Biển Xanh</h4>
-        <p><strong>Địa điểm:</strong> Phú Quốc</p>
-        <img
-          src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"
-          class="img-fluid rounded mb-4"
-          style="height: 300px; object-fit: cover"
-        />
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <div class="card">
-              <div class="row g-0">
-                <div class="col-md-5">
-                  <img
-                    src="https://i.postimg.cc/6p59Vvbv/420179187.jpg"
-                    class="w-100 h-100 rounded-start"
-                    alt="Room"
-                  />
-                </div>
-                <div class="col-md-7">
-                  <div class="card-body">
-                    <h5 class="card-title">Phòng Gia đình (3-4 người)</h5>
-                    <p><strong>Giá:</strong> 850.000đ/đêm</p>
-                    <span class="feature-badge">Wifi</span>
-                    <span class="feature-badge">Bếp riêng</span>
-                    <span class="feature-badge">View biển</span>
-                    <br />
-                    <a href="#" class="btn btn-outline-primary mt-2 btn-sm"
-                      >Xem chi tiết</a
-                    >
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-6 mb-3">
-            <div class="card">
-              <div class="row g-0">
-                <div class="col-md-5">
-                  <img
-                    src="https://i.postimg.cc/6p59Vvbv/420179187.jpg"
-                    class="w-100 h-100 rounded-start"
-                    alt="Room"
-                  />
-                </div>
-                <div class="col-md-7">
-                  <div class="card-body">
-                    <h5 class="card-title">Phòng VIP (2 người)</h5>
-                    <p><strong>Giá:</strong> 1.200.000đ/đêm</p>
-                    <span class="feature-badge">Bồn tắm</span>
-                    <span class="feature-badge">View biển</span>
-                    <br />
-                    <a href="#" class="btn btn-outline-primary mt-2 btn-sm"
-                      >Xem chi tiết</a
-                    >
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="room-card">
+        <img src="https://i.postimg.cc/XYYFV1HF/pic2.jpg" />
+        <div class="room-info">Phòng 4</div>
       </div>
 
-      <!-- Homestay 2 -->
-      <div>
-        <h4>Villa Nhóm Đông</h4>
-        <p><strong>Địa điểm:</strong> Đà Lạt</p>
-        <img
-          src="https://via.placeholder.com/1200x400?text=Villa+Nhóm+Đông"
-          class="img-fluid rounded mb-4"
-        />
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <div class="card">
-              <div class="row g-0">
-                <div class="col-md-5">
-                  <img
-                    src="https://via.placeholder.com/400x250"
-                    class="w-100 h-100 rounded-start"
-                    alt="Room"
-                  />
-                </div>
-                <div class="col-md-7">
-                  <div class="card-body">
-                    <h5 class="card-title">Phòng Nhóm (8-10 người)</h5>
-                    <p><strong>Giá:</strong> 1.500.000đ/đêm</p>
-                    <span class="feature-badge">BBQ ngoài trời</span>
-                    <span class="feature-badge">Sân thượng</span>
-                    <span class="feature-badge">Chỗ đậu xe</span>
-                    <br />
-                    <a href="#" class="btn btn-outline-primary mt-2 btn-sm"
-                      >Xem chi tiết</a
-                    >
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-6 mb-3">
-            <div class="card">
-              <div class="row g-0">
-                <div class="col-md-5">
-                  <img
-                    src="https://via.placeholder.com/400x250"
-                    class="w-100 h-100 rounded-start"
-                    alt="Room"
-                  />
-                </div>
-                <div class="col-md-7">
-                  <div class="card-body">
-                    <h5 class="card-title">Phòng Cao cấp (5-6 người)</h5>
-                    <p><strong>Giá:</strong> 2.000.000đ/đêm</p>
-                    <span class="feature-badge">Sân thượng</span>
-                    <span class="feature-badge">Bếp riêng</span>
-                    <br />
-                    <a href="#" class="btn btn-outline-primary mt-2 btn-sm"
-                      >Xem chi tiết</a
-                    >
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <!-- 4 phòng tiếp theo (ẩn lúc đầu) -->
+      <div class="room-card hidden">
+        <img src="https://i.postimg.cc/XYYFV1HF/pic2.jpg" />
+        <div class="room-info">Phòng 5</div>
+      </div>
+      <div class="room-card hidden">
+        <img src="https://i.postimg.cc/XYYFV1HF/pic2.jpg" />
+        <div class="room-info">Phòng 6</div>
+      </div>
+      <div class="room-card hidden">
+        <img src="https://i.postimg.cc/XYYFV1HF/pic2.jpg" />
+        <div class="room-info">Phòng 7</div>
+      </div>
+      <div class="room-card hidden">
+        <img src="https://i.postimg.cc/XYYFV1HF/pic2.jpg" />
+        <div class="room-info">Phòng 8</div>
       </div>
     </div>
 
-    <!-- FOOTER -->
-    <footer class="bg-light text-center text-lg-start mt-5">
-      <div class="text-center p-3">© 2025 - All Rights Reserved</div>
-    </footer>
+    <div class="btn-container">
+      <button id="btnShowMore" class="btn" onclick="showMoreRooms()">
+        Xem thêm
+      </button>
+      <a id="btnViewAll" class="btn hidden" href="/search">Xem tất cả</a>
+    </div>
+
+    <script>
+      function showMoreRooms() {
+        document
+          .querySelectorAll(".room-card.hidden")
+          .forEach((el) => el.classList.remove("hidden"));
+        document.getElementById("btnShowMore").classList.add("hidden");
+        document.getElementById("btnViewAll").classList.remove("hidden");
+      }
+    </script>
   </body>
 </html>

@@ -1,44 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Booking HomeStay</title>
-    <!-- styles bootstrap-->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-      crossorigin="anonymous"
-    />
-    <!-- css -->
-    <link rel="stylesheet" href="stylesSearch.css" />
-    <!-- icon -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    />
-  </head>
-  <body>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kết quả tìm kiếm - SweetHome</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+   <!-- css -->
+  <link rel="stylesheet" href="/stylesSearch.css" />
+  <style>
+    .card-img-top {
+      max-height: 200px;
+      object-fit: cover;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
     <nav
       class="navbar navbar-expand-lg navbar-light bg-light"
       style="
         width: 100%;
         opacity: 80%;
-
+        position: fixed;
         z-index: 1000;
         top: 0;
         left: 0;
       "
     >
       <!-- Logo bên trái -->
-      <a class="navbar-brand" href="/Home/Home.html">
+      <a class="navbar-brand" href="/">
         <img
           src="./image/image/logo/logo.jpg"
           alt="Logo"
@@ -69,26 +60,21 @@
         <div
           class="collapse navbar-collapse justify-content-center"
           id="navbarNav"
+          style="margin-left: 100px"
         >
           <ul class="navbar-nav">
             <li class="nav-item">
-              <a
-                class="nav-link"
-                href="/src/views/Home/Home.html"
-                style="font-weight: bold"
+              <a class="nav-link" href="/" style="font-weight: bold"
                 >TRANG CHỦ</a
               >
             </li>
             <li class="nav-item">
-              <a
-                class="nav-link"
-                href="#Home.html#intro"
-                style="font-weight: bold"
+              <a class="nav-link" href="#intro" style="font-weight: bold"
                 >GIỚI THIỆU</a
               >
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="Home.html#CH" style="font-weight: bold"
+              <a class="nav-link" href="#CH" style="font-weight: bold"
                 >CĂN HỘ</a
               >
             </li>
@@ -98,320 +84,300 @@
               >
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="Home.html#DG" style="font-weight: bold"
+              <a class="nav-link" href="#DG" style="font-weight: bold"
                 >ĐÁNH GIÁ</a
               >
             </li>
           </ul>
         </div>
 
-        <!-- Nút Đăng nhập (Bên phải) -->
-        <button class="btn btn-primary">ĐĂNG NHẬP</button>
+        <!-- Nút Đăng nhập/Đăng xuất (Bên phải) -->
+        <% if (user) { %>
+        <div class="dropdown">
+          <button
+            class="btn p-0 border-0 bg-transparent"
+            type="button"
+            id="userDropdown"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <img
+              src="https://i.postimg.cc/rF3Fh10Y/avatar-trang-4.jpg"
+              alt="Avatar"
+              class="rounded-circle"
+              width="40"
+              height="40"
+            />
+          </button>
+          <ul
+            class="dropdown-menu dropdown-menu-end shadow"
+            aria-labelledby="userDropdown"
+          >
+            <li>
+              <span class="dropdown-item text-primary fw-bold">
+                <%= user.email %>
+              </span>
+            </li>
+            <li>
+              <a class="dropdown-item" href="/account">Thông tin tài khoản</a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="/bookings">Lịch sử đặt phòng</a>
+            </li>
+            <li><hr class="dropdown-divider" /></li>
+            <li>
+              <a class="dropdown-item text-danger" href="/logout">Đăng xuất</a>
+            </li>
+          </ul>
+        </div>
+        <% } else { %>
+        <button class="btn btn-primary" onclick="window.location.href='/login'">
+          ĐĂNG NHẬP
+        </button>
+        <% } %>
       </div>
     </nav>
 
-    <form
-      action="/search"
-      method="get"
-      class="d-flex flex-wrap justify-content-center p-3 rounded-5 mb-0"
-      style="
-        margin-top: 50px;
-        background-color: #aaaaaa4a;
-        opacity: 95%;
-        max-width: 1200px;
-        margin-left: 150px;
-        margin-right: 150px;
-      "
-    >
-      <div class="m-2">
-        <label
-          for="checkin"
-          class="form-label"
-          style="color: #707070; font-size: 18px"
-          >Ngày nhận</label
-        >
-        <input
-          type="date"
-          class="form-control"
-          id="checkin"
-          name="checkin"
-          value="<%= checkin %>"
-        />
-      </div>
+  <form action="/search" method="get" class="search-box">
+    <div class="m-2">
+      <label for="checkin" class="form-label" style="color: #707070; font-size: 18px">Ngày nhận</label>
+      <input type="date" class="form-control" id="checkin" name="checkin" value="<%= checkin %>" />
+    </div>
+    <div class="m-2">
+      <label for="checkout" class="form-label" style="color: #707070; font-size: 18px">Ngày trả</label>
+      <input type="date" class="form-control" id="checkout" name="checkout" value="<%= checkout %>" />
+    </div>
+    <div class="m-2">
+      <label for="adults" class="form-label" style="color: #707070; font-size: 18px">Người lớn</label>
+      <input type="number" class="form-control" id="adults" name="adults" value="<%= adults %>" />
+    </div>
+    <div class="m-2">
+      <label for="children" class="form-label" style="color: #707070; font-size: 18px">Trẻ em</label>
+      <input type="number" class="form-control" id="children" name="children" value="<%= children %>" />
+    </div>
+    <div class="m-2 align-self-end">
+      <button type="submit" class="btn btn-dark">Tìm</button>
+    </div>
+  </form>
 
-      <div class="m-2">
-        <label
-          for="checkout"
-          class="form-label"
-          style="color: #707070; font-size: 18px"
-          >Ngày trả</label
-        >
-        <input
-          type="date"
-          class="form-control"
-          id="checkout"
-          name="checkout"
-          value="<%= checkout %>"
-        />
-      </div>
+  <div class="container py-4">
+  <div class="row">
+    <!-- Bộ lọc bên trái -->
+   <div class="col-md-3">
+  <h5 class="mb-3">Bộ lọc</h5>
+  <form id="filterForm" method="get" action="/search">
+    <input type="hidden" name="checkin" value="<%= checkin %>">
+    <input type="hidden" name="checkout" value="<%= checkout %>">
+    <input type="hidden" name="adults" value="<%= adults %>">
+    <input type="hidden" name="children" value="<%= children %>">
 
-      <div class="m-2">
-        <label
-          for="adults"
-          class="form-label"
-          style="color: #707070; font-size: 18px"
-          >Người lớn</label
-        >
-        <input
-          type="number"
-          class="form-control"
-          id="adults"
-          name="adults"
-          value="<%= adults %>"
-        />
-      </div>
-
-      <div class="m-2">
-        <label
-          for="children"
-          class="form-label"
-          style="color: #707070; font-size: 18px"
-          >Trẻ em</label
-        >
-        <input
-          type="number"
-          class="form-control"
-          id="children"
-          name="children"
-          value="<%= children %>"
-        />
-      </div>
-
-      <div class="m-2 align-self-end">
-        <button type="submit" class="btn btn-dark">Tìm</button>
-      </div>
-    </form>
-
-    <% if (rooms && rooms.length > 0) { %>
-    <h2>Kết quả tìm kiếm:</h2>
-    <ul>
-      <% rooms.forEach(room => { %>
-      <li><%= room.name %> - <%= room.type %> - Giá: <%= room.price %></li>
-      <% }) %>
-    </ul>
-    <% } else { %>
-    <h2>Không tìm thấy phòng phù hợp!</h2>
-    <% } %>
-
-    <div class="container py-5" style="margin-top: -40px">
-      <h2 class="mb-4">Tìm thấy 6 homestay phù hợp</h2>
-
-      <!-- Danh sách homestay -->
-      <div class="row gy-4">
-        <!-- Homestay 1 -->
-        <div class="col-md-12 homestay-wrapper">
-          <h4>Homestay Biển Xanh</h4>
-          <p><strong>Địa điểm:</strong> Phú Quốc, Kiên Giang</p>
-          <div class="mb-4">
-            <img
-              src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"
-              alt="Ảnh Homestay Biển Xanh"
-              class="img-fluid rounded"
-              style="height: 300px; width: 100%; object-fit: cover"
-            />
-          </div>
-          <div class="row gy-4">
-            <!-- Căn phòng 1 trong Homestay -->
-            <div class="col-md-6">
-              <div class="card shadow-sm homestay-card">
-                <div class="row g-0">
-                  <div class="col-md-5">
-                    <img
-                      src="https://i.postimg.cc/6p59Vvbv/420179187.jpg"
-                      class="rounded-start w-100 h-100"
-                      alt="Homestay Biển"
-                    />
-                  </div>
-                  <div class="col-md-7">
-                    <div class="card-body">
-                      <h5 class="card-title">Phòng Gia đình (3-4 người)</h5>
-                      <p class="mb-2"><strong>Giá từ:</strong> 850.000đ/đêm</p>
-                      <div class="mb-3">
-                        <span class="feature-badge">Wifi</span>
-                        <span class="feature-badge">Bếp riêng</span>
-                        <span class="feature-badge">View biển</span>
-                      </div>
-                      <a href="#" class="btn btn-outline-primary btn-sm"
-                        >Xem chi tiết</a
-                      >
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Căn phòng 2 trong Homestay -->
-            <div class="col-md-6">
-              <div class="card shadow-sm homestay-card">
-                <div class="row g-0">
-                  <div class="col-md-5">
-                    <img
-                      src="https://i.postimg.cc/6p59Vvbv/420179187.jpg"
-                      class="rounded-start w-100 h-100"
-                      alt="Homestay Biển"
-                    />
-                  </div>
-                  <div class="col-md-7">
-                    <div class="card-body">
-                      <h5 class="card-title">Phòng VIP (2 người)</h5>
-                      <p class="mb-2">
-                        <strong>Giá từ:</strong> 1.200.000đ/đêm
-                      </p>
-                      <div class="mb-3">
-                        <span class="feature-badge">Bồn tắm</span>
-                        <span class="feature-badge">View biển</span>
-                      </div>
-                      <a href="#" class="btn btn-outline-primary btn-sm"
-                        >Xem chi tiết</a
-                      >
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Homestay 2 -->
-        <div class="col-md-12 homestay-wrapper">
-          <h4>Villa Nhóm Đông</h4>
-          <p><strong>Địa điểm:</strong> Đà Lạt, Lâm Đồng</p>
-          <img
-            src="https://via.placeholder.com/1200x500?text=Villa+Nhóm+Đông"
-            class="img-fluid mb-4"
-            alt="Villa Nhóm Đông"
-          />
-          <div class="row gy-4">
-            <!-- Căn phòng 1 trong Homestay -->
-            <div class="col-md-6">
-              <div class="card shadow-sm homestay-card">
-                <div class="row g-0">
-                  <div class="col-md-5">
-                    <img
-                      src="https://via.placeholder.com/400x250?text=Homestay3"
-                      class="rounded-start w-100 h-100"
-                      alt="Homestay Nhóm"
-                    />
-                  </div>
-                  <div class="col-md-7">
-                    <div class="card-body">
-                      <h5 class="card-title">Phòng Nhóm (8-10 người)</h5>
-                      <p class="mb-2">
-                        <strong>Giá từ:</strong> 1.500.000đ/đêm
-                      </p>
-                      <div class="mb-3">
-                        <span class="feature-badge">BBQ ngoài trời</span>
-                        <span class="feature-badge">Sân thượng</span>
-                        <span class="feature-badge">Chỗ đậu xe</span>
-                      </div>
-                      <a href="#" class="btn btn-outline-primary btn-sm"
-                        >Xem chi tiết</a
-                      >
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Căn phòng 2 trong Homestay -->
-            <div class="col-md-6">
-              <div class="card shadow-sm homestay-card">
-                <div class="row g-0">
-                  <div class="col-md-5">
-                    <img
-                      src="https://via.placeholder.com/400x250?text=Homestay4"
-                      class="rounded-start w-100 h-100"
-                      alt="Homestay Nhóm"
-                    />
-                  </div>
-                  <div class="col-md-7">
-                    <div class="card-body">
-                      <h5 class="card-title">Phòng Cao cấp (5-6 người)</h5>
-                      <p class="mb-2">
-                        <strong>Giá từ:</strong> 2.000.000đ/đêm
-                      </p>
-                      <div class="mb-3">
-                        <span class="feature-badge">Sân thượng</span>
-                        <span class="feature-badge">Bếp riêng</span>
-                      </div>
-                      <a href="#" class="btn btn-outline-primary btn-sm"
-                        >Xem chi tiết</a
-                      >
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="mb-3">
+      <label class="form-label">Phường</label>
+      <select class="form-select" name="ward">
+        <option value="" <%= ward === "" ? "selected" : "" %>>Tất cả</option>
+        <option value="Phường 1" <%= ward === "Phường 1" ? "selected" : "" %>>Phường 1</option>
+        <option value="Phường 2" <%= ward === "Phường 2" ? "selected" : "" %>>Phường 2</option>
+        <option value="Phường 5" <%= ward === "Phường 5" ? "selected" : "" %>>Phường 5</option>
+        <option value="Phường Thắng Tam" <%= ward === "Phường Thắng Tam" ? "selected" : "" %>>Phường Thắng Tam</option>
+      </select>
     </div>
 
-    <footer class="bg-light py-4" style="width: 100%" id="LH">
-      <div class="container" style="margin-top: 20px">
-        <div class="row">
-          <!-- Cột Liên Hệ -->
-          <div class="col-md-4">
-            <h5 class="fw-bold">LIÊN HỆ CHÚNG TÔI</h5>
-            <p><i class="fas fa-envelope"></i> Email: 23521265@gm.uit.edu.vn</p>
-            <p><i class="fas fa-phone"></i> Số điện thoại: 080-678-963-210</p>
-            <p>
-              <i class="fas fa-map-marker-alt"></i> Địa chỉ: 183B/19, quận Cam,
-              thành phố Sài Gòn
+    <div class="mb-3">
+      <label class="form-label">Khoảng giá</label>
+      <select class="form-select" name="price">
+        <option value="" <%= price === "" ? "selected" : "" %>>Tất cả</option>
+        <option value="1" <%= price === "1" ? "selected" : "" %>>Dưới 500k</option>
+        <option value="2" <%= price === "2" ? "selected" : "" %>>500k - 1 triệu</option>
+        <option value="3" <%= price === "3" ? "selected" : "" %>>Trên 1 triệu</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Dịch vụ</label>
+      <select class="form-select" name="service">
+        <option value="" <%= service === "" ? "selected" : "" %>>Tất cả</option>
+        <option value="Wi-Fi miễn phí" <%= service === "Wi-Fi miễn phí" ? "selected" : "" %>>Wi-Fi miễn phí</option>
+        <option value="Điều hòa" <%= service === "Điều hòa" ? "selected" : "" %>>Điều hòa</option>
+        <option value="Hồ bơi" <%= service === "Hồ bơi" ? "selected" : "" %>>Hồ bơi</option>
+        <option value="Bãi đỗ xe" <%= service === "Bãi đỗ xe" ? "selected" : "" %>>Bãi đỗ xe</option>
+        <option value="Bữa sáng miễn phí" <%= service === "Bữa sáng miễn phí" ? "selected" : "" %>>Bữa sáng miễn phí</option>
+        <option value="TV màn hình phẳng" <%= service === "TV màn hình phẳng" ? "selected" : "" %>>TV màn hình phẳng</option>
+        <option value="Máy nước nóng" <%= service === "Máy nước nóng" ? "selected" : "" %>>Máy nước nóng</option>
+        <option value="Giặt ủi" <%= service === "Giặt ủi" ? "selected" : "" %>>Giặt ủi</option>
+        <option value="Phòng Gym" <%= service === "Phòng Gym" ? "selected" : "" %>>Phòng Gym</option>
+        <option value="Dịch vụ đưa đón sân bay" <%= service === "Dịch vụ đưa đón sân bay" ? "selected" : "" %>>Dịch vụ đưa đón sân bay</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Loại chỗ ở</label>
+      <select class="form-select" name="type">
+        <option value="" <%= type === "" ? "selected" : "" %>>Tất cả</option>
+        <option value="house" <%= type === "house" ? "selected" : "" %>>Nhà nguyên căn</option>
+        <option value="apartment" <%= type === "apartment" ? "selected" : "" %>>Phòng trong căn hộ</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Sắp xếp theo</label>
+      <select class="form-select" name="sort">
+        <option value="" <%= sort === "" ? "selected" : "" %>>Mặc định</option>
+        <option value="asc" <%= sort === "asc" ? "selected" : "" %>>Giá tăng dần</option>
+        <option value="desc" <%= sort === "desc" ? "selected" : "" %>>Giá giảm dần</option>
+      </select>
+    </div>
+
+    <div class="d-grid">
+      <button type="submit" class="btn" style="background-color: black; color: white ;">Áp dụng</button>
+    </div>
+  </form>
+</div>
+
+
+    <!-- Kết quả bên phải -->
+<div class="col-md-9"id="roomResults">
+  <h5 class="text-muted mb-4">
+    Kết quả tìm kiếm cho: <%= checkin %> → <%= checkout %> | <%= adults %> người lớn, <%= children %> trẻ em
+  </h5>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="row mt-3">
+        <% if (rooms.length === 0) { %>
+          <p>Không tìm thấy phòng phù hợp.</p>
+        <% } %>
+
+        <% rooms.forEach(room => { %>
+          <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 d-flex flex-column shadow-sm border-0" style="transition: 0.3s;">
+              <img src="<%= room.thumbnail %>" class="card-img-top" alt="<%= room.name %>" style="height: 180px; object-fit: cover;">
+
+              <div class="card-body d-flex flex-column">
+                <h5 class="card-title mb-2 fw-semibold"><%= room.name %></h5>
+
+                <% if (room.price < 500000) { %>
+                  <span class="badge rounded-pill mb-1 px-3 py-1 text-white" style="background-color: #28a745;">🌼 Tiết kiệm</span>
+                <% } %>
+                <% if (room.avg_rating && room.avg_rating >= 4.5) { %>
+                  <span class="badge rounded-pill mb-2 px-3 py-1 text-white" style="background-color: #dc3545;">🔥 Yêu thích</span>
+                <% } %>
+
+           <% if (room.avg_rating) { %>
+            <p class="text-warning mb-2">
+              ⭐ <%= room.avg_rating %>/5
+              <span class="text-muted">(<%= room.review_count %> đánh giá)</span>
             </p>
-          </div>
+          <% } %>
 
-          <!-- Cột Mạng Xã Hội -->
-          <div class="col-md-4 text-left">
-            <h5 class="fw-bold">MẠNG XÃ HỘI</h5>
-            <p><i class="fab fa-instagram"></i> Instagram</p>
-            <p><i class="fab fa-facebook"></i> Facebook</p>
-            <p><i class="fab fa-youtube"></i> Youtube</p>
-            <p><i class="fab fa-twitter"></i> Twitter</p>
-          </div>
+                <% if (room.available_after) { %>
+                  <p class="text-danger mb-2" style="font-size: 0.9rem; font-weight: 500;">
+                    ⚠️ Phòng hiện đã được đặt. Có sẵn sau <strong> <%= new Date(room.available_after).toLocaleDateString("vi-VN") %></strong>
+                  </p>
+                <% } %>
 
-          <!-- Cột Bản Đồ -->
-          <div class="col-md-4 text-end">
-            <h5 class="fw-bold">MAPS</h5>
-            <iframe
-              src="https://www.google.com/maps?q=Vũng+Tàu&output=embed"
-              width="100%"
-              height="150"
-              style="border: 0"
-              allowfullscreen=""
-              loading="lazy"
-            >
-            </iframe>
+                <p class="card-text flex-grow-1" style="font-size: 0.95rem;">
+                  <strong>Mô tả:</strong>
+                  <% if (room.description?.toLowerCase().includes("nhà nguyên căn")) { %>
+                    Nhà nguyên căn
+                  <% } else if (room.description?.toLowerCase().includes("phòng riêng trong căn hộ")) { %>
+                    Phòng riêng trong căn hộ
+                  <% } else { %>
+                    Không xác định
+                  <% } %>
+                  <br>
+
+                <strong>Giá:</strong>
+                <span class="price-tag">
+                  <%= Number(room.price).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }) %>
+                </span>
+                <small class="text-muted"> / đêm</small><br>
+                  <strong>Địa chỉ:</strong> <%= room.address %><br>
+
+                  <strong>Dịch vụ:</strong>
+                  <% if (room.services?.length) { %>
+                    <% room.services.forEach(service => { %>
+                      <span class="service-badge d-inline-block"><%= service %></span>
+                    <% }) %>
+                  <% } else { %>
+                    <span class="text-muted">Không có</span>
+                  <% } %>
+
+                </p>
+
+                <a href="#" class="btn mt-auto px-3 py-2 fw-semibold"
+                   style="background-color: #a59a81; color: white; border-radius: 30px; transition: 0.2s;">
+                  Xem chi tiết
+                </a>
+              </div>
+            </div>
           </div>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  <!-- Footer -->
+  <footer class="bg-light py-4" style="width: 100%" id="LH">
+    <div class="container" style="margin-top: 20px">
+      <div class="row">
+        <div class="col-md-4">
+          <h5 class="fw-bold">LIÊN HỆ CHÚNG TÔI</h5>
+          <p><i class="fas fa-envelope"></i> Email: 23521265@gm.uit.edu.vn</p>
+          <p><i class="fas fa-phone"></i> Số điện thoại: 080-678-963-210</p>
+          <p><i class="fas fa-map-marker-alt"></i> Địa chỉ: 183B/19, quận Cam, thành phố Sài Gòn</p>
+        </div>
+        <div class="col-md-4 text-left">
+          <h5 class="fw-bold">MẠNG XÃ HỘI</h5>
+          <p><i class="fab fa-instagram"></i> Instagram</p>
+          <p><i class="fab fa-facebook"></i> Facebook</p>
+          <p><i class="fab fa-youtube"></i> Youtube</p>
+          <p><i class="fab fa-twitter"></i> Twitter</p>
+        </div>
+        <div class="col-md-4 text-end">
+          <h5 class="fw-bold">MAPS</h5>
+          <iframe src="https://www.google.com/maps?q=Vũng+Tàu&output=embed" width="100%" height="150" style="border: 0" allowfullscreen="" loading="lazy"></iframe>
         </div>
       </div>
-    </footer>
-
-    <div class="text-center mt-3">
-      <p class="mb-0">© 2025 - All Rights Reserved</p>
     </div>
+  </footer>
+  <div class="text-center mt-3">
+    <p class="mb-0">© 2025 - All Rights Reserved</p>
+  </div>
 
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-      crossorigin="anonymous"
-      ;
-    ></script>
-    <script>
-      document.getElementById("checkin").value = "<%= checkin %>";
-      document.getElementById("checkout").value = "<%= checkout %>";
-      document.getElementById("adults").value = "<%= adults || '2' %>";
-      document.getElementById("children").value = "<%= children || '0' %>";
-    </script>
-  </body>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+  <script>
+    document.getElementById("checkin").value = "<%= checkin %>";
+    document.getElementById("checkout").value = "<%= checkout %>";
+    document.getElementById("adults").value = "<%= adults || '2' %>";
+    document.getElementById("children").value = "<%= children || '0' %>";
+  </script>
+  <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("filterForm"); // <- nhớ form phải có id="filterForm"
+    const resultDiv = document.getElementById("roomResults");
+
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault(); // Ngăn form reload
+
+      const formData = new FormData(form);
+      const params = new URLSearchParams(formData);
+
+      try {
+        const res = await fetch(`/search/ajax?${params}`);
+        const html = await res.text();
+        resultDiv.innerHTML = html;
+
+        // ✅ Cập nhật URL cho đẹp
+        history.pushState(null, '', `/search?${params}`);
+      } catch (err) {
+        console.error("Fetch error:", err);
+        resultDiv.innerHTML = "<p class='text-danger'>Không thể tải kết quả.</p>";
+      }
+    });
+  });
+</script>
+
+</body>
 </html>

@@ -5,17 +5,78 @@ import bcrypt from "bcryptjs";
 import sendEmail from "../utils/email";
 
 let getHomePage = async (req, res) => {
+  const user = req.session?.user || null;
+
   try {
-    // Kiểm tra nếu session và user tồn tại
-    const user = req.session && req.session.user ? req.session.user : null;
+    // Lấy 8 phòng đầu tiên
+    const rooms = await db.RoomType.findAll({
+      limit: 8,
+      include: [
+        {
+          model: db.Homestay,
+          required: true,
+        },
+        {
+          model: db.RoomTypeImage,
+          required: false,
+          where: { is_thumbnail: true },
+        },
+        {
+          model: db.Service,
+          through: { attributes: [] },
+          required: false,
+        },
+      ],
+    });
+
+    // Lấy danh sách room_type_id để truy vấn đánh giá
+    const roomIds = rooms.map((room) => room.room_type_id);
+
+    const ratingData = await db.Review.findAll({
+      where: { room_type_id: roomIds },
+      attributes: [
+        "room_type_id",
+        [db.sequelize.fn("AVG", db.sequelize.col("rating")), "avg_rating"],
+        [
+          db.sequelize.fn("COUNT", db.sequelize.col("review_id")),
+          "review_count",
+        ],
+      ],
+      group: ["room_type_id"],
+    });
+
+    // Tạo map rating
+    const ratingMap = {};
+    ratingData.forEach((entry) => {
+      ratingMap[Number(entry.room_type_id)] = {
+        avg_rating: parseFloat(entry.dataValues.avg_rating).toFixed(1),
+        review_count: parseInt(entry.dataValues.review_count),
+      };
+    });
+
+    // Chuyển dữ liệu thành format dùng được bên view
+    const mappedRooms = rooms.map((room) => ({
+      room_type_id: room.room_type_id,
+      name: room.type_name,
+      price: room.price_per_night,
+      address: room.Homestay?.address || "Không rõ",
+      thumbnail: room.RoomTypeImages?.[0]?.image_url || "/image/no-image.png",
+      services: room.Services?.map((s) => s.service_name) || [],
+      description: room.description || "",
+      avg_rating: ratingMap[room.room_type_id]?.avg_rating || null,
+      review_count: ratingMap[room.room_type_id]?.review_count || 0,
+    }));
 
     return res.render("Home/Home.ejs", {
-      user: user, // Truyền biến user sang view
+      user: user,
+      rooms: mappedRooms,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Lỗi khi load trang chủ:", error);
     return res.render("Home/Home.ejs", {
-      user: null, // Truyền user null nếu có lỗi
+      user: user,
+      rooms: [],
+      error: "Lỗi khi tải dữ liệu phòng",
     });
   }
 };
@@ -307,15 +368,50 @@ let postResetPassword = async (req, res) => {
   }
 };
 
+//Tìm kiếm phòng
+
 let searchRoom = async (req, res) => {
   const checkin = req.query.checkin || "";
   const checkout = req.query.checkout || "";
   const adults = parseInt(req.query.adults) || 0;
   const children = parseInt(req.query.children) || 0;
+  const ward = req.query.ward || "";
+  const service = req.query.service || "";
+  const type = req.query.type || "";
+  const price = req.query.price || "";
+  const sort = req.query.sort || "";
+  const user = req.session?.user || null;
 
   try {
-    // Tìm tất cả RoomType mà KHÔNG có booking nào trùng khoảng ngày
+    let roomWhere = {
+      max_adults: { [Op.gte]: adults },
+      max_children: { [Op.gte]: children },
+    };
+    // Lọc loại chỗ ở
+    if (type === "house") {
+      roomWhere.description = { [Op.like]: "%nhà nguyên căn%" };
+    } else if (type === "apartment") {
+      roomWhere.description = { [Op.like]: "%phòng riêng trong căn hộ%" };
+    }
+
+    // Lọc theo khoảng giá
+    if (price === "1") {
+      roomWhere.price_per_night = { [Op.lt]: 500000 };
+    } else if (price === "2") {
+      roomWhere.price_per_night = { [Op.between]: [500000, 1000000] };
+    } else if (price === "3") {
+      roomWhere.price_per_night = { [Op.gt]: 1000000 };
+    }
+
+    // Lọc phường
+    const whereHomestay = {};
+    if (ward) {
+      whereHomestay.address = { [Op.like]: `%${ward}%` };
+    }
+
+    // Truy vấn
     let rooms = await db.RoomType.findAll({
+      where: roomWhere,
       include: [
         {
           model: db.Booking,
@@ -343,36 +439,275 @@ let searchRoom = async (req, res) => {
             ],
           },
         },
+        {
+          model: db.Homestay,
+          required: true,
+          where: whereHomestay,
+        },
+        {
+          model: db.RoomTypeImage,
+          required: false,
+          where: { is_thumbnail: true },
+        },
+        {
+          model: db.Service,
+          through: { attributes: [] },
+          required: false,
+        },
       ],
-      where: {
-        max_adults: { [Op.gte]: adults },
-        max_children: { [Op.gte]: children },
-      },
+      order:
+        sort === "asc"
+          ? [["price_per_night", "ASC"]]
+          : sort === "desc"
+          ? [["price_per_night", "DESC"]]
+          : [],
     });
 
-    // Chỉ giữ lại room chưa có booking nào trùng lịch
-    rooms = rooms.filter((room) => room.Bookings.length === 0);
+    // Lọc phòng trống
 
+    // Nếu lọc theo dịch vụ
+    if (service) {
+      rooms = rooms.filter((room) =>
+        room.Services.some((s) => s.service_name === service)
+      );
+    }
+    // 1. Lấy danh sách room_type_id
+    const roomIds = rooms.map((room) => room.room_type_id);
+
+    // 2. Truy vấn rating trung bình từ bảng Review
+    const ratingData = await db.Review.findAll({
+      where: { room_type_id: roomIds },
+      attributes: [
+        "room_type_id",
+        [db.sequelize.fn("AVG", db.sequelize.col("rating")), "avg_rating"],
+        [
+          db.sequelize.fn("COUNT", db.sequelize.col("review_id")),
+          "review_count",
+        ],
+      ],
+      group: ["room_type_id"],
+    });
+
+    const ratingMap = {};
+    ratingData.forEach((entry) => {
+      ratingMap[Number(entry.room_type_id)] = {
+        avg_rating: parseFloat(entry.dataValues.avg_rating).toFixed(1),
+        review_count: parseInt(entry.dataValues.review_count),
+      };
+    });
+
+    // Map lại dữ liệu cho view
+    const mappedRooms = rooms.map((room) => {
+      let available_after = null;
+
+      if (room.Bookings?.length > 0) {
+        const latest = room.Bookings.reduce((max, b) => {
+          const out = new Date(b.check_out_date);
+          return out > max ? out : max;
+        }, new Date(0));
+        available_after = latest.toISOString().split("T")[0];
+      }
+
+      return {
+        room_type_id: room.room_type_id,
+        name: room.type_name,
+        price: room.price_per_night,
+        address: room.Homestay?.address || "Không rõ",
+        thumbnail: room.RoomTypeImages?.[0]?.image_url || "/image/no-image.png",
+        services: room.Services?.map((s) => s.service_name) || [],
+        description: room.description || "",
+        avg_rating: ratingMap[room.room_type_id]?.avg_rating || null,
+        review_count: ratingMap[room.room_type_id]?.review_count || 0,
+        available_after,
+      };
+    });
+    // Trả kết quả
+    console.log("🔍 mappedRooms with rating:");
+    console.log(mappedRooms);
     return res.render("Search/Search.ejs", {
-      rooms,
+      rooms: mappedRooms,
       checkin,
       checkout,
       adults,
       children,
+      ward,
+      service,
+      type,
+      price,
+      sort,
+      user,
     });
   } catch (error) {
-    console.log(error);
+    console.error("Lỗi tìm kiếm:", error);
     return res.render("Search/Search.ejs", {
       rooms: [],
       checkin,
       checkout,
       adults,
       children,
+      ward,
+      service,
+      type,
+      price,
+      sort,
+      user,
       error: "Có lỗi xảy ra khi tìm kiếm!",
     });
   }
 };
+// Xử lý tìm kiếm phòng qua AJAX
+let searchRoomAjax = async (req, res) => {
+  const checkin = req.query.checkin || "";
+  const checkout = req.query.checkout || "";
+  const adults = parseInt(req.query.adults) || 0;
+  const children = parseInt(req.query.children) || 0;
+  const ward = req.query.ward || "";
+  const service = req.query.service || "";
+  const type = req.query.type || "";
+  const price = req.query.price || "";
+  const sort = req.query.sort || "";
 
+  try {
+    let roomWhere = {
+      max_adults: { [Op.gte]: adults },
+      max_children: { [Op.gte]: children },
+    };
+
+    if (type === "house") {
+      roomWhere.description = { [Op.like]: "%nhà nguyên căn%" };
+    } else if (type === "apartment") {
+      roomWhere.description = { [Op.like]: "%phòng riêng trong căn hộ%" };
+    }
+
+    if (price === "1") {
+      roomWhere.price_per_night = { [Op.lt]: 500000 };
+    } else if (price === "2") {
+      roomWhere.price_per_night = { [Op.between]: [500000, 1000000] };
+    } else if (price === "3") {
+      roomWhere.price_per_night = { [Op.gt]: 1000000 };
+    }
+
+    const whereHomestay = {};
+    if (ward) {
+      whereHomestay.address = { [Op.like]: `%${ward}%` };
+    }
+
+    let rooms = await db.RoomType.findAll({
+      where: roomWhere,
+      include: [
+        {
+          model: db.Booking,
+          required: false,
+          where: {
+            [Op.or]: [
+              {
+                check_in_date: {
+                  [Op.between]: [checkin, checkout],
+                },
+              },
+              {
+                check_out_date: {
+                  [Op.between]: [checkin, checkout],
+                },
+              },
+              {
+                check_in_date: {
+                  [Op.lte]: checkin,
+                },
+                check_out_date: {
+                  [Op.gte]: checkout,
+                },
+              },
+            ],
+          },
+        },
+        {
+          model: db.Homestay,
+          required: true,
+          where: whereHomestay,
+        },
+        {
+          model: db.RoomTypeImage,
+          required: false,
+          where: { is_thumbnail: true },
+        },
+        {
+          model: db.Service,
+          through: { attributes: [] },
+          required: false,
+        },
+      ],
+      order:
+        sort === "asc"
+          ? [["price_per_night", "ASC"]]
+          : sort === "desc"
+          ? [["price_per_night", "DESC"]]
+          : [],
+    });
+
+    if (service) {
+      rooms = rooms.filter((room) =>
+        room.Services.some((s) => s.service_name === service)
+      );
+    }
+
+    const roomIds = rooms.map((r) => r.room_type_id);
+
+    const ratingData = await db.Review.findAll({
+      where: { room_type_id: roomIds },
+      attributes: [
+        "room_type_id",
+        [db.sequelize.fn("AVG", db.sequelize.col("rating")), "avg_rating"],
+        [
+          db.sequelize.fn("COUNT", db.sequelize.col("review_id")),
+          "review_count",
+        ],
+      ],
+      group: ["room_type_id"],
+    });
+
+    const ratingMap = {};
+    ratingData.forEach((entry) => {
+      ratingMap[Number(entry.room_type_id)] = {
+        avg_rating: parseFloat(entry.dataValues.avg_rating).toFixed(1),
+        review_count: parseInt(entry.dataValues.review_count),
+      };
+    });
+
+    const mappedRooms = rooms.map((room) => {
+      let available_after = null;
+
+      if (room.Bookings?.length > 0) {
+        const latest = room.Bookings.reduce((max, b) => {
+          const out = new Date(b.check_out_date);
+          return out > max ? out : max;
+        }, new Date(0));
+        available_after = latest.toISOString().split("T")[0];
+      }
+
+      return {
+        room_type_id: room.room_type_id,
+        name: room.type_name,
+        price: room.price_per_night,
+        address: room.Homestay?.address || "Không rõ",
+        thumbnail: room.RoomTypeImages?.[0]?.image_url || "/image/no-image.png",
+        services: room.Services?.map((s) => s.service_name) || [],
+        description: room.description || "",
+        avg_rating: ratingMap[room.room_type_id]?.avg_rating || null,
+        review_count: ratingMap[room.room_type_id]?.review_count || 0,
+        available_after,
+      };
+    });
+    return res.render("partials/room_list.ejs", {
+      rooms: mappedRooms,
+    });
+  } catch (error) {
+    console.error("Lỗi tìm kiếm AJAX:", error);
+    return res.status(500).send("Có lỗi xảy ra khi tìm kiếm!");
+  }
+};
+
+// Tìm kiếm phòng
 module.exports = {
   getHomePage: getHomePage,
   getSignUp: getSignUp,
@@ -385,4 +720,5 @@ module.exports = {
   postForgotPassword: postForgotPassword,
   getResetPassword: getResetPassword,
   postResetPassword: postResetPassword,
+  searchRoomAjax: searchRoomAjax,
 };
