@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title><%= room?.type_name %> - Chi tiết phòng</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+    <link rel="stylesheet" href="/styles/details_homestay.css">
+    <!-- Lightbox CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css" rel="stylesheet" />
+
+    <!-- Lightbox JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+
+  </head>
+  <style>
+    .lightboxOverlay {
+      transition: opacity 0.2s ease-in-out !important;  /* nhanh hơn */
+    }
+
+    .lightbox {
+      transition: transform 0.2s ease-in-out !important;
+    }
+  </style>
+
+  <body>
+    <!-- Giữ nguyên phần navbar của bạn -->
+    <%- include('../partials/navbar') %>
+
+    <div class="product-info-container container my-5">
+      <div class="product-info-box row">
+        <div class="col-md-8">
+          <h3>Trang chủ / Căn hộ / <%= room?.type_name %></h3>
+          <hr />
+          <div class="image-gallery">
+            <% if (images && images.length > 0) { %>
+              <div class="main-image">
+                <a href="<%= images[0].image_url %>" data-lightbox="homestay-gallery" data-title="Ảnh chính">
+                  <img src="<%= images[0].image_url %>" alt="Ảnh chính" class="img-fluid rounded" />
+                </a>
+              </div>
+              <div class="thumbnail-images d-flex flex-wrap gap-2 mt-2">
+                <% images.slice(1).forEach((img, index) => { %>
+                  <a href="<%= img.image_url %>" data-lightbox="homestay-gallery" data-title="Ảnh <%= index + 1 %>">
+                    <img src="<%= img.image_url %>" alt="Ảnh phụ" class="img-thumbnail" width="100" />
+                  </a>
+                <% }) %>
+              </div>
+            <% } %>
+          </div>
+
+          <ul class="mt-3">
+            <li><b>Địa chỉ:</b> <%= homestay?.address %></li>
+            <li><b>Phòng ngủ:</b> <%= room.bedroom_count %></li>
+            <li><b>Phòng tắm:</b> <%= room.toilet_count %></li>
+            <li><b>Sức chứa:</b> Tối đa <%= room.max_guests %> người</li>
+          </ul>
+          <p class="mt-3"><%= room.description %></p>
+
+          <h4 class="mt-4">Tiện nghi:</h4>
+          <ul>
+            <% services.forEach(s => { %>
+              <li><%= s.service_name %></li>
+            <% }) %>
+          </ul>
+
+          <h4 class="mt-4">Đánh giá (<%= reviews.length %>)</h4>
+          <% if (reviews.length === 0) { %>
+            <p>Chưa có đánh giá nào.</p>
+          <% } else { %>
+            <% reviews.forEach(r => { %>
+              <div class="mb-2">
+                <b><%= r.User.name %></b>: <%= r.rating %>⭐ - <%= r.comment %>
+              </div>
+            <% }) %>
+          <% } %>
+        </div>
+
+        <div class="col-md-4">
+          <div class="price-table border p-3 rounded">
+            <h4>Giá phòng: <%= room.price_per_night.toLocaleString() %>đ / đêm</h4>
+            <div class="booking-form mt-3">
+              <div class="form-group mb-2">
+                <label for="adults">Số khách:</label>
+                <input type="number" id="adults" class="form-control" value="1" />
+              </div>
+              <div class="form-group mb-2">
+                <label for="children">Số trẻ em:</label>
+                <input type="number" id="children" class="form-control" value="0" />
+              </div>
+              <div class="form-group mb-2">
+                <label for="checkin">Ngày nhận:</label>
+                <input type="date" id="checkin" class="form-control" />
+              </div>
+              <div class="form-group mb-2">
+                <label for="checkout">Ngày đi:</label>
+                <input type="date" id="checkout" class="form-control" />
+              </div>
+              <button class="btn btn-primary w-100 mt-2">Đặt ngay</button>
+            </div>
+          </div>
+
+          <!-- Bạn có thể thêm "Căn hộ khác" nếu muốn sau này -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Giữ nguyên phần footer của bạn -->
+    <%- include('../partials/footer') %>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

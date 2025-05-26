@@ -4,6 +4,8 @@ import passport from "passport";
 let router = express.Router();
 
 let initWebRoutes = (app) => {
+  const homeController = require("../controllers/homeController");
+
   router.get("/", homeController.getHomePage);
   router.get("/SignUp", homeController.getSignUp);
 
@@ -14,6 +16,8 @@ let initWebRoutes = (app) => {
 
   router.get("/search", homeController.searchRoom);
   router.get("/search/ajax", homeController.searchRoomAjax);
+
+  router.get("/room/:id", homeController.getRoomDetail);
 
   // Bắt đầu quá trình xác thực với Google
   router.get(
@@ -70,3 +74,4 @@ let initWebRoutes = (app) => {
 };
 
 module.exports = initWebRoutes;
+

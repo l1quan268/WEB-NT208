@@ -47,4 +47,9 @@ Object.keys(db).forEach((modelName) => {
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
+// Review.associate = function (db) {
+//   Review.belongsTo(db.RoomType, { foreignKey: "room_type_id" });
+// };
+
+
 module.exports = db;

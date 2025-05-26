@@ -10,6 +10,7 @@ module.exports = (sequelize, DataTypes) => {
         through: models.RoomTypeService,
         foreignKey: "room_type_id",
       });
+      RoomType.hasMany(models.Review, { foreignKey: "room_type_id" });
     }
   }
   RoomType.init(

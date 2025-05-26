@@ -11,8 +11,8 @@
   "description": "",
   "devDependencies": {
     "@babel/core": "^7.26.10",
-    "@babel/node": "^7.26.0",
-    "@babel/preset-env": "^7.26.9",
+    "@babel/node": "^7.27.1",
+    "@babel/preset-env": "^7.27.2",
     "nodemon": "^3.1.9",
     "sequelize-cli": "^6.6.2"
   },
