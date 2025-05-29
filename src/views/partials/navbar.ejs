@@ -1,0 +1,132 @@
+<style>
+/* Màu nền mặc định nhạt hơn navbar */
+.btn-login {
+  background-color: rgba(255, 255, 255, 0.6); /* Màu trắng trong suốt 60% */
+  color: #6c757d; /* Màu chữ xám nhạt */
+  border: none;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-weight: bold;
+}
+
+/* Khi hover chuyển màu giống navbar (màu nâu nhạt) */
+.btn-login:hover {
+  background-color: #d6c7b8; /* Màu nền navbar */
+  color: #7a5c3c; /* Màu chữ navbar hoặc bạn có thể đổi */
+  cursor: pointer;
+}
+</style>
+
+<nav
+  class="navbar navbar-expand-lg navbar-custom"
+  style="
+    width: 100%;
+    opacity: 80%;
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    background-color: #d8c2b6!important;
+  "
+>
+  <!-- Logo bên trái -->
+  <a class="navbar-brand" href="/">
+    <img
+      src="/image/image/logo/logo.jpg"
+      
+      alt="Logo"
+      style="
+        margin: 0px;
+        padding: 0px;
+        width: 100px;
+        height: 100px;
+        position: absolute;
+        margin-top: -50px;
+        margin-left: 70px;
+      "
+    />
+  </a>
+
+  <div class="container kt">
+    <!-- Nút Toggle khi màn hình nhỏ -->
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarNav"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Danh mục menu (Căn giữa) -->
+    <div
+      class="collapse navbar-collapse justify-content-center"
+      id="navbarNav"
+      style="margin-left: 25px"
+    >
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="/" style="font-weight: bold">TRANG CHỦ</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#intro" style="font-weight: bold"
+            >GIỚI THIỆU</a
+          >
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#CH" style="font-weight: bold">CĂN HỘ</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#LH" style="font-weight: bold">LIÊN HỆ</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#DG" style="font-weight: bold">ĐÁNH GIÁ</a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Nút Đăng nhập/Đăng xuất (Bên phải) -->
+    <% if (typeof user !== 'undefined' && user) { %>
+    <div class="dropdown">
+      <button
+        class="btn p-0 border-0 bg-transparent"
+        type="button"
+        id="userDropdown"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+        <img
+          src="https://i.postimg.cc/rF3Fh10Y/avatar-trang-4.jpg"
+          alt="Avatar"
+          class="rounded-circle"
+          width="40"
+          height="40"
+        />
+      </button>
+      <ul
+        class="dropdown-menu dropdown-menu-end shadow"
+        aria-labelledby="userDropdown"
+      >
+        <li>
+          <span class="dropdown-item text-primary fw-bold">
+            <%= user.email %>
+          </span>
+        </li>
+        <li>
+          <a class="dropdown-item" href="/account">Thông tin tài khoản</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="/bookings">Lịch sử đặt phòng</a>
+        </li>
+        <li><hr class="dropdown-divider" /></li>
+        <li>
+          <a class="dropdown-item text-danger" href="/logout">Đăng xuất</a>
+        </li>
+      </ul>
+    </div>
+    <% } else { %>
+    <button class="btn btn-login" onclick="window.location.href='/login'">
+      ĐĂNG NHẬP
+    </button>
+    <% } %>
+  </div>
+</nav>

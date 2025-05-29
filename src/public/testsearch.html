@@ -1,105 +1,17 @@
-<!DOCTYPE html>
-<html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Trang chủ</title>
-    <style>
-      .room-grid {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-      }
-      .room-card {
-        flex: 1 1 calc(25% - 20px);
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        border-radius: 10px;
-        overflow: hidden;
-        min-width: 200px;
-        max-width: 240px;
-      }
-      .room-card img {
-        width: 100%;
-        height: 150px;
-        object-fit: cover;
-      }
-      .room-info {
-        padding: 10px;
-        font-size: 14px;
-      }
-      .btn-container {
-        margin-top: 20px;
-        text-align: center;
-      }
-      .btn {
-        padding: 8px 16px;
-        margin: 0 5px;
-        background-color: #a59a81;
-        color: white;
-        border: none;
-        border-radius: 20px;
-        cursor: pointer;
-      }
-      .hidden {
-        display: none;
-      }
-    </style>
-  </head>
-  <body>
-    <h2>Nơi sự thư giãn hòa quyện với sự sang trọng</h2>
-
-    <div class="room-grid" id="room-list">
-      <!-- 4 phòng đầu tiên -->
-      <div class="room-card">
-        <img src="https://i.postimg.cc/XYYFV1HF/pic2.jpg" />
-        <div class="room-info">Phòng 1</div>
-      </div>
-      <div class="room-card">
-        <img src="https://i.postimg.cc/XYYFV1HF/pic2.jpg" />
-        <div class="room-info">Phòng 2</div>
-      </div>
-      <div class="room-card">
-        <img src="https://i.postimg.cc/XYYFV1HF/pic2.jpg" />
-        <div class="room-info">Phòng 3</div>
-      </div>
-      <div class="room-card">
-        <img src="https://i.postimg.cc/XYYFV1HF/pic2.jpg" />
-        <div class="room-info">Phòng 4</div>
-      </div>
-
-      <!-- 4 phòng tiếp theo (ẩn lúc đầu) -->
-      <div class="room-card hidden">
-        <img src="https://i.postimg.cc/XYYFV1HF/pic2.jpg" />
-        <div class="room-info">Phòng 5</div>
-      </div>
-      <div class="room-card hidden">
-        <img src="https://i.postimg.cc/XYYFV1HF/pic2.jpg" />
-        <div class="room-info">Phòng 6</div>
-      </div>
-      <div class="room-card hidden">
-        <img src="https://i.postimg.cc/XYYFV1HF/pic2.jpg" />
-        <div class="room-info">Phòng 7</div>
-      </div>
-      <div class="room-card hidden">
-        <img src="https://i.postimg.cc/XYYFV1HF/pic2.jpg" />
-        <div class="room-info">Phòng 8</div>
-      </div>
+<div class="container mt-5">
+  <h4>Xác thực OTP</h4>
+  <form method="POST" action="/verify-otp">
+    <div class="mb-3">
+      <label for="otp" class="form-label">Mã OTP</label>
+      <input
+        type="text"
+        class="form-control"
+        id="otp"
+        name="otp"
+        maxlength="6"
+        required
+      />
     </div>
-
-    <div class="btn-container">
-      <button id="btnShowMore" class="btn" onclick="showMoreRooms()">
-        Xem thêm
-      </button>
-      <a id="btnViewAll" class="btn hidden" href="/search">Xem tất cả</a>
-    </div>
-
-    <script>
-      function showMoreRooms() {
-        document
-          .querySelectorAll(".room-card.hidden")
-          .forEach((el) => el.classList.remove("hidden"));
-        document.getElementById("btnShowMore").classList.add("hidden");
-        document.getElementById("btnViewAll").classList.remove("hidden");
-      }
-    </script>
-  </body>
-</html>
+    <button type="submit" class="btn btn-primary">Xác nhận</button>
+  </form>
+</div>

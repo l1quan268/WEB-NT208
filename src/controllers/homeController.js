@@ -707,6 +707,102 @@ let searchRoomAjax = async (req, res) => {
   }
 };
 
+let getRoomDetail = async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const room = await db.RoomType.findOne({
+      where: { room_type_id: id },
+      include: [
+        {
+          model: db.Homestay,
+          required: true,
+        },
+        {
+          model: db.RoomTypeImage,
+          required: false,
+        },
+        {
+          model: db.Service,
+          through: { attributes: [] },
+          required: false,
+        },
+        // {
+        //   model: db.Review,
+        //   required: false,
+        //   include: [
+        //     {
+        //       model: db.User,
+        //       attributes: ["name"],
+        //     },
+        //   ],
+        // },
+      ],
+    });
+
+    if (!room) return res.status(404).send("Không tìm thấy phòng");
+    // Lấy 3 phòng ngẫu nhiên khác với phòng hiện tại
+    const suggestedRooms = await db.RoomType.findAll({
+      where: {
+        room_type_id: { [db.Sequelize.Op.ne]: id },
+      },
+      include: [
+        {
+          model: db.RoomTypeImage,
+          required: false,
+        },
+      ],
+      limit: 3,
+      order: db.Sequelize.literal("RAND()"),
+    });
+    // Map thumbnail ảnh cho gợi ý phòng
+    const mappedSuggestedRooms = suggestedRooms.map((r) => {
+      const thumbnailImage = r.RoomTypeImages.find((img) => img.is_thumbnail);
+      let thumbnailUrl = thumbnailImage
+        ? thumbnailImage.image_url
+        : "/image/no-image.png";
+
+      if (
+        thumbnailUrl &&
+        !thumbnailUrl.startsWith("http") &&
+        !thumbnailUrl.startsWith("/")
+      ) {
+        thumbnailUrl = "/uploads/" + thumbnailUrl;
+      }
+
+      return {
+        room_type_id: r.room_type_id,
+        type_name: r.type_name,
+        price_per_night: r.price_per_night,
+        thumbnail: thumbnailUrl,
+      };
+    });
+
+    // Tính rating trung bình
+    const ratings = room.Reviews || [];
+    const avgRating = ratings.length
+      ? (
+          ratings.reduce((acc, r) => acc + r.rating, 0) / ratings.length
+        ).toFixed(1)
+      : null;
+    console.log("ẢNH:", room.RoomTypeImages);
+    res.render("Detail_homestay/details_homestay.ejs", {
+      room,
+      images: room.RoomTypeImages,
+      services: room.Services,
+      reviews: ratings,
+      homestay: room.Homestay,
+      avgRating,
+      suggestedRooms: mappedSuggestedRooms,
+
+      user: req.session.user || null,
+    });
+  } catch (err) {
+    console.error("Lỗi lấy chi tiết phòng:", err);
+    res.status(500).send("Lỗi server");
+  }
+};
+
 // Tìm kiếm phòng
 module.exports = {
   getHomePage: getHomePage,
@@ -721,4 +817,5 @@ module.exports = {
   getResetPassword: getResetPassword,
   postResetPassword: postResetPassword,
   searchRoomAjax: searchRoomAjax,
+  getRoomDetail: getRoomDetail,
 };

@@ -15,6 +15,8 @@ let initWebRoutes = (app) => {
   router.get("/search", homeController.searchRoom);
   router.get("/search/ajax", homeController.searchRoomAjax);
 
+  router.get("/room/:id", homeController.getRoomDetail);
+
   // Bắt đầu quá trình xác thực với Google
   router.get(
     "/auth/google",
