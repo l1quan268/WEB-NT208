@@ -20,8 +20,8 @@ let createNewUser = async (data) => {
         name: data.name,
         email: data.email,
         password_hash: hashPasswordFromBcrypt,
-        gender: data.gender || "male", // nếu có chọn giới tính
-        phone: data.phone || "", // nếu có nhập số điện thoại
+        gender: data.gender || "male",
+        phone: data.phone || "",
       });
 
       resolve("Đăng ký thành công");
@@ -34,7 +34,6 @@ let createNewUser = async (data) => {
 let hashUserPassword = (password) => {
   return new Promise(async (resolve, reject) => {
     try {
-      // Tạo salt mới mỗi lần băm
       const salt = await bcrypt.genSalt(10);
       let hashPassword = await bcrypt.hash(password, salt);
       resolve(hashPassword);
@@ -44,69 +43,77 @@ let hashUserPassword = (password) => {
   });
 };
 
-//login
-//
+// ✅ SỬA HÀM LOGIN - Trả về đúng field name
 let handleUserLogin = async (email, password) => {
   return new Promise(async (resolve, reject) => {
     try {
-      console.log("1. Bắt đầu xử lý đăng nhập với email:", email); // Thêm dòng này
+      console.log("1. Bắt đầu xử lý đăng nhập với email:", email);
 
       // Tìm user theo email
       const user = await db.User.findOne({
         where: { email: email },
       });
 
-      console.log("2. Kết quả tìm user:", user ? "Tồn tại" : "Không tồn tại"); // Thêm dòng này
+      console.log("2. Kết quả tìm user:", user ? "Tồn tại" : "Không tồn tại");
 
       if (!user) {
-        console.log("3. Email không tồn tại trong hệ thống"); // Thêm dòng này
+        console.log("3. Email không tồn tại trong hệ thống");
         return resolve({
           success: false,
           message: "Email không tồn tại trong hệ thống",
         });
       }
 
-      console.log("4. Mật khẩu nhập vào:", password); // Thêm dòng này
-      console.log("5. Hash trong database:", user.password_hash); // Thêm dòng này
+      console.log("4. Mật khẩu nhập vào:", password);
+      console.log("5. Hash trong database:", user.password_hash);
 
       // So sánh mật khẩu
       const isMatch = await bcrypt.compare(password, user.password_hash);
 
-      console.log("6. Kết quả so sánh mật khẩu:", isMatch); // Thêm dòng này
+      console.log("6. Kết quả so sánh mật khẩu:", isMatch);
 
       if (!isMatch) {
-        console.log("7. Mật khẩu không khớp"); // Thêm dòng này
+        console.log("7. Mật khẩu không khớp");
         return resolve({
           success: false,
           message: "Mật khẩu không chính xác",
         });
       }
 
-      console.log("8. Đăng nhập thành công"); // Thêm dòng này
-      // Nếu đúng cả email và mật khẩu
+      console.log("8. Đăng nhập thành công với user_id:", user.user_id);
+
+      // ✅ SỬA: Trả về đúng field name theo database schema
       resolve({
         success: true,
         message: "Đăng nhập thành công",
         user: {
-          id: user.id,
+          user_id: user.user_id, // ✅ SỬA: dùng user_id thay vì id
+          id: user.user_id, // ✅ THÊM: backup cho compatibility
           name: user.name,
           email: user.email,
+          role: user.role,
         },
       });
     } catch (e) {
-      console.log("9. Lỗi trong quá trình đăng nhập:", e); // Thêm dòng này
+      console.log("9. Lỗi trong quá trình đăng nhập:", e);
       reject(e);
     }
   });
 };
+
+// ✅ SỬA HÀM getUserById - Sử dụng đúng field name
 let getUserById = async (user_id) => {
   try {
-    const user = await db.User.findOne({ where: { user_id } });
+    const user = await db.User.findOne({
+      where: { user_id: user_id }, // ✅ SỬA: sử dụng user_id thay vì id
+    });
     return user;
   } catch (error) {
     throw error;
   }
 };
+
+// ✅ SỬA HÀM findOrCreateGoogleUser
 let findOrCreateGoogleUser = async (profile) => {
   try {
     let user = await db.User.findOne({
@@ -114,6 +121,7 @@ let findOrCreateGoogleUser = async (profile) => {
     });
 
     if (user) {
+      console.log("✅ Tìm thấy user Google với user_id:", user.user_id);
       return user;
     }
 
@@ -121,12 +129,14 @@ let findOrCreateGoogleUser = async (profile) => {
     let newUser = await db.User.create({
       name: profile.displayName,
       email: profile.emails[0].value,
-      gender: "male", // Hoặc profile.gender nếu Google trả về
-      password_hash: "", // Vì dùng Google nên không cần mật khẩu
+      gender: "male",
+      password_hash: "", // Google không cần mật khẩu
     });
 
+    console.log("✅ Tạo mới user Google với user_id:", newUser.user_id);
     return newUser;
   } catch (error) {
+    console.error("❌ Lỗi findOrCreateGoogleUser:", error);
     throw error;
   }
 };

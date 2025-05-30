@@ -235,7 +235,8 @@
 
 
     <!-- Kết quả bên phải -->
-<div class="col-md-9"id="roomResults">
+<!-- Kết quả bên phải - CHỈ BỎ THÔNG BÁO "CÓ SẴN SAU" -->
+<div class="col-md-9" id="roomResults">
   <h5 class="text-muted mb-4">
     Kết quả tìm kiếm cho: <%= checkin %> → <%= checkout %> | <%= adults %> người lớn, <%= children %> trẻ em
   </h5>
@@ -262,18 +263,14 @@
                   <span class="badge rounded-pill mb-2 px-3 py-1 text-white" style="background-color: #dc3545;">🔥 Yêu thích</span>
                 <% } %>
 
-           <% if (room.avg_rating) { %>
-            <p class="text-warning mb-2">
-              ⭐ <%= room.avg_rating %>/5
-              <span class="text-muted">(<%= room.review_count %> đánh giá)</span>
-            </p>
-          <% } %>
-
-                <% if (room.available_after) { %>
-                  <p class="text-danger mb-2" style="font-size: 0.9rem; font-weight: 500;">
-                    ⚠️ Phòng hiện đã được đặt. Có sẵn sau <strong> <%= new Date(room.available_after).toLocaleDateString("vi-VN") %></strong>
+                <% if (room.avg_rating) { %>
+                  <p class="text-warning mb-2">
+                    ⭐ <%= room.avg_rating %>/5
+                    <span class="text-muted">(<%= room.review_count %> đánh giá)</span>
                   </p>
                 <% } %>
+
+                <!-- BỎ PHẦN THÔNG BÁO "CÓ SẴN SAU" -->
 
                 <p class="card-text flex-grow-1" style="font-size: 0.95rem;">
                   <strong>Mô tả:</strong>
@@ -286,11 +283,13 @@
                   <% } %>
                   <br>
 
-                <strong>Giá:</strong>
-                <span class="price-tag">
-                  <%= Number(room.price).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }) %>
-                </span>
-                <small class="text-muted"> / đêm</small><br>
+                  <strong>Giá:</strong>
+                  <!-- ĐỔI MÀU GIÁ THÀNH ĐỎ -->
+                  <span class="price-tag" style="color: #e74c3c; font-weight: bold; font-size: 1.1rem;">
+                    <%= Number(room.price).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }) %>
+                  </span>
+                  <small class="text-muted"> / đêm</small><br>
+                  
                   <strong>Địa chỉ:</strong> <%= room.address %><br>
 
                   <strong>Dịch vụ:</strong>

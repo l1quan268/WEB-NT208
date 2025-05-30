@@ -24,26 +24,35 @@ let initWebRoutes = (app) => {
   );
 
   // Google sẽ redirect về đây sau khi xác thực thành công
+  // Trong web.js - sửa Google callback
   router.get(
     "/auth/google/callback",
     passport.authenticate("google", {
       failureRedirect: "/login",
     }),
     (req, res) => {
-      // Sau khi xác thực thành công, lưu user vào session
+      // ✅ SỬA: Lưu user với cùng format như login thường
       if (req.session && req.user) {
         req.session.user = {
-          id: req.user.user_id,
+          user_id: req.user.user_id, // ✅ Đồng nhất với login thường
+          id: req.user.user_id, // ✅ Backup cho compatibility
           name: req.user.name,
           email: req.user.email,
         };
-        console.log("Đã lưu user Google vào session:", req.session.user);
-      } else {
-        console.log("Không có session hoặc user sau xác thực Google");
-      }
 
-      // Chuyển hướng về trang chủ
-      res.redirect("/");
+        console.log("✅ Đã lưu user Google vào session:", req.session.user);
+
+        // ✅ SAVE SESSION EXPLICITLY
+        req.session.save((err) => {
+          if (err) {
+            console.error("❌ Google session save error:", err);
+          }
+          res.redirect("/");
+        });
+      } else {
+        console.log("❌ Không có session hoặc user sau xác thực Google");
+        res.redirect("/login");
+      }
     }
   );
 

@@ -34,15 +34,10 @@
           ⭐ <%= room.avg_rating %>/5
           <span class="text-muted">(<%= room.review_count %> đánh giá)</span>
         </p>
-        <% } %> <% if (room.available_after) { %>
-        <p class="text-danger mb-2" style="font-size: 0.9rem; font-weight: 500">
-          ⚠️ Phòng hiện đã được đặt. Có sẵn sau
-          <strong>
-            <%= new Date(room.available_after).toLocaleDateString("vi-VN")
-            %></strong
-          >
-        </p>
         <% } %>
+
+        <!-- BỎ PHẦN THÔNG BÁO "CÓ SẴN SAU" -->
+
         <p class="card-text flex-grow-1" style="font-size: 0.95rem">
           <strong>Mô tả:</strong>
           <% if (room.description?.toLowerCase().includes("nhà nguyên căn")) {
@@ -52,7 +47,11 @@
           <br />
 
           <strong>Giá:</strong>
-          <span class="price-tag">
+          <!-- ĐỔI MÀU GIÁ THÀNH ĐỎ -->
+          <span
+            class="price-tag"
+            style="color: #e74c3c; font-weight: bold; font-size: 1.1rem"
+          >
             <%= Number(room.price).toLocaleString('vi-VN', { style: 'currency',
             currency: 'VND' }) %>
           </span>
