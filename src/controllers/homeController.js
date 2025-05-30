@@ -4,6 +4,7 @@ import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import sendEmail from "../utils/email";
 
+
 let getHomePage = async (req, res) => {
   const user = req.session?.user || null;
 
@@ -178,6 +179,7 @@ let postLogin = async (req, res) => {
     const result = await user_service.handleUserLogin(email, password);
 
     if (result.success) {
+<<<<<<< Updated upstream
       // Bỏ qua kiểm tra session
       try {
         // Thử lưu thông tin người dùng vào session
@@ -190,13 +192,45 @@ let postLogin = async (req, res) => {
           console.log("Đã lưu session thành công:", req.session.user);
         } else {
           console.log("Session không tồn tại, nhưng vẫn chuyển hướng");
+=======
+      console.log("✅ LOGIN SUCCESS - User data:", result.user);
+
+      req.session.user = {
+      user_id: result.user.user_id,
+      id: result.user.user_id,
+      name: result.user.name,
+      email: result.user.email,
+      role: result.user.role // 🔥 cần thiết để middleware kiểm tra
+    };
+
+      req.session.save((err) => {
+        if (err) {
+          console.error("❌ Session save error:", err);
+          return res.render("Login/login.ejs", {
+            error: "Lỗi lưu session",
+            success: null,
+          });
+>>>>>>> Stashed changes
         }
       } catch (sessionError) {
         console.error("Lỗi khi lưu session:", sessionError);
       }
 
+<<<<<<< Updated upstream
       // Luôn chuyển hướng về trang chủ, ngay cả khi không lưu được session
       return res.redirect("/");
+=======
+        console.log("✅ SESSION SAVED SUCCESSFULLY:", req.session.user);
+
+        // ✅ Chuyển hướng admin về /admin
+        if (req.session.user.email === "admin@gm.com") {
+          return res.redirect("/admin");
+        }
+
+        // Người dùng thường thì về trang chủ
+        return res.redirect("/");
+      });
+>>>>>>> Stashed changes
     } else {
       return res.render("Login/login.ejs", {
         error: result.message,
@@ -721,4 +755,77 @@ module.exports = {
   getResetPassword: getResetPassword,
   postResetPassword: postResetPassword,
   searchRoomAjax: searchRoomAjax,
+};
+// Trang quản trị (chỉ admin@gm.com mới có thể truy cập)
+const getAdminPage = async (req, res) => {
+  const users = await db.User.findAll({ where: { role: 'user' } });
+  const homestays = await db.Homestay.findAll();
+  res.render("Admin/admin.ejs", { users, homestays, user: req.session.user });
+};
+// Thêm người dùng
+let addUser = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    const password_hash = await bcrypt.hash(password, 10);
+    await db.User.create({ name, email, password_hash, role: "user" });
+    res.redirect("/admin");
+  } catch (error) {
+    console.error("Lỗi khi thêm người dùng:", error);
+    res.status(500).send("Lỗi server");
+  }
+};
+
+// Cập nhật thông tin người dùng
+const updateUser = async (req, res) => {
+  const { name, email, password } = req.body;
+  const userId = req.params.id;
+  const updateData = { name, email };
+  if (password?.trim()) {
+    updateData.password_hash = await bcrypt.hash(password, 10);
+  }
+  try {
+    await db.User.update(updateData, { where: { user_id: userId } });
+    res.redirect("/admin");
+  } catch (err) {
+    console.error("Lỗi cập nhật người dùng:", err);
+    res.status(500).send("Lỗi khi cập nhật người dùng.");
+  }
+};
+// Xóa người dùng
+const deleteUser = async (req, res) => {
+  const userId = req.params.id;
+  try {
+    await db.Review.destroy({ where: { user_id: userId } });
+    await db.Payment.destroy({ where: { user_id: userId } });
+    await db.Booking.destroy({ where: { user_id: userId } });
+    await db.User.destroy({ where: { user_id: userId } });
+    res.redirect("/admin");
+  } catch (err) {
+    console.error("Lỗi xóa người dùng:", err);
+    res.status(500).send("Lỗi khi xóa người dùng.");
+  }
+};
+
+// ✅ Export toàn bộ controller
+module.exports = {
+  getHomePage,
+  getSignUp,
+  postRegister,
+  getLogin,
+  searchRoom,
+  postLogin,
+  getLogout,
+  getForgotPassword,
+  postForgotPassword,
+  getResetPassword,
+  postResetPassword,
+  searchRoomAjax,
+  getRoomDetail,
+  postReview,
+
+  // Quản trị
+  getAdminPage,
+  addUser,
+  updateUser,
+  deleteUser,
 };
