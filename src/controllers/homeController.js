@@ -5,6 +5,11 @@ import bcrypt from "bcryptjs";
 import sendEmail from "../utils/email";
 
 
+<<<<<<< Updated upstream
+=======
+
+
+>>>>>>> Stashed changes
 let getHomePage = async (req, res) => {
   const user = req.session?.user || null;
 
@@ -196,12 +201,21 @@ let postLogin = async (req, res) => {
       console.log("✅ LOGIN SUCCESS - User data:", result.user);
 
       req.session.user = {
+<<<<<<< Updated upstream
       user_id: result.user.user_id,
       id: result.user.user_id,
       name: result.user.name,
       email: result.user.email,
       role: result.user.role // 🔥 cần thiết để middleware kiểm tra
     };
+=======
+        user_id: result.user.user_id,
+        id: result.user.user_id, // THÊM: backup cho compatibility
+        name: result.user.name,
+        email: result.user.email,
+        avatar_url: result.user.avatar_url, // ✅ thêm dòng này
+      };
+>>>>>>> Stashed changes
 
       req.session.save((err) => {
         if (err) {
@@ -741,6 +755,398 @@ let searchRoomAjax = async (req, res) => {
   }
 };
 
+<<<<<<< Updated upstream
+=======
+  try {
+    // 🔹 Lấy thông tin phòng
+    const room = await db.RoomType.findOne({
+      where: { room_type_id: id },
+      include: [
+        {
+          model: db.Homestay,
+          required: true,
+        },
+        {
+          model: db.RoomTypeImage,
+          required: false,
+        },
+        {
+          model: db.Service,
+          through: { attributes: [] },
+          required: false,
+        },
+      ],
+    });
+
+    if (!room) return res.status(404).send("Không tìm thấy phòng");
+
+    // ✅ SỬA: Dùng raw query để lấy reviews
+    const reviewQuery = `
+      SELECT 
+        r.review_id,
+        r.user_id,
+        r.rating,
+        r.comment,
+        r.created_at,
+        u.name
+      FROM reviews r
+      LEFT JOIN users u ON r.user_id = u.user_id
+      WHERE r.room_type_id = ?
+      ORDER BY r.created_at DESC
+    `;
+
+    const reviews = await db.sequelize.query(reviewQuery, {
+      replacements: [id],
+      type: db.Sequelize.QueryTypes.SELECT,
+    });
+
+    // Format reviews cho template
+    const formattedReviews = reviews.map((review) => ({
+      review_id: review.review_id,
+      user_id: review.user_id,
+      rating: review.rating,
+      comment: review.comment,
+      created_at: review.created_at,
+      User: {
+        name: review.name || "Ẩn danh",
+      },
+    }));
+
+    // Lấy 3 phòng gợi ý
+    const suggestedRooms = await db.RoomType.findAll({
+      where: {
+        room_type_id: { [db.Sequelize.Op.ne]: id },
+      },
+      include: [
+        {
+          model: db.RoomTypeImage,
+          required: false,
+          where: { is_thumbnail: true },
+        },
+      ],
+      limit: 3,
+      order: db.Sequelize.literal("RAND()"),
+    });
+
+    const mappedSuggestedRooms = suggestedRooms.map((r) => {
+      const thumbnailImage = r.RoomTypeImages?.find((img) => img.is_thumbnail);
+      let thumbnailUrl = thumbnailImage
+        ? thumbnailImage.image_url
+        : "/image/no-image.png";
+
+      if (
+        thumbnailUrl &&
+        !thumbnailUrl.startsWith("http") &&
+        !thumbnailUrl.startsWith("/")
+      ) {
+        thumbnailUrl = "/uploads/" + thumbnailUrl;
+      }
+
+      return {
+        room_type_id: r.room_type_id,
+        type_name: r.type_name,
+        price_per_night: r.price_per_night,
+        thumbnail: thumbnailUrl,
+      };
+    });
+
+    // Tính điểm trung bình đánh giá
+    const avgRating = formattedReviews.length
+      ? (
+          formattedReviews.reduce((acc, r) => acc + r.rating, 0) /
+          formattedReviews.length
+        ).toFixed(1)
+      : null;
+
+    console.log(
+      "✅ ROOM DETAIL LOADED - Reviews count:",
+      formattedReviews.length
+    );
+
+    // Trả dữ liệu ra view
+    res.render("Detail_homestay/details_homestay.ejs", {
+      room,
+      images: room.RoomTypeImages,
+      services: room.Services,
+      reviews: formattedReviews, // ✅ Dùng raw query results
+      homestay: room.Homestay,
+      avgRating,
+      suggestedRooms: mappedSuggestedRooms,
+      user: req.session.user || null,
+    });
+  } catch (err) {
+    console.error("❌ Lỗi lấy chi tiết phòng:", err);
+    res.status(500).send("Lỗi server: " + err.message);
+  }
+};
+// Thêm vào homeController.js
+// let deleteReview = async (req, res) => {
+//   try {
+//     console.log("=== DELETE REVIEW REQUEST ===");
+//     console.log("Params:", req.params);
+//     console.log("Session user:", req.session?.user);
+
+//     const { reviewId } = req.params;
+//     const user = req.session?.user;
+
+//     if (!user) {
+//       return res.status(401).json({
+//         success: false,
+//         message: "Vui lòng đăng nhập để xóa đánh giá",
+//       });
+//     }
+
+//     const userId = user.user_id || user.id;
+
+//     if (!userId) {
+//       return res.status(401).json({
+//         success: false,
+//         message: "Thông tin đăng nhập không hợp lệ",
+//       });
+//     }
+
+//     if (!reviewId) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Thiếu ID đánh giá",
+//       });
+//     }
+
+//     // ✅ KIỂM TRA review có tồn tại và thuộc về user này không
+//     const checkReviewQuery = `
+//       SELECT review_id, user_id, room_type_id, rating, comment
+//       FROM reviews
+//       WHERE review_id = ? AND user_id = ?
+//     `;
+
+//     const reviewResults = await db.sequelize.query(checkReviewQuery, {
+//       replacements: [reviewId, userId],
+//       type: db.Sequelize.QueryTypes.SELECT,
+//     });
+
+//     if (!reviewResults || reviewResults.length === 0) {
+//       return res.status(404).json({
+//         success: false,
+//         message:
+//           "Không tìm thấy đánh giá hoặc bạn không có quyền xóa đánh giá này",
+//       });
+//     }
+
+//     const review = reviewResults[0];
+//     console.log("✅ Found review to delete:", review);
+
+//     // ✅ XÓA review
+//     const deleteQuery = `DELETE FROM reviews WHERE review_id = ? AND user_id = ?`;
+
+//     const [result] = await db.sequelize.query(deleteQuery, {
+//       replacements: [reviewId, userId],
+//       type: db.Sequelize.QueryTypes.DELETE,
+//     });
+
+//     console.log("✅ Review deleted successfully");
+
+//     return res.json({
+//       success: true,
+//       message: "Xóa đánh giá thành công",
+//       deletedReview: {
+//         id: review.review_id,
+//         rating: review.rating,
+//         comment: review.comment,
+//       },
+//     });
+//   } catch (error) {
+//     console.error("❌ LỖI XÓA ĐÁNH GIÁ:", error);
+
+//     return res.status(500).json({
+//       success: false,
+//       message: "Lỗi server: " + error.message,
+//     });
+//   }
+// };
+
+// ✅ CẬP NHẬT postReview để cho phép tạo mới sau khi xóa
+let postReview = async (req, res) => {
+  try {
+    console.log("=== REVIEW REQUEST DEBUG ===");
+    console.log("Request body:", req.body);
+    console.log("Session user:", req.session?.user);
+
+    const { room_type_id, rating, comment } = req.body;
+    const user = req.session?.user;
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Vui lòng đăng nhập để đánh giá",
+      });
+    }
+
+    const userId = user.user_id || user.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Thông tin đăng nhập không hợp lệ",
+      });
+    }
+
+    // Validation
+    if (!room_type_id || !rating || !comment?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Vui lòng điền đầy đủ thông tin",
+      });
+    }
+
+    const numRating = parseInt(rating);
+    if (isNaN(numRating) || numRating < 1 || numRating > 5) {
+      return res.status(400).json({
+        success: false,
+        message: "Đánh giá phải từ 1-5 sao",
+      });
+    }
+
+    const trimmedComment = comment.trim();
+    if (trimmedComment.length < 5) {
+      return res.status(400).json({
+        success: false,
+        message: "Bình luận quá ngắn (tối thiểu 5 ký tự)",
+      });
+    }
+
+    // Kiểm tra room tồn tại
+    const roomExists = await db.RoomType.findByPk(room_type_id);
+    if (!roomExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Phòng không tồn tại",
+      });
+    }
+
+    // ✅ KIỂM TRA đã đánh giá chưa
+    const existingReviewQuery = `
+      SELECT review_id FROM reviews 
+      WHERE user_id = ? AND room_type_id = ? 
+      LIMIT 1
+    `;
+
+    const existingReviews = await db.sequelize.query(existingReviewQuery, {
+      replacements: [userId, room_type_id],
+      type: db.Sequelize.QueryTypes.SELECT,
+    });
+
+    let newReviewId;
+
+    if (existingReviews && existingReviews.length > 0) {
+      // ✅ CẬP NHẬT review cũ
+      console.log("🔄 Updating existing review...");
+      const updateQuery = `
+        UPDATE reviews 
+        SET rating = ?, comment = ?, created_at = NOW() 
+        WHERE user_id = ? AND room_type_id = ?
+      `;
+
+      await db.sequelize.query(updateQuery, {
+        replacements: [numRating, trimmedComment, userId, room_type_id],
+        type: db.Sequelize.QueryTypes.UPDATE,
+      });
+
+      newReviewId = existingReviews[0].review_id;
+      console.log("✅ Review updated with ID:", newReviewId);
+    } else {
+      // ✅ TẠO review mới
+      console.log("➕ Creating new review...");
+      const insertQuery = `
+        INSERT INTO reviews (user_id, room_type_id, rating, comment, created_at) 
+        VALUES (?, ?, ?, ?, NOW())
+      `;
+
+      const [result] = await db.sequelize.query(insertQuery, {
+        replacements: [userId, room_type_id, numRating, trimmedComment],
+        type: db.Sequelize.QueryTypes.INSERT,
+      });
+
+      newReviewId = result;
+      console.log("✅ New review created with ID:", newReviewId);
+    }
+
+    // Lấy thông tin user
+    const userQuery = `SELECT name, email FROM users WHERE user_id = ?`;
+    const userResults = await db.sequelize.query(userQuery, {
+      replacements: [userId],
+      type: db.Sequelize.QueryTypes.SELECT,
+    });
+
+    const userInfo = userResults[0];
+
+    return res.json({
+      success: true,
+      message:
+        existingReviews.length > 0
+          ? "Cập nhật đánh giá thành công!"
+          : "Đánh giá thành công!",
+      review: {
+        id: newReviewId,
+        name: userInfo?.name || user.name || user.email || "Ẩn danh",
+        rating: numRating,
+        comment: trimmedComment,
+        created_at: new Date(),
+      },
+    });
+  } catch (error) {
+    console.error("❌ LỖI GỬI ĐÁNH GIÁ:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi server: " + error.message,
+    });
+  }
+};
+let getChangePassword = async (req, res) => {
+  res.render("User_info/User_info.ejs", {
+  user: req.session.user, // ✅ THÊM dòng này nếu chưa có
+  userData: userData
+});
+};
+
+let postChangePassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  const userId = req.session?.user?.user_id;
+  const user = await db.User.findByPk(userId);
+
+  const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
+  if (!isMatch) {
+    return res.send("❌ Mật khẩu hiện tại không đúng.");
+  }
+
+  const newHashed = await bcrypt.hash(newPassword, 10);
+  await db.User.update({ password_hash: newHashed }, { where: { user_id: userId } });
+
+  res.redirect("/account"); // hoặc hiển thị thông báo thành công
+};
+let getAccountInfo = async (req, res) => {
+  const userId = req.session?.user?.user_id;
+  const userData = await db.User.findByPk(userId);
+  if (userData?.dob) {
+  userData.dobFormatted = new Date(userData.dob).toISOString().slice(0, 10);
+}
+  return res.render("User_info/User_info.ejs", {
+  user: req.session.user,       // ✅ BẮT BUỘC
+  userData: userData            // ✅ Đã có
+  });
+};
+
+let updateAccountInfo = async (req, res) => {
+  const userId = req.session?.user?.user_id;
+  const { name, phone, gender, dob } = req.body;
+
+  const updateData = { name, phone, gender, dob };
+  await db.User.update(updateData, { where: { user_id: userId } });
+
+  req.session.user.name = name;
+  res.redirect("/account");
+};
+>>>>>>> Stashed changes
 // Tìm kiếm phòng
 module.exports = {
   getHomePage: getHomePage,
@@ -755,6 +1161,16 @@ module.exports = {
   getResetPassword: getResetPassword,
   postResetPassword: postResetPassword,
   searchRoomAjax: searchRoomAjax,
+<<<<<<< Updated upstream
+=======
+  getRoomDetail: getRoomDetail,
+  postReview: postReview,
+  getAccountInfo: getAccountInfo,
+  updateAccountInfo: updateAccountInfo,
+  getChangePassword : getChangePassword ,
+  postChangePassword : postChangePassword ,
+  // deleteReview: deleteReview,
+>>>>>>> Stashed changes
 };
 // Trang quản trị (chỉ admin@gm.com mới có thể truy cập)
 const getAdminPage = async (req, res) => {

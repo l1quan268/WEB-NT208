@@ -4,6 +4,8 @@ import homeController from "../controllers/homeController";
 import passport from "passport";
 
 let router = express.Router();
+import upload from "../middlewares/upload";
+
 
 let initWebRoutes = (app) => {
   // ==== Trang người dùng ====
@@ -53,7 +55,11 @@ let initWebRoutes = (app) => {
           id: req.user.user_id,
           name: req.user.name,
           email: req.user.email,
+<<<<<<< Updated upstream
           role: req.user.role, // ✅ nếu bạn muốn phân quyền với Google login
+=======
+          avatar_url: req.user.avatar_url || "/default.jpg", // ✅ nếu có
+>>>>>>> Stashed changes
         };
 <<<<<<< Updated upstream
         console.log("Đã lưu user Google vào session:", req.session.user);
@@ -74,12 +80,18 @@ let initWebRoutes = (app) => {
       res.redirect("/");
     }
   );
+<<<<<<< Updated upstream
 
   // ==== Quên / Reset mật khẩu ====
+=======
+  router.get("/change-password", homeController.getChangePassword);
+  router.post("/change-password", homeController.postChangePassword);
+>>>>>>> Stashed changes
   router.get("/forget-password", homeController.getForgotPassword);
   router.post("/forget-password", homeController.postForgotPassword);
   router.get("/reset-password/:token", homeController.getResetPassword);
   router.post("/reset-password/:token", homeController.postResetPassword);
+<<<<<<< Updated upstream
 
   // ==== Admin routes (chỉ dành cho role = 'admin') ====
   router.get("/admin", requireAdmin, homeController.getAdminPage);
@@ -88,6 +100,10 @@ let initWebRoutes = (app) => {
   router.post("/admin/delete-user/:id", requireAdmin, homeController.deleteUser);
 
   // ==== Route test session (tuỳ chọn) ====
+=======
+  router.get("/account", homeController.getAccountInfo);
+  router.post("/account/update", upload.single("avatar"), homeController.updateAccountInfo);
+>>>>>>> Stashed changes
   router.get("/test-session", (req, res) => {
     if (!req.session) return res.send("Session không tồn tại!");
     req.session.count = (req.session.count || 0) + 1;
