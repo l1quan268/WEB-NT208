@@ -86,9 +86,16 @@ let getSignUp = (req, res) => {
 };
 
 let getLogin = (req, res) => {
+  const msg = req.query.msg;
+  let success = null;
+
+  if (msg === "changed") {
+    success = "Đổi mật khẩu thành công. Vui lòng đăng nhập lại.";
+  }
+
   return res.render("Login/login.ejs", {
     error: null,
-    success: null,
+    success: success,
   });
 };
 
@@ -1078,6 +1085,106 @@ let postReview = async (req, res) => {
     });
   }
 };
+let getUserInfoPage = async (req, res) => {
+  const userSession = req.session?.user;
+  if (!userSession) return res.redirect("/login");
+
+  const user = await db.User.findByPk(userSession.user_id);
+  if (!user) return res.redirect("/login");
+
+  const dobFormatted = user.dob
+    ? new Date(user.dob).toISOString().split("T")[0]
+    : "";
+
+  const message = req.session.message;
+  delete req.session.message;
+
+  return res.render("User_info/User_info.ejs", {
+    user: req.session.user,
+    userData: {
+      ...user.dataValues,
+      dobFormatted,
+    },
+    message,
+  });
+};
+
+
+let postUpdateUserInfo = async (req, res) => {
+  const userSession = req.session?.user;
+  if (!userSession) return res.redirect("/login");
+
+  const { name, phone, dob, gender } = req.body;
+  await db.User.update(
+    { name, phone, dob, gender },
+    { where: { user_id: userSession.user_id } }
+  );
+
+  req.session.message = "Cập nhật thông tin thành công!";
+  return res.redirect("/account");
+};
+
+let postChangePassword = async (req, res) => {
+  const userSession = req.session?.user;
+  if (!userSession) return res.redirect("/login");
+
+  const { currentPassword, newPassword, confirmPassword } = req.body;
+
+  try {
+    const user = await db.User.findByPk(userSession.user_id);
+    if (!user) {
+      req.session.message = "Không tìm thấy tài khoản.";
+      return res.redirect("/account");
+    }
+
+    // ✅ Không cho đổi nếu tài khoản không có mật khẩu (tài khoản Google)
+    if (!user.password_hash) {
+      req.session.message = "Tài khoản này không hỗ trợ đổi mật khẩu (có thể đăng nhập bằng Google).";
+      return res.redirect("/account");
+    }
+
+    // ✅ So sánh mật khẩu hiện tại
+    const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
+    console.log("✅ So sánh mật khẩu:", {
+      inputPassword: currentPassword,
+      hashInDB: user.password_hash,
+      matchResult: isMatch,
+    });
+
+    if (!isMatch) {
+      req.session.message = "❌ Mật khẩu hiện tại không đúng.";
+      return res.redirect("/account");
+    }
+
+    // ✅ So sánh mật khẩu mới và xác nhận
+    if (newPassword !== confirmPassword) {
+      req.session.message = "❌ Mật khẩu mới và xác nhận không khớp.";
+      return res.redirect("/account");
+    }
+
+    // ✅ Hash và cập nhật mật khẩu mới
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    await user.update({ password_hash: hashedNewPassword });
+    console.log("✅ Mật khẩu mới đã được cập nhật:", hashedNewPassword);
+
+    // ✅ Đăng xuất sau khi đổi mật khẩu
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("❌ Lỗi khi đăng xuất sau đổi mật khẩu:", err);
+        return res.redirect("/account");
+      }
+
+      res.clearCookie("connect.sid");
+      return res.redirect("/login?msg=changed");
+    });
+  } catch (err) {
+    console.error("❌ Lỗi đổi mật khẩu:", err);
+    req.session.message = "Có lỗi xảy ra khi đổi mật khẩu.";
+    return res.redirect("/account");
+  }
+};
+
+
 // Tìm kiếm phòng
 module.exports = {
   getHomePage: getHomePage,
@@ -1094,5 +1201,8 @@ module.exports = {
   searchRoomAjax: searchRoomAjax,
   getRoomDetail: getRoomDetail,
   postReview: postReview,
+  postChangePassword : postChangePassword,
+  postUpdateUserInfo : postUpdateUserInfo,
+  getUserInfoPage : getUserInfoPage,
   // deleteReview: deleteReview,
 };

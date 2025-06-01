@@ -61,6 +61,10 @@ let initWebRoutes = (app) => {
   router.get("/reset-password/:token", homeController.getResetPassword);
   router.post("/reset-password/:token", homeController.postResetPassword);
 
+  router.get("/account", homeController.getUserInfoPage);
+  router.post("/account/update", homeController.postUpdateUserInfo);
+  router.post("/change-password", homeController.postChangePassword);
+
   router.get("/test-session", (req, res) => {
     if (!req.session) {
       return res.send("Session không tồn tại!");
