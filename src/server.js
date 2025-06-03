@@ -1,42 +1,45 @@
 import express from "express";
 import bodyParser from "body-parser";
-import session from "express-session"; // Thêm dòng này
-import viewEngine from "./config/viewEngine";
-import initWebRoutes from "./route/web";
-import connectDB from "./config/connectDb";
-import passport from "./config/passport";
-require("dotenv").config();
+import session from "express-session";
+import viewEngine from "../config/viewEngine.js";
+import initWebRoutes from "../route/web.js";
+import connectDB from "../config/connectDb.js";
+import passport from "../config/passport.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
 
-// --- Cấu hình Session Middleware (ĐẶT TRƯỚC CÁC ROUTE) ---
+// Cấu hình session
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "your-fallback-secret", // Mật khẩu bí mật
-    resave: false, // Không lưu lại session nếu không thay đổi
-    saveUninitialized: false, // Không lưu trữ session mới nếu chưa được khởi tạo
+    secret: process.env.SESSION_SECRET || "your-fallback-secret",
+    resave: false,
+    saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production", // Nếu ở môi trường production thì bật HTTPS
-      httpOnly: true, // Cookie không thể được truy cập qua JavaScript
-      maxAge: 24 * 60 * 60 * 1000, // Thời gian hết hạn session, ví dụ 1 ngày
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
     },
   })
 );
-app.use(passport.initialize());
-app.use(passport.session());
 
-// Các middleware khác (giữ nguyên)
+// Middleware khác
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Khởi tạo view engine & route
 viewEngine(app);
 initWebRoutes(app);
 
+// Kết nối DB
 connectDB();
 
+// Khởi động server
 const port = process.env.PORT || 9999;
 app.listen(port, () => {
-  console.log(`Backend Nodejs is running on port: ${port}`);
+  console.log(`✅ Backend Node.js is running on port: ${port}`);
 });
-
-
