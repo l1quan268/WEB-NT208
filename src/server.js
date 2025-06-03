@@ -1,10 +1,11 @@
 import express from "express";
 import bodyParser from "body-parser";
 import session from "express-session";
-import viewEngine from "../config/viewEngine.js";
-import initWebRoutes from "../route/web.js";
-import connectDB from "../config/connectDb.js";
-import passport from "../config/passport.js";
+// Thay đổi từ "../config/viewEngine.js" thành "./config/viewEngine.js"
+import viewEngine from "./config/viewEngine.js";
+import initWebRoutes from "./route/web.js";
+import connectDB from "./config/connectDb.js";
+import passport from "./config/passport.js";
 import dotenv from "dotenv";
 
 dotenv.config(); // Load biến môi trường từ .env
