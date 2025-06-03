@@ -6,11 +6,16 @@ import initWebRoutes from "../route/web.js";
 import connectDB from "../config/connectDb.js";
 import passport from "../config/passport.js";
 import dotenv from "dotenv";
-dotenv.config();
+
+dotenv.config(); // Load biến môi trường từ .env
 
 const app = express();
 
-// Cấu hình session
+// Middleware phân tích body
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// Session
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "your-fallback-secret",
@@ -24,21 +29,22 @@ app.use(
   })
 );
 
-// Middleware khác
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
+// Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Khởi tạo view engine & route
+// View engine & route
 viewEngine(app);
 initWebRoutes(app);
 
-// Kết nối DB
-connectDB();
+// Database
+try {
+  connectDB();
+} catch (error) {
+  console.error("❌ Error connecting to the database:", error);
+}
 
-// Khởi động server
+// Start server
 const port = process.env.PORT || 9999;
 app.listen(port, () => {
   console.log(`✅ Backend Node.js is running on port: ${port}`);
