@@ -1,7 +1,8 @@
+// src/services/user_service.js
 import bcrypt from "bcryptjs";
-import db from "../models/index";
+import db from "../models/index.js"; // Thêm .js extension
 
-let createNewUser = async (data) => {
+const createNewUser = async (data) => {
   return new Promise(async (resolve, reject) => {
     try {
       // Kiểm tra xem email đã tồn tại chưa
@@ -31,7 +32,7 @@ let createNewUser = async (data) => {
   });
 };
 
-let hashUserPassword = (password) => {
+const hashUserPassword = (password) => {
   return new Promise(async (resolve, reject) => {
     try {
       // Tạo salt mới mỗi lần băm
@@ -44,45 +45,44 @@ let hashUserPassword = (password) => {
   });
 };
 
-//login
-//
-let handleUserLogin = async (email, password) => {
+// Login
+const handleUserLogin = async (email, password) => {
   return new Promise(async (resolve, reject) => {
     try {
-      console.log("1. Bắt đầu xử lý đăng nhập với email:", email); // Thêm dòng này
+      console.log("1. Bắt đầu xử lý đăng nhập với email:", email);
 
       // Tìm user theo email
       const user = await db.User.findOne({
         where: { email: email },
       });
 
-      console.log("2. Kết quả tìm user:", user ? "Tồn tại" : "Không tồn tại"); // Thêm dòng này
+      console.log("2. Kết quả tìm user:", user ? "Tồn tại" : "Không tồn tại");
 
       if (!user) {
-        console.log("3. Email không tồn tại trong hệ thống"); // Thêm dòng này
+        console.log("3. Email không tồn tại trong hệ thống");
         return resolve({
           success: false,
           message: "Email không tồn tại trong hệ thống",
         });
       }
 
-      console.log("4. Mật khẩu nhập vào:", password); // Thêm dòng này
-      console.log("5. Hash trong database:", user.password_hash); // Thêm dòng này
+      console.log("4. Mật khẩu nhập vào:", password);
+      console.log("5. Hash trong database:", user.password_hash);
 
       // So sánh mật khẩu
       const isMatch = await bcrypt.compare(password, user.password_hash);
 
-      console.log("6. Kết quả so sánh mật khẩu:", isMatch); // Thêm dòng này
+      console.log("6. Kết quả so sánh mật khẩu:", isMatch);
 
       if (!isMatch) {
-        console.log("7. Mật khẩu không khớp"); // Thêm dòng này
+        console.log("7. Mật khẩu không khớp");
         return resolve({
           success: false,
           message: "Mật khẩu không chính xác",
         });
       }
 
-      console.log("8. Đăng nhập thành công"); // Thêm dòng này
+      console.log("8. Đăng nhập thành công");
       // Nếu đúng cả email và mật khẩu
       resolve({
         success: true,
@@ -94,20 +94,24 @@ let handleUserLogin = async (email, password) => {
         },
       });
     } catch (e) {
-      console.log("9. Lỗi trong quá trình đăng nhập:", e); // Thêm dòng này
+      console.log("9. Lỗi trong quá trình đăng nhập:", e);
       reject(e);
     }
   });
 };
-let getUserById = async (user_id) => {
+
+const getUserById = async (user_id) => {
   try {
-    const user = await db.User.findOne({ where: { user_id } });
+    const user = await db.User.findOne({ 
+      where: { id: user_id } // Thay user_id thành id nếu field trong DB là id
+    });
     return user;
   } catch (error) {
     throw error;
   }
 };
-let findOrCreateGoogleUser = async (profile) => {
+
+const findOrCreateGoogleUser = async (profile) => {
   try {
     let user = await db.User.findOne({
       where: { email: profile.emails[0].value },
@@ -131,7 +135,8 @@ let findOrCreateGoogleUser = async (profile) => {
   }
 };
 
-module.exports = {
+// Export sử dụng ES6 syntax
+export default {
   createUser: createNewUser,
   handleUserLogin: handleUserLogin,
   getUserById: getUserById,
