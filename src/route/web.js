@@ -15,60 +15,30 @@ let initWebRoutes = (app) => {
 
   router.get("/search", homeController.searchRoom);
   router.get("/search/ajax", homeController.searchRoomAjax);
-<<<<<<< Updated upstream
 
   // Bắt đầu quá trình xác thực với Google
-=======
-  router.get("/room/:id", homeController.getRoomDetail);
-
-  // ✅ Payment routes (remove duplicate)
-  router.get("/payment", getPaymentPage);
-  router.get("/vnpay_return", handleVNPayReturn);
-
-  // Google Auth
->>>>>>> Stashed changes
   router.get(
     "/auth/google",
     passport.authenticate("google", { scope: ["profile", "email"] })
   );
-<<<<<<< Updated upstream
 
   // Google sẽ redirect về đây sau khi xác thực thành công
-=======
->>>>>>> Stashed changes
   router.get(
     "/auth/google/callback",
     passport.authenticate("google", {
       failureRedirect: "/login",
     }),
     (req, res) => {
-<<<<<<< Updated upstream
       // Sau khi xác thực thành công, lưu user vào session
       if (req.session && req.user) {
         req.session.user = {
-=======
-      if (req.session && req.user) {
-        req.session.user = {
-          user_id: req.user.user_id,
->>>>>>> Stashed changes
           id: req.user.user_id,
           name: req.user.name,
           email: req.user.email,
         };
-<<<<<<< Updated upstream
         console.log("Đã lưu user Google vào session:", req.session.user);
       } else {
         console.log("Không có session hoặc user sau xác thực Google");
-=======
-
-        console.log("✅ Đã lưu user Google vào session:", req.session.user);
-        req.session.save((err) => {
-          if (err) console.error("❌ Google session save error:", err);
-          res.redirect("/");
-        });
-      } else {
-        res.redirect("/login");
->>>>>>> Stashed changes
       }
 
       // Chuyển hướng về trang chủ
