@@ -1,0 +1,50 @@
+// import crypto from "crypto";
+// import qs from "qs";
+// import db from "../models/index.js";
+
+// export const handleVnpayReturn = async (req, res) => {
+//   try {
+//     const vnpData = req.query;
+//     const secureHash = vnpData.vnp_SecureHash;
+//     delete vnpData.vnp_SecureHash;
+//     delete vnpData.vnp_SecureHashType;
+
+//     const sortedData = Object.fromEntries(Object.entries(vnpData).sort());
+//     const signData = qs.stringify(sortedData, { encode: false });
+
+//     const hmac = crypto.createHmac("sha512", process.env.VNP_HASHSECRET);
+//     const expectedHash = hmac.update(signData).digest("hex");
+
+//     if (secureHash !== expectedHash) {
+//       return res.redirect("/booking-failed?reason=checksum_error");
+//     }
+
+//     const transactionId = vnpData.vnp_TxnRef;
+//     const responseCode = vnpData.vnp_ResponseCode;
+
+//     if (responseCode === "00") {
+//       // Thành công
+//       await db.Payment.update(
+//         { status: "completed" },
+//         { where: { transaction_id: transactionId } }
+//       );
+
+//       await db.Booking.update(
+//         { status: "completed" },
+//         { where: { booking_id: transactionId } } // chỉ dùng nếu booking_id === vnp_TxnRef
+//       );
+
+//       return res.redirect(`/booking-success?order_id=${transactionId}`);
+//     } else {
+//       // Thất bại
+//       await db.Payment.update(
+//         { status: "failed" },
+//         { where: { transaction_id: transactionId } }
+//       );
+//       return res.redirect("/booking-failed?reason=payment_failed");
+//     }
+//   } catch (err) {
+//     console.error("VNPay return error:", err);
+//     return res.redirect("/booking-failed?reason=server_error");
+//   }
+// };

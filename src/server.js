@@ -9,7 +9,14 @@ require("dotenv").config();
 
 const app = express();
 
+<<<<<<< Updated upstream
 // --- Cấu hình Session Middleware (ĐẶT TRƯỚC CÁC ROUTE) ---
+=======
+//Body Parser ĐẶT TRƯỚC SESSION
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+//Session Configuration
+>>>>>>> Stashed changes
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "your-fallback-secret", // Mật khẩu bí mật
@@ -34,7 +41,9 @@ initWebRoutes(app);
 
 connectDB();
 
-const port = process.env.PORT || 6969;
+const port = process.env.PORT || 9999;
 app.listen(port, () => {
   console.log(`Backend Nodejs is running on port: ${port}`);
 });
+
+

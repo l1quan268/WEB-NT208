@@ -1,5 +1,6 @@
 "use strict";
 const { Model } = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
   class Booking extends Model {
     static associate(models) {
@@ -9,6 +10,7 @@ module.exports = (sequelize, DataTypes) => {
       Booking.hasOne(models.Payment, { foreignKey: "booking_id" });
     }
   }
+
   Booking.init(
     {
       booking_id: {
@@ -18,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       user_id: {
         type: DataTypes.BIGINT,
-        allowNull: false,
+        allowNull: true, // Cho phép null nếu là khách vãng lai
       },
       homestay_id: {
         type: DataTypes.BIGINT,
@@ -31,6 +33,23 @@ module.exports = (sequelize, DataTypes) => {
       name: {
         type: DataTypes.STRING(100),
         allowNull: false,
+      },
+      order_id: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      guest_email: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      guest_phone: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      guest_address: {
+        type: DataTypes.STRING,
+        allowNull: true,
       },
       booking_date: {
         type: DataTypes.DATEONLY,
@@ -47,14 +66,34 @@ module.exports = (sequelize, DataTypes) => {
       adults: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        defaultValue: 2,
       },
       children: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        defaultValue: 0,
       },
       total_price: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
+      },
+      payment_method: {
+        type: DataTypes.ENUM("cash", "vnpay", "momo", "bank_transfer"),
+        allowNull: false,
+        defaultValue: "cash",
+      },
+      payment_status: {
+        type: DataTypes.ENUM("pending", "paid", "failed"),
+        allowNull: false,
+        defaultValue: "pending",
+      },
+      transaction_id: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      paid_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
       },
       status: {
         type: DataTypes.ENUM("pending", "rejected", "canceled", "completed"),
@@ -71,5 +110,6 @@ module.exports = (sequelize, DataTypes) => {
       underscored: true,
     }
   );
+
   return Booking;
 };
