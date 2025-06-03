@@ -2,7 +2,7 @@ import db from "../models/index.js";
 import user_service from "../services/user_service.js";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
-import sendEmail from "../utils/email";
+import sendEmail from "../utils/email.js";
 
 let getHomePage = async (req, res) => {
   const user = req.session?.user || null;
