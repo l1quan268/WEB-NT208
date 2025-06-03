@@ -1,5 +1,5 @@
 import db from "../models/index";
-import user_service from "../services/user_service";
+import user_service from "../services/user_service.js";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import sendEmail from "../utils/email";
