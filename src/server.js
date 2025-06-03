@@ -9,14 +9,7 @@ require("dotenv").config();
 
 const app = express();
 
-<<<<<<< Updated upstream
 // --- Cấu hình Session Middleware (ĐẶT TRƯỚC CÁC ROUTE) ---
-=======
-//Body Parser ĐẶT TRƯỚC SESSION
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-//Session Configuration
->>>>>>> Stashed changes
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "your-fallback-secret", // Mật khẩu bí mật
