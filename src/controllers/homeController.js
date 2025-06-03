@@ -1,4 +1,4 @@
-import db from "../models/index";
+import db from "../models/index.js";
 import user_service from "../services/user_service.js";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
