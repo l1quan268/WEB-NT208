@@ -1,6 +1,7 @@
-import express from "express";
-import homeController from "../controllers/homeController";
-import passport from "passport";
+const express = require("express");
+const homeController = require("../controllers/homeController");
+const passport = require("passport");
+
 let router = express.Router();
 
 let initWebRoutes = (app) => {

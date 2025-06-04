@@ -1,9 +1,9 @@
-import express from "express";
-import homeController from "../controllers/homeController.js";
+const express = require("express");
+const homeController = require("../controllers/homeController");
 
 const router = express.Router();
 
 // API: Gửi đánh giá
 router.post("/review", homeController.postReview);
 
-export default router;
+module.exports = router;

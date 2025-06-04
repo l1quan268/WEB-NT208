@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+const nodemailer = require("nodemailer");
 
 // Tạo transporter - cấu hình SMTP (ví dụ dùng Gmail)
 const transporter = nodemailer.createTransport({
@@ -20,4 +20,4 @@ const sendEmail = async ({ to, subject, html }) => {
   await transporter.sendMail(mailOptions);
 };
 
-export default sendEmail;
+module.exports = sendEmail;
