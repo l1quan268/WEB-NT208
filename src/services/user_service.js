@@ -1,8 +1,7 @@
-// src/services/user_service.js
 import bcrypt from "bcryptjs";
-import db from "../models/index.js"; // Thêm .js extension
+import db from "../models/index.js";
 
-const createNewUser = async (data) => {
+let createNewUser = async (data) => {
   return new Promise(async (resolve, reject) => {
     try {
       // Kiểm tra xem email đã tồn tại chưa
@@ -21,8 +20,8 @@ const createNewUser = async (data) => {
         name: data.name,
         email: data.email,
         password_hash: hashPasswordFromBcrypt,
-        gender: data.gender || "male", // nếu có chọn giới tính
-        phone: data.phone || "", // nếu có nhập số điện thoại
+        gender: data.gender || "male",
+        phone: data.phone || "",
       });
 
       resolve("Đăng ký thành công");
@@ -32,10 +31,9 @@ const createNewUser = async (data) => {
   });
 };
 
-const hashUserPassword = (password) => {
+let hashUserPassword = (password) => {
   return new Promise(async (resolve, reject) => {
     try {
-      // Tạo salt mới mỗi lần băm
       const salt = await bcrypt.genSalt(10);
       let hashPassword = await bcrypt.hash(password, salt);
       resolve(hashPassword);
@@ -45,8 +43,8 @@ const hashUserPassword = (password) => {
   });
 };
 
-// Login
-const handleUserLogin = async (email, password) => {
+// ✅ SỬA HÀM LOGIN - Trả về đúng field name
+let handleUserLogin = async (email, password) => {
   return new Promise(async (resolve, reject) => {
     try {
       console.log("1. Bắt đầu xử lý đăng nhập với email:", email);
@@ -82,15 +80,18 @@ const handleUserLogin = async (email, password) => {
         });
       }
 
-      console.log("8. Đăng nhập thành công");
-      // Nếu đúng cả email và mật khẩu
+      console.log("8. Đăng nhập thành công với user_id:", user.user_id);
+
+      // ✅ SỬA: Trả về đúng field name theo database schema
       resolve({
         success: true,
         message: "Đăng nhập thành công",
         user: {
-          id: user.id,
+          user_id: user.user_id, // ✅ SỬA: dùng user_id thay vì id
+          id: user.user_id, // ✅ THÊM: backup cho compatibility
           name: user.name,
           email: user.email,
+          role: user.role,
         },
       });
     } catch (e) {
@@ -100,10 +101,11 @@ const handleUserLogin = async (email, password) => {
   });
 };
 
-const getUserById = async (user_id) => {
+// ✅ SỬA HÀM getUserById - Sử dụng đúng field name
+let getUserById = async (user_id) => {
   try {
-    const user = await db.User.findOne({ 
-      where: { id: user_id } // Thay user_id thành id nếu field trong DB là id
+    const user = await db.User.findOne({
+      where: { user_id: user_id }, // ✅ SỬA: sử dụng user_id thay vì id
     });
     return user;
   } catch (error) {
@@ -111,13 +113,15 @@ const getUserById = async (user_id) => {
   }
 };
 
-const findOrCreateGoogleUser = async (profile) => {
+// ✅ SỬA HÀM findOrCreateGoogleUser
+let findOrCreateGoogleUser = async (profile) => {
   try {
     let user = await db.User.findOne({
       where: { email: profile.emails[0].value },
     });
 
     if (user) {
+      console.log("✅ Tìm thấy user Google với user_id:", user.user_id);
       return user;
     }
 
@@ -125,18 +129,19 @@ const findOrCreateGoogleUser = async (profile) => {
     let newUser = await db.User.create({
       name: profile.displayName,
       email: profile.emails[0].value,
-      gender: "male", // Hoặc profile.gender nếu Google trả về
-      password_hash: "", // Vì dùng Google nên không cần mật khẩu
+      gender: "male",
+      password_hash: "", // Google không cần mật khẩu
     });
 
+    console.log("✅ Tạo mới user Google với user_id:", newUser.user_id);
     return newUser;
   } catch (error) {
+    console.error("❌ Lỗi findOrCreateGoogleUser:", error);
     throw error;
   }
 };
 
-// Export sử dụng ES6 syntax
-export default {
+module.exports = {
   createUser: createNewUser,
   handleUserLogin: handleUserLogin,
   getUserById: getUserById,
