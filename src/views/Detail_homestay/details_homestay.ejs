@@ -369,9 +369,13 @@
               <label for="checkout">Ngày đi:</label>
               <input type="date" id="checkout" class="form-control" />
             </div>
-            <button class="btn btn-dark w-100 mt-2">Đặt ngay</button>
+              <form action="/payment" method="GET">
+                <input type="hidden" name="room_id" value="<%= room.room_type_id %>" />
+                <input type="hidden" name="checkin" id="hiddenCheckin" />
+                <input type="hidden" name="checkout" id="hiddenCheckout" />
+                <button type="submit" class="btn btn-dark w-100 mt-2">Đặt ngay</button>
+              </form>
           </div>
-          
         </div>
         <%
   const suggRooms = (typeof suggestedRooms !== 'undefined' && Array.isArray(suggestedRooms) && suggestedRooms.length > 0)
@@ -695,6 +699,22 @@ function renderStars(rating) {
 document.addEventListener('DOMContentLoaded', function() {
     updateStars();
 });
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.querySelector('form[action="/payment"]');
+    const checkinInput = document.getElementById("checkin");
+    const checkoutInput = document.getElementById("checkout");
+
+    form.addEventListener("submit", (e) => {
+      document.getElementById("hiddenCheckin").value = checkinInput.value;
+      document.getElementById("hiddenCheckout").value = checkoutInput.value;
+
+      // Validate trước khi submit nếu cần
+      if (!checkinInput.value || !checkoutInput.value) {
+        e.preventDefault();
+        alert("Vui lòng chọn ngày nhận và ngày đi.");
+      }
+    });
+  });
 </script>
 
 <!-- ----------------------------------- -->

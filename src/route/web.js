@@ -1,13 +1,19 @@
+<<<<<<< Updated upstream
 const express = require("express");
 const homeController = require("../controllers/homeController");
 const passport = require("passport");
+=======
+import express from "express";
+import homeController from "../controllers/homeController.js"; // **FIX: Add .js extension**
+import { getPaymentPage, handleVNPayReturn } from "../controllers/paymentController.js"; // **ADD: Payment controller**
+import passport from "passport";
+>>>>>>> Stashed changes
 
 let router = express.Router();
 
 let initWebRoutes = (app) => {
   router.get("/", homeController.getHomePage);
   router.get("/SignUp", homeController.getSignUp);
-
   router.post("/Register", homeController.postRegister);
   router.get("/login", homeController.getLogin);
   router.post("/login", homeController.postLogin);
@@ -15,8 +21,11 @@ let initWebRoutes = (app) => {
 
   router.get("/search", homeController.searchRoom);
   router.get("/search/ajax", homeController.searchRoomAjax);
-
   router.get("/room/:id", homeController.getRoomDetail);
+
+  // **ADD: Payment routes**
+  router.get("/payment", getPaymentPage);
+  router.get("/vnpay_return", handleVNPayReturn);
 
   // Bắt đầu quá trình xác thực với Google
   router.get(
@@ -81,4 +90,4 @@ let initWebRoutes = (app) => {
   return app.use("/", router);
 };
 
-module.exports = initWebRoutes;
+export default initWebRoutes; // **FIX: Use ES6 export to match imports**
