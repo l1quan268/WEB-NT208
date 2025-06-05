@@ -1,13 +1,5 @@
-<<<<<<< Updated upstream
 const express = require("express");
 const homeController = require("../controllers/homeController");
-=======
-// route/api.js - Mount paymentRoutes properly
-
-import express from "express";
-import homeController from "../controllers/homeController.js";
-import paymentRoutes from "./paymentRoutes.js"; // **Import paymentRoutes file**
->>>>>>> Stashed changes
 
 const router = express.Router();
 
@@ -15,12 +7,12 @@ const router = express.Router();
 router.use((req, res, next) => {
   console.log(`🔍 [${new Date().toISOString()}] API Route: ${req.method} ${req.originalUrl}`);
   if (req.body && Object.keys(req.body).length > 0) {
-    console.log('📝 Request body:', req.body);
+    console.log("📝 Request body:", req.body);
   }
   next();
 });
 
-// Health check route
+// Health check
 router.get("/health", (req, res) => {
   res.json({
     status: "OK",
@@ -29,21 +21,18 @@ router.get("/health", (req, res) => {
     endpoints: {
       health: "GET /api/health",
       checkout: "POST /api/checkout",
-      vnpay_return: "GET /api/vnpay_return",
-      vnpay_ipn: "GET /api/vnpay_ipn",
+      vnpay_return: "GET /vnpay_return", // Không cần đặt trong /api nếu đã có ở web.js
+      vnpay_ipn: "GET /api/vnpay_ipn",   // Nếu có xử lý IPN riêng
       review: "POST /api/review"
-    }
+    },
   });
 });
 
-// ===== Đánh giá phòng =====
+// POST /api/review - Gửi đánh giá phòng
 router.post("/review", homeController.postReview);
 
-<<<<<<< Updated upstream
-module.exports = router;
-=======
-// **MOUNT payment routes from paymentRoutes.js**
-router.use("/", paymentRoutes);
+// Bạn có thể thêm các route khác như:
+// router.post("/checkout", controller.postCheckout);
+// router.get("/vnpay_ipn", controller.handleIPN);
 
-export default router;
->>>>>>> Stashed changes
+module.exports = router;

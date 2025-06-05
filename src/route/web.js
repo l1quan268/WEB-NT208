@@ -1,13 +1,10 @@
-<<<<<<< Updated upstream
 const express = require("express");
 const homeController = require("../controllers/homeController");
 const passport = require("passport");
-=======
-import express from "express";
-import homeController from "../controllers/homeController.js"; // **FIX: Add .js extension**
-import { getPaymentPage, handleVNPayReturn } from "../controllers/paymentController.js"; // **ADD: Payment controller**
-import passport from "passport";
->>>>>>> Stashed changes
+const {
+  getPaymentPage,
+  handleVNPayReturn,
+} = require("../controllers/paymentController");
 
 let router = express.Router();
 
@@ -23,36 +20,32 @@ let initWebRoutes = (app) => {
   router.get("/search/ajax", homeController.searchRoomAjax);
   router.get("/room/:id", homeController.getRoomDetail);
 
-  // **ADD: Payment routes**
+  // Payment routes
   router.get("/payment", getPaymentPage);
   router.get("/vnpay_return", handleVNPayReturn);
 
-  // Bắt đầu quá trình xác thực với Google
+  // Google Auth
   router.get(
     "/auth/google",
     passport.authenticate("google", { scope: ["profile", "email"] })
   );
 
-  // Google sẽ redirect về đây sau khi xác thực thành công
-  // Trong web.js - sửa Google callback
   router.get(
     "/auth/google/callback",
     passport.authenticate("google", {
       failureRedirect: "/login",
     }),
     (req, res) => {
-      // ✅ SỬA: Lưu user với cùng format như login thường
       if (req.session && req.user) {
         req.session.user = {
-          user_id: req.user.user_id, // ✅ Đồng nhất với login thường
-          id: req.user.user_id, // ✅ Backup cho compatibility
+          user_id: req.user.user_id,
+          id: req.user.user_id,
           name: req.user.name,
           email: req.user.email,
         };
 
         console.log("✅ Đã lưu user Google vào session:", req.session.user);
 
-        // ✅ SAVE SESSION EXPLICITLY
         req.session.save((err) => {
           if (err) {
             console.error("❌ Google session save error:", err);
@@ -76,11 +69,7 @@ let initWebRoutes = (app) => {
       return res.send("Session không tồn tại!");
     }
 
-    if (!req.session.count) {
-      req.session.count = 0;
-    }
-
-    req.session.count++;
+    req.session.count = (req.session.count || 0) + 1;
 
     res.send(
       `Session count: ${req.session.count}, Session ID: ${req.sessionID}`
@@ -90,4 +79,4 @@ let initWebRoutes = (app) => {
   return app.use("/", router);
 };
 
-export default initWebRoutes; // **FIX: Use ES6 export to match imports**
+module.exports = initWebRoutes;
