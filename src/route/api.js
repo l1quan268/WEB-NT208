@@ -1,5 +1,8 @@
+// route/api.js - CommonJS version
+
 const express = require("express");
 const homeController = require("../controllers/homeController");
+const paymentRoutes = require("./paymentRoutes"); // ✅ Import CommonJS style
 
 const router = express.Router();
 
@@ -7,12 +10,12 @@ const router = express.Router();
 router.use((req, res, next) => {
   console.log(`🔍 [${new Date().toISOString()}] API Route: ${req.method} ${req.originalUrl}`);
   if (req.body && Object.keys(req.body).length > 0) {
-    console.log("📝 Request body:", req.body);
+    console.log('📝 Request body:', req.body);
   }
   next();
 });
 
-// Health check
+// Health check route
 router.get("/health", (req, res) => {
   res.json({
     status: "OK",
@@ -21,18 +24,17 @@ router.get("/health", (req, res) => {
     endpoints: {
       health: "GET /api/health",
       checkout: "POST /api/checkout",
-      vnpay_return: "GET /vnpay_return", // Không cần đặt trong /api nếu đã có ở web.js
-      vnpay_ipn: "GET /api/vnpay_ipn",   // Nếu có xử lý IPN riêng
+      vnpay_return: "GET /api/vnpay_return",
+      vnpay_ipn: "GET /api/vnpay_ipn",
       review: "POST /api/review"
-    },
+    }
   });
 });
 
-// POST /api/review - Gửi đánh giá phòng
+// ===== Đánh giá phòng =====
 router.post("/review", homeController.postReview);
 
-// Bạn có thể thêm các route khác như:
-// router.post("/checkout", controller.postCheckout);
-// router.get("/vnpay_ipn", controller.handleIPN);
+// ✅ Mount các route con từ paymentRoutes.js
+router.use("/", paymentRoutes);
 
 module.exports = router;
