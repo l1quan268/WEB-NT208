@@ -135,7 +135,7 @@
                                 </p>
                             </span></li>
                         <li><a class="dropdown-item" href="/account">Thông tin tài khoản</a></li>
-                        <li><a class="dropdown-item" href="/bookings">Lịch sử đặt phòng</a></li>
+                        <li><a class="dropdown-item" href="/bookings">Lịch sử giao dịch</a></li>
                         <li>
                             <hr class="dropdown-divider" />
                         </li>
@@ -164,7 +164,7 @@
         <div class="container mt-5 pt-5">
             <div class="row justify-content-center">
                 <!-- Cột trái: Avatar + menu -->
-                <div class="col-md-4 mb-4">
+                <div class="col-md-3 mb-4">
                     <div class="bg-white p-4 text-center rounded shadow-sm">
                         <img src="https://i.postimg.cc/rF3Fh10Y/avatar-trang-4.jpg" alt="Avatar"
                             class="rounded-circle mb-3" width="120" />
@@ -177,7 +177,8 @@
                                     onclick="showTab('info')">Thông tin tài khoản</a></p>
                             <p><a href="#" id="btn-password" class="text-decoration-none text-secondary"
                                     onclick="showTab('password')">Đổi mật khẩu</a></p>
-                            <p><a href="/bookings" class="text-dark text-decoration-none">Lịch sử đặt phòng</a></p>
+                            <p><a href="#" id="btn-booking" class="text-decoration-none text-secondary"
+                                    onclick="showTab('booking')">Lịch sử giao dịch</a></p>
                             <p><a href="/logout" class="text-danger text-decoration-none">Đăng xuất</a></p>
                         </div>
                     </div>
@@ -185,9 +186,9 @@
 
                 <!-- Cột phải: Form cập nhật -->
 
-                <div class="col-md-8">
+                <div class="col-md-9">
                     <% if (message) { %>
-                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
                             <%= message %>
                                 <button type="button" class="btn-close" data-bs-dismiss="alert"
                                     aria-label="Close"></button>
@@ -290,6 +291,95 @@
                                     </form>
                                 </div>
                             </div>
+                            <!-- Tab: LỊCH SỬ ĐẶT PHÒNG -->
+                            <div id="tab-booking" style="display: none;">
+                                <div class="bg-white p-4 rounded shadow-sm">
+                                    <h4 class="mb-4 fw-bold text-center">LỊCH SỬ GIAO DỊCH</h4>
+                                    <% if (bookings && bookings.length> 0) { %>
+                                        <table class="table table-bordered text-center align-middle">
+                                            <thead class="table-warning">
+                                                <tr>
+                                                    <th>STT</th>
+                                                    <th>Họ và tên</th>
+                                                    <th>Ngày đặt</th>
+                                                    <th>Phòng</th>
+                                                    <th>Ngày đến</th>
+                                                    <th>Ngày đi</th>
+                                                    <th>Người lớn</th>
+                                                    <th>Trẻ em</th>
+                                                    <th>Giá</th>
+                                                    <th>Trạng thái</th>
+                                                    <th>Tùy chọn</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% bookings.forEach((b, index)=> { %>
+                                                    <tr>
+                                                        <td>
+                                                            <%= index + 1 %>
+                                                        </td>
+                                                        <td>
+                                                            <%= b.name %>
+                                                        </td>
+                                                        <td>
+                                                            <%= new Date(b.booking_date).toLocaleDateString("vi-VN") %>
+                                                        </td>
+                                                        <td>
+                                                            <%= b.room_name %>
+                                                        </td>
+                                                        <td>
+                                                            <%= new Date(b.check_in_date).toLocaleDateString("vi-VN") %>
+                                                        </td>
+                                                        <td>
+                                                            <%= new Date(b.check_out_date).toLocaleDateString("vi-VN")
+                                                                %>
+                                                        </td>
+                                                        <td>
+                                                            <%= b.adults %>
+                                                        </td>
+                                                        <td>
+                                                            <%= b.children %>
+                                                        </td>
+                                                        <td>
+                                                            <%= Number(b.total_price).toLocaleString("vi-VN") + " vnđ" %>
+                                                        </td>
+                                                        <td
+                                                            class="<%= b.payment_status === 'paid' ? 'text-success' : 'text-warning' %> fw-bold">
+                                                            <%= b.payment_status==='paid' ? 'Đã trả' : 'Chưa trả' %>
+
+
+                                                        </td>
+                                                        <td class="text-nowrap">
+                                                            <% if (b.payment_status !=='paid' ) { %>
+                                                                <form action="/booking/cancel" method="POST"
+                                                                    style="display:inline-block;"
+                                                                    onsubmit="return confirm('Bạn có chắc chắn muốn hủy hóa đơn này?');">
+                                                                    <input type="hidden" name="booking_name"
+                                                                        value="<%= b.name %>">
+                                                                    <button class="btn btn-danger btn-sm">Hủy đơn</button>
+                                                                </form>
+                                                                <form action="/booking/pay" method="POST"
+                                                                    style="display:inline-block;">
+                                                                    <input type="hidden" name="booking_name"
+                                                                        value="<%= b.name %>">
+                                                                    <button class="btn btn-success btn-sm">Thanh
+                                                                        toán</button>
+                                                                </form>
+                                                                <% } else { %>
+                                                                    <span class="text-muted">Không khả dụng</span>
+                                                                    <% } %>
+                                                        </td>
+
+                                                    </tr>
+                                                    <% }) %>
+                                            </tbody>
+                                        </table>
+                                        <% } else { %>
+                                            <p class="text-center text-muted">Chưa có hóa đơn nào.</p>
+                                            <% } %>
+                                </div>
+
+                            </div>
 
                 </div>
             </div>
@@ -391,23 +481,31 @@
         function showTab(tab) {
             const infoTab = document.getElementById("tab-info");
             const passwordTab = document.getElementById("tab-password");
+            const bookingTab = document.getElementById("tab-booking");
+
             const btnInfo = document.getElementById("btn-info");
             const btnPassword = document.getElementById("btn-password");
+            const btnBooking = document.getElementById("btn-booking");
+
+            // Ẩn hết
+            infoTab.style.display = "none";
+            passwordTab.style.display = "none";
+            bookingTab.style.display = "none";
+
+            // Reset style
+            btnInfo.className = "text-decoration-none text-secondary";
+            btnPassword.className = "text-decoration-none text-secondary";
+            btnBooking.className = "text-decoration-none text-secondary";
 
             if (tab === "info") {
                 infoTab.style.display = "block";
-                passwordTab.style.display = "none";
-                btnInfo.classList.add("fw-bold", "text-dark");
-                btnInfo.classList.remove("text-secondary");
-                btnPassword.classList.remove("fw-bold", "text-dark");
-                btnPassword.classList.add("text-secondary");
-            } else {
-                infoTab.style.display = "none";
+                btnInfo.className = "text-decoration-none fw-bold text-dark";
+            } else if (tab === "password") {
                 passwordTab.style.display = "block";
-                btnPassword.classList.add("fw-bold", "text-dark");
-                btnPassword.classList.remove("text-secondary");
-                btnInfo.classList.remove("fw-bold", "text-dark");
-                btnInfo.classList.add("text-secondary");
+                btnPassword.className = "text-decoration-none fw-bold text-dark";
+            } else if (tab === "booking") {
+                bookingTab.style.display = "block";
+                btnBooking.className = "text-decoration-none fw-bold text-dark";
             }
         }
 

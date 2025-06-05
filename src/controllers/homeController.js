@@ -431,27 +431,27 @@ let searchRoom = async (req, res) => {
               // Kiểm tra nếu có ngày checkin và checkout thì mới áp dụng điều kiện
               checkin && checkout
                 ? {
-                    [Op.or]: [
-                      {
-                        check_in_date: {
-                          [Op.between]: [checkin, checkout],
-                        },
+                  [Op.or]: [
+                    {
+                      check_in_date: {
+                        [Op.between]: [checkin, checkout],
                       },
-                      {
-                        check_out_date: {
-                          [Op.between]: [checkin, checkout],
-                        },
+                    },
+                    {
+                      check_out_date: {
+                        [Op.between]: [checkin, checkout],
                       },
-                      {
-                        check_in_date: {
-                          [Op.lte]: checkin,
-                        },
-                        check_out_date: {
-                          [Op.gte]: checkout,
-                        },
+                    },
+                    {
+                      check_in_date: {
+                        [Op.lte]: checkin,
                       },
-                    ],
-                  }
+                      check_out_date: {
+                        [Op.gte]: checkout,
+                      },
+                    },
+                  ],
+                }
                 : {},
             ],
           },
@@ -476,8 +476,8 @@ let searchRoom = async (req, res) => {
         sort === "asc"
           ? [["price_per_night", "ASC"]]
           : sort === "desc"
-          ? [["price_per_night", "DESC"]]
-          : [],
+            ? [["price_per_night", "DESC"]]
+            : [],
     });
 
     // Lọc bỏ những phòng đã được đặt trong khoảng thời gian tìm kiếm
@@ -624,27 +624,27 @@ let searchRoomAjax = async (req, res) => {
               // Kiểm tra nếu có ngày checkin và checkout thì mới áp dụng điều kiện
               checkin && checkout
                 ? {
-                    [Op.or]: [
-                      {
-                        check_in_date: {
-                          [Op.between]: [checkin, checkout],
-                        },
+                  [Op.or]: [
+                    {
+                      check_in_date: {
+                        [Op.between]: [checkin, checkout],
                       },
-                      {
-                        check_out_date: {
-                          [Op.between]: [checkin, checkout],
-                        },
+                    },
+                    {
+                      check_out_date: {
+                        [Op.between]: [checkin, checkout],
                       },
-                      {
-                        check_in_date: {
-                          [Op.lte]: checkin,
-                        },
-                        check_out_date: {
-                          [Op.gte]: checkout,
-                        },
+                    },
+                    {
+                      check_in_date: {
+                        [Op.lte]: checkin,
                       },
-                    ],
-                  }
+                      check_out_date: {
+                        [Op.gte]: checkout,
+                      },
+                    },
+                  ],
+                }
                 : {},
             ],
           },
@@ -669,8 +669,8 @@ let searchRoomAjax = async (req, res) => {
         sort === "asc"
           ? [["price_per_night", "ASC"]]
           : sort === "desc"
-          ? [["price_per_night", "DESC"]]
-          : [],
+            ? [["price_per_night", "DESC"]]
+            : [],
     });
 
     // Lọc bỏ những phòng đã được đặt trong khoảng thời gian tìm kiếm
@@ -836,9 +836,9 @@ let getRoomDetail = async (req, res) => {
     // Tính điểm trung bình đánh giá
     const avgRating = formattedReviews.length
       ? (
-          formattedReviews.reduce((acc, r) => acc + r.rating, 0) /
-          formattedReviews.length
-        ).toFixed(1)
+        formattedReviews.reduce((acc, r) => acc + r.rating, 0) /
+        formattedReviews.length
+      ).toFixed(1)
       : null;
 
     console.log(
@@ -1085,6 +1085,7 @@ let postReview = async (req, res) => {
     });
   }
 };
+
 let getUserInfoPage = async (req, res) => {
   const userSession = req.session?.user;
   if (!userSession) return res.redirect("/login");
@@ -1092,9 +1093,34 @@ let getUserInfoPage = async (req, res) => {
   const user = await db.User.findByPk(userSession.user_id);
   if (!user) return res.redirect("/login");
 
-  const dobFormatted = user.dob
-    ? new Date(user.dob).toISOString().split("T")[0]
-    : "";
+  let dobFormatted = "";
+  if (user.dob) {
+    const parsedDob = new Date(user.dob);
+    if (!isNaN(parsedDob.getTime())) {
+      dobFormatted = parsedDob.toISOString().split("T")[0];
+    }
+  }
+
+  // 🔍 Thêm truy vấn lấy lịch sử bookings
+  const bookings = await db.sequelize.query(`
+    SELECT 
+      b.name,
+      b.booking_date,
+      rt.type_name AS room_name,
+      b.check_in_date,
+      b.check_out_date,
+      b.adults,
+      b.children,
+      b.total_price,
+      b.status AS payment_status
+    FROM bookings b
+    JOIN roomtypes rt ON b.room_type_id = rt.room_type_id
+    WHERE b.user_id = ?
+    ORDER BY b.booking_date DESC
+  `, {
+    replacements: [userSession.user_id],
+    type: db.Sequelize.QueryTypes.SELECT,
+  });
 
   const message = req.session.message;
   delete req.session.message;
@@ -1106,8 +1132,34 @@ let getUserInfoPage = async (req, res) => {
       dobFormatted,
     },
     message,
+    bookings, // ✅ truyền bookings xuống view
   });
 };
+let cancelBooking = async (req, res) => {
+  const user = req.session?.user;
+  const bookingName = req.body.booking_name;
+
+  if (!user || !bookingName) return res.redirect("/bookings");
+
+  try {
+    await db.Booking.destroy({
+      where: {
+        name: bookingName,
+        user_id: user.user_id,
+        status: { [db.Sequelize.Op.ne]: "paid" }, // Không xóa nếu đã thanh toán
+      },
+    });
+
+    req.session.message = "Đã hủy hóa đơn thành công!";
+  } catch (error) {
+    console.error("❌ Lỗi khi hủy booking:", error);
+    req.session.message = "Lỗi khi hủy hóa đơn!";
+  }
+
+  return res.redirect("/bookings");
+};
+
+
 
 
 let postUpdateUserInfo = async (req, res) => {
@@ -1183,6 +1235,7 @@ let postChangePassword = async (req, res) => {
     return res.redirect("/account");
   }
 };
+//LSDP
 
 
 // Tìm kiếm phòng
@@ -1201,8 +1254,9 @@ module.exports = {
   searchRoomAjax: searchRoomAjax,
   getRoomDetail: getRoomDetail,
   postReview: postReview,
-  postChangePassword : postChangePassword,
-  postUpdateUserInfo : postUpdateUserInfo,
-  getUserInfoPage : getUserInfoPage,
+  postChangePassword: postChangePassword,
+  postUpdateUserInfo: postUpdateUserInfo,
+  getUserInfoPage: getUserInfoPage,
+  cancelBooking : cancelBooking,
   // deleteReview: deleteReview,
 };

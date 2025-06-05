@@ -52,10 +52,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DATE,
         allowNull: true,
       },
-      avatar_url: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      },
     },
     {
       sequelize,

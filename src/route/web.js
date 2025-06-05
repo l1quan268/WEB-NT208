@@ -62,8 +62,12 @@ let initWebRoutes = (app) => {
   router.post("/reset-password/:token", homeController.postResetPassword);
 
   router.get("/account", homeController.getUserInfoPage);
+  router.get("/bookings", homeController.getUserInfoPage); // ✅ Lịch sử đặt phòng dùng lại cùng controller
   router.post("/account/update", homeController.postUpdateUserInfo);
   router.post("/change-password", homeController.postChangePassword);
+
+  router.post("/booking/cancel", homeController.cancelBooking);
+
 
   router.get("/test-session", (req, res) => {
     if (!req.session) {
