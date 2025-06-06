@@ -4,11 +4,6 @@ const db = require("../models/index.js");
 const crypto = require("crypto");
 const querystring = require("qs");
 
-// VNPay configuration
-const VNP_TMN_CODE = process.env.VNP_TMN_CODE || "S2TTOR81";
-const VNP_HASH_SECRET = process.env.VNP_HASH_SECRET || "MTXXC74DNQWKRHOQ6N08CGAYJ5EXIYLZ";
-const VNP_URL = process.env.VNP_URL || "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-const BASE_URL = process.env.BASE_URL || "http://sweethome.id.vn";
 
 // ✅ FIXED VNPay URL builder - Remove or extend expire time
 const buildVNPayUrl = (params) => {
