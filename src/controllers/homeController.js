@@ -179,9 +179,38 @@ const { Op } = require("sequelize");
 //     });
 //   }
 // };
+const axios = require("axios");
+
 let postLogin = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, "g-recaptcha-response": captcha } = req.body;
+
+    // Kiểm tra captcha
+    if (!captcha) {
+      return res.render("Login/login.ejs", {
+        error: "Vui lòng xác nhận CAPTCHA.",
+        success: null,
+      });
+    }
+
+    const secretKey = "6LeA71crAAAAABpchTUeINnQ3kIxMdkX8C6cbJJR"; // 🔒 Thay bằng key từ Google reCAPTCHA
+    const response = await axios.post(
+      "https://www.google.com/recaptcha/api/siteverify",
+      new URLSearchParams({
+        secret: secretKey,
+        response: captcha,
+        remoteip: req.ip,
+      })
+    );
+
+    if (!response.data.success) {
+      return res.render("Login/login.ejs", {
+        error: "Xác thực CAPTCHA thất bại.",
+        success: null,
+      });
+    }
+
+    // Nếu captcha ok → kiểm tra đăng nhập
     const result = await user_service.handleUserLogin(email, password);
 
     if (result.success) {
@@ -189,12 +218,11 @@ let postLogin = async (req, res) => {
 
       req.session.user = {
         user_id: result.user.user_id,
-        id: result.user.user_id, // THÊM: backup cho compatibility
+        id: result.user.user_id,
         name: result.user.name,
         email: result.user.email,
       };
 
-      // ✅ SAVE SESSION EXPLICITLY
       req.session.save((err) => {
         if (err) {
           console.error("❌ Session save error:", err);
@@ -221,6 +249,7 @@ let postLogin = async (req, res) => {
     });
   }
 };
+
 let getLogout = (req, res) => {
   // Kiểm tra xem session có tồn tại không
   if (req.session) {
