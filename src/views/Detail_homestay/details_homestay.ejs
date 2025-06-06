@@ -1,99 +1,90 @@
 <!DOCTYPE html>
 <html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title><%= room?.type_name %> - Chi tiết phòng</title>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
-    <link rel="stylesheet" href="/details_homestay.css" />
-    <!-- Lightbox CSS -->
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css"
-      rel="stylesheet"
-    />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>
+    <%= room?.type_name %> - Chi tiết phòng
+  </title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
 
-    <!-- Lightbox JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+  <link rel="stylesheet" href="/details_homestay.css" />
+  <!-- Lightbox CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css" rel="stylesheet" />
 
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
-    />
-  </head>
+  <!-- Lightbox JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
 <style>
   .suggested-rooms-wrapper {
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            padding: 0,10px ;
-            margin-left: 40px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
-            
-          }
-          .suggested-rooms-wrapper a {
-            text-decoration: none;
-            color: inherit;
-          }
-          .suggested-rooms-wrapper a:hover {
-            text-decoration: underline;
-          }
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 0, 10px;
+    margin-left: 40px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
 
-.suggested-rooms-wrapper {
-  background-color: #fff7e6;
-  background: #f3e6dc;
-  border-radius: 8px;
-  /* padding: 20px; */
-  margin-left: 40px;
-  box-shadow: 10px 10px 15px rgba(202, 131, 131, 0.1);
-  opacity: 1; 
-}
-/* Tiêu đề căn giữa */
-.suggested-rooms-wrapper > h5 {
-  text-align: center;
-  font-weight: bold;
-  margin-bottom: 20px;
+  }
+
+  .suggested-rooms-wrapper a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .suggested-rooms-wrapper a:hover {
+    text-decoration: underline;
+  }
+
+  .suggested-rooms-wrapper {
+    background-color: #fff7e6;
+    background: #f3e6dc;
+    border-radius: 8px;
+    /* padding: 20px; */
+    margin-left: 40px;
+    box-shadow: 10px 10px 15px rgba(202, 131, 131, 0.1);
+    opacity: 1;
+  }
+
+  /* Tiêu đề căn giữa */
+  .suggested-rooms-wrapper>h5 {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 20px;
 
 
-}
+  }
 
 
-.btn-primary {
-  background-color: #007bff;
-  border-color: #007bff;
-}
- */
+  .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+  }
 
+  */
 </style>
-  
-  <body>
-    <!-- Giữ nguyên phần navbar của bạn -->
-     <!-- Navbar -->
-    <nav
-      class="navbar navbar-expand-lg navbar-light bg-light"
-      style="
+
+<body>
+  <!-- Giữ nguyên phần navbar của bạn -->
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light" style="
         width: 100%;
         opacity: 80%;
         position: fixed;
         z-index: 1000;
         top: 0;
         left: 0;
-      "
-    >
-      <!-- Logo bên trái -->
-      <a class="navbar-brand" href="/">
-        <img
-          src="/image/image/logo/logo.jpg"
-          alt="Logo"
-          style="
+      ">
+    <!-- Logo bên trái -->
+    <a class="navbar-brand" href="/">
+      <img src="/image/image/logo/logo.jpg" alt="Logo" style="
             margin: 0px;
             padding: 0px;
             width: 100px;
@@ -101,78 +92,44 @@
             position: absolute;
             margin-top: -50px;
             margin-left: 70px;
-          "
-          class="logo"
-        />
-      </a>
-      <div class="container kt">
-        <!-- Nút Toggle khi màn hình nhỏ -->
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
+          " class="logo" />
+    </a>
+    <div class="container kt">
+      <!-- Nút Toggle khi màn hình nhỏ -->
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-        <!-- Danh mục menu (Căn giữa) -->
-        <div
-          class="collapse navbar-collapse justify-content-center"
-          id="navbarNav"
-          style="margin-left: 50px"
-        >
-          <ul class="navbar-nav">
-            <li class="nav-item">
-              <a class="nav-link" href="/" style="font-weight: bold"
-                >TRANG CHỦ</a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/#intro" style="font-weight: bold"
-                >GIỚI THIỆU</a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/#CH" style="font-weight: bold"
-                >CĂN HỘ</a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#LH" style="font-weight: bold"
-                >LIÊN HỆ</a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/#DG" style="font-weight: bold"
-                >ĐÁNH GIÁ</a
-              >
-            </li>
-          </ul>
-        </div>
+      <!-- Danh mục menu (Căn giữa) -->
+      <div class="collapse navbar-collapse justify-content-center" id="navbarNav" style="margin-left: 50px">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="/" style="font-weight: bold">TRANG CHỦ</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/#intro" style="font-weight: bold">GIỚI THIỆU</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/#CH" style="font-weight: bold">CĂN HỘ</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#LH" style="font-weight: bold">LIÊN HỆ</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/#DG" style="font-weight: bold">ĐÁNH GIÁ</a>
+          </li>
+        </ul>
+      </div>
 
-        <!-- Nút Đăng nhập/Đăng xuất (Bên phải) -->
-        <% if (user) { %>
+      <!-- Nút Đăng nhập/Đăng xuất (Bên phải) -->
+      <% if (user) { %>
         <div class="dropdown">
-          <button
-            class="btn p-0 border-0 bg-transparent"
-            type="button"
-            id="userDropdown"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
-            <img
-              src="https://i.postimg.cc/rF3Fh10Y/avatar-trang-4.jpg"
-              alt="Avatar"
-              class="rounded-circle"
-              width="40"
-              height="40"
-            />
+          <button class="btn p-0 border-0 bg-transparent" type="button" id="userDropdown" data-bs-toggle="dropdown"
+            aria-expanded="false">
+            <img src="https://i.postimg.cc/rF3Fh10Y/avatar-trang-4.jpg" alt="Avatar" class="rounded-circle" width="40"
+              height="40" />
           </button>
-          <ul
-            class="dropdown-menu dropdown-menu-end shadow"
-            aria-labelledby="userDropdown"
-          >
+          <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
             <li>
               <span class="dropdown-item text-primary fw-bold">
                 <%= user.email %>
@@ -184,286 +141,275 @@
             <li>
               <a class="dropdown-item" href="/bookings">Lịch sử đặt phòng</a>
             </li>
-            <li><hr class="dropdown-divider" /></li>
+            <li>
+              <hr class="dropdown-divider" />
+            </li>
             <li>
               <a class="dropdown-item text-danger" href="/logout">Đăng xuất</a>
             </li>
           </ul>
         </div>
         <% } else { %>
-        <button class="btn btn-primary" onclick="window.location.href='/login'" style="background-color: white;">
-          ĐĂNG NHẬP
-        </button>
-        <% } %>
-      </div>
-    </nav>
+          <button class="btn btn-primary" onclick="window.location.href='/login'" style="background-color: white;">
+            ĐĂNG NHẬP
+          </button>
+          <% } %>
+    </div>
+  </nav>
 
-    <div
-      class="product-info-container container my-5"
-      style="padding-top: 0.5px"
-    >
-      <div class="container">
-        <div class="breadcrumb mt-5 mb-3">
-          <a href="/" class="breadcrumb-link">Trang chủ</a> /
-          <a href="/home" class="breadcrumb-link">Căn hộ</a> /
-          <span class="breadcrumb-current"
-            ><%= room?.type_name || "Chi tiết phòng" %></span
-          >
-        </div>
-
+  <div class="product-info-container container my-5" style="padding-top: 0.5px">
+    <div class="container">
+      <div class="breadcrumb mt-5 mb-3">
+        <a href="/" class="breadcrumb-link">Trang chủ</a> /
+        <a href="/#CH" class="breadcrumb-link">Căn hộ</a> /
+        <span class="breadcrumb-current">
+          <%= room?.type_name || "Chi tiết phòng" %>
+        </span>
       </div>
 
-      <!-- Bố cục ngang: ảnh chính + khung giá phòng -->
-      <div class="row align-items-start mb-6">
-        <div class="col-md-8">
-          <div class="image-gallery">
-            <% if (images && images.length > 0) { %>
+    </div>
+
+    <!-- Bố cục ngang: ảnh chính + khung giá phòng -->
+    <div class="row align-items-start mb-6">
+      <div class="col-md-8">
+        <div class="image-gallery">
+          <% if (images && images.length> 0) { %>
             <div class="main-image mb-3">
-              <a
-                href="<%= images[0].image_url %>"
-                data-lightbox="homestay-gallery"
-                data-title="Ảnh chính"
-              >
-                <img
-                  src="<%= images[0].image_url %>"
-                  alt="Ảnh chính"
-                  class="img-fluid rounded"
-                />
+              <a href="<%= images[0].image_url %>" data-lightbox="homestay-gallery" data-title="Ảnh chính">
+                <img src="<%= images[0].image_url %>" alt="Ảnh chính" class="img-fluid rounded" />
               </a>
             </div>
             <div class="thumbnail-images d-flex flex-wrap gap-2">
-              <% images.slice(1).forEach((img, index) => { %>
-              <a
-                href="<%= img.image_url %>"
-                data-lightbox="homestay-gallery"
-                data-title="Ảnh <%= index + 1 %>"
-              >
-                <img
-                  src="<%= img.image_url %>"
-                  alt="Ảnh phụ"
-                  class="img-thumbnail"
-                  width="100"
-                />
-              </a>
-              <% }) %>
+              <% images.slice(1).forEach((img, index)=> { %>
+                <a href="<%= img.image_url %>" data-lightbox="homestay-gallery" data-title="Ảnh <%= index + 1 %>">
+                  <img src="<%= img.image_url %>" alt="Ảnh phụ" class="img-thumbnail" width="100" />
+                </a>
+                <% }) %>
             </div>
             <% } %>
-          </div>
+        </div>
 
-          <div class="room-info-container mt-4 p-3 rounded shadow-sm bg-white">
-            <ul class="list-unstyled room-summary mb-4">
-              <li><strong>Địa chỉ:</strong> <%= homestay?.address %></li>
-              <li><strong>Phòng ngủ:</strong> <%= room.bedroom_count %></li>
-              <li><strong>Phòng tắm:</strong> <%= room.toilet_count %></li>
+        <div class="room-info-container mt-4 p-3 rounded shadow-sm bg-white">
+          <ul class="list-unstyled room-summary mb-4">
+            <li><strong>Địa chỉ:</strong>
+              <%= homestay?.address %>
+            </li>
+            <li><strong>Phòng ngủ:</strong>
+              <%= room.bedroom_count %>
+            </li>
+            <li><strong>Phòng tắm:</strong>
+              <%= room.toilet_count %>
+            </li>
+            <li>
+              <strong>Sức chứa:</strong> Tối đa <%= room.max_guests %> người
+            </li>
+          </ul>
+
+          <p class="room-description mb-4">
+            <%= room.description %>
+          </p>
+
+          <h4>Tiện nghi:</h4>
+          <ul class="amenities list-unstyled mb-4">
+            <% services.forEach(s=> { %>
               <li>
-                <strong>Sức chứa:</strong> Tối đa <%= room.max_guests %> người
-              </li>
-            </ul>
-
-            <p class="room-description mb-4"><%= room.description %></p>
-
-            <h4>Tiện nghi:</h4>
-            <ul class="amenities list-unstyled mb-4">
-              <% services.forEach(s => { %>
-              <li>
-                <i class="fas fa-check-circle text-success me-2"></i> <%=
-                s.service_name %>
+                <i class="fas fa-check-circle text-success me-2"></i>
+                <%= s.service_name %>
               </li>
               <% }) %>
-            </ul>
+          </ul>
 
-            <!-- ----------------------------------- -->
+          <!-- ----------------------------------- -->
 
-             
-  <!-- Đánh giá homestay -->
-<div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0;">
-    <h5 class="mb-3">Đánh giá homestay</h5>
-    
-    <!-- Form đánh giá -->
-    <form id="reviewForm" data-room-id="<%= room?.room_type_id %>">
-        <div class="mb-3">
-            <label class="form-label">Chọn số sao:</label>
-            <div class="star-rating" id="starRating">
-                <i class="fas fa-star" data-value="1" style="font-size: 1.2rem; color: #ddd; cursor: pointer; transition: color 0.2s;"></i>
-                <i class="fas fa-star" data-value="2" style="font-size: 1.2rem; color: #ddd; cursor: pointer; transition: color 0.2s;"></i>
-                <i class="fas fa-star" data-value="3" style="font-size: 1.2rem; color: #ddd; cursor: pointer; transition: color 0.2s;"></i>
-                <i class="fas fa-star" data-value="4" style="font-size: 1.2rem; color: #ddd; cursor: pointer; transition: color 0.2s;"></i>
-                <i class="fas fa-star" data-value="5" style="font-size: 1.2rem; color: #ddd; cursor: pointer; transition: color 0.2s;"></i>
-            </div>
-        </div>
-        
-        <div class="mb-3">
-            <textarea 
-                class="form-control" 
-                id="commentBox" 
-                rows="4" 
-                placeholder="Nhập bình luận..."
-                style="resize: none;"
-            ></textarea>
-        </div>
-        
-        <button type="submit" class="btn btn-primary">
-            Gửi đánh giá
-        </button>
-    </form>
 
-    <!-- Danh sách đánh giá -->
-    <div id="reviewList" class="mt-4">
-        <% if (reviews && reviews.length > 0) { %>
-            <% reviews.forEach(r => { %>
-                <div style="border-top: 1px solid #dee2e6; padding-top: 15px; margin-top: 15px;">
+          <!-- Đánh giá homestay -->
+          <div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0;">
+            <h5 class="mb-3">Đánh giá homestay</h5>
+
+            <!-- Form đánh giá -->
+            <form id="reviewForm" data-room-id="<%= room?.room_type_id %>">
+              <div class="mb-3">
+                <label class="form-label">Chọn số sao:</label>
+                <div class="star-rating" id="starRating">
+                  <i class="fas fa-star" data-value="1"
+                    style="font-size: 1.2rem; color: #ddd; cursor: pointer; transition: color 0.2s;"></i>
+                  <i class="fas fa-star" data-value="2"
+                    style="font-size: 1.2rem; color: #ddd; cursor: pointer; transition: color 0.2s;"></i>
+                  <i class="fas fa-star" data-value="3"
+                    style="font-size: 1.2rem; color: #ddd; cursor: pointer; transition: color 0.2s;"></i>
+                  <i class="fas fa-star" data-value="4"
+                    style="font-size: 1.2rem; color: #ddd; cursor: pointer; transition: color 0.2s;"></i>
+                  <i class="fas fa-star" data-value="5"
+                    style="font-size: 1.2rem; color: #ddd; cursor: pointer; transition: color 0.2s;"></i>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <textarea class="form-control" id="commentBox" rows="4" placeholder="Nhập bình luận..."
+                  style="resize: none;"></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary">
+                Gửi đánh giá
+              </button>
+            </form>
+
+            <!-- Danh sách đánh giá -->
+            <div id="reviewList" class="mt-4">
+              <% if (reviews && reviews.length> 0) { %>
+                <% reviews.forEach(r=> { %>
+                  <div style="border-top: 1px solid #dee2e6; padding-top: 15px; margin-top: 15px;">
                     <div class="d-flex align-items-center mb-2">
-                        <img src="https://i.postimg.cc/N0kXMjb5/avatarreview.jpg" 
-                             class="rounded-circle me-2" width="40" height="40" />
-                        <strong><%= r.User?.name || "Ẩn danh" %></strong>
+                      <img src="https://i.postimg.cc/N0kXMjb5/avatarreview.jpg" class="rounded-circle me-2" width="40"
+                        height="40" />
+                      <strong>
+                        <%= r.User?.name || "Ẩn danh" %>
+                      </strong>
                     </div>
                     <div class="mb-1" style="color: #ffc107;">
-                        <% for (let i = 1; i <= 5; i++) { %>
-                            <% if (i <= r.rating) { %>
-                                <i class="fas fa-star"></i>
-                            <% } else { %>
-                                <i class="far fa-star"></i>
+                      <% for (let i=1; i <=5; i++) { %>
+                        <% if (i <=r.rating) { %>
+                          <i class="fas fa-star"></i>
+                          <% } else { %>
+                            <i class="far fa-star"></i>
                             <% } %>
-                        <% } %>
+                              <% } %>
                     </div>
-                    <p class="mb-1"><%= r.comment %></p>
-                    <small class="text-muted">Đăng ngày: <%= new Date(r.created_at).toLocaleDateString('vi-VN') %></small>
-                </div>
-            <% }) %>
-        <% } else { %>
-            <p class="text-muted">Chưa có đánh giá nào.</p>
-        <% } %>
-    </div>
-</div>
+                    <p class="mb-1">
+                      <%= r.comment %>
+                    </p>
+                    <small class="text-muted">Đăng ngày: <%= new Date(r.created_at).toLocaleDateString('vi-VN') %>
+                    </small>
+                  </div>
+                  <% }) %>
+                    <% } else { %>
+                      <p class="text-muted">Chưa có đánh giá nào.</p>
+                      <% } %>
+            </div>
+          </div>
 
+        </div>
+      </div>
+      <!-- --------------------------------------------- -->
+      <div class="col-md-4 mt-5 mt-md-0">
+        <div class="price-table"
+          style="background-color: #f3e6dc; padding: 20px; border-radius: 8px; margin-left: 40px;">
+          <h4>
+            Giá phòng: <%= Number(room.price_per_night).toLocaleString('vi-VN') %> đ / đêm
+          </h4>
+          <div class="booking-form mt-3">
+            <div class="form-group mb-2">
+              <label for="adults">Số người lớn:</label>
+              <input type="number" id="adults" class="form-control" value="1" min="1" max="10" />
+            </div>
+            <div class="form-group mb-2">
+              <label for="children">Số trẻ em:</label>
+              <input type="number" id="children" class="form-control" value="0" min="0" max="5" />
+            </div>
+            <div class="form-group mb-2">
+              <label for="checkin">Ngày nhận:</label>
+              <input type="date" id="checkin" class="form-control" />
+            </div>
+            <div class="form-group mb-2">
+              <label for="checkout">Ngày đi:</label>
+              <input type="date" id="checkout" class="form-control" />
+            </div>
+
+            <!-- ✅ Updated form với adults và children -->
+            <form action="/payment" method="GET" id="bookingForm">
+              <input type="hidden" name="room_id" value="<%= room.room_type_id %>" />
+              <input type="hidden" name="checkin" id="hiddenCheckin" />
+              <input type="hidden" name="checkout" id="hiddenCheckout" />
+              <input type="hidden" name="adults" id="hiddenAdults" />
+              <input type="hidden" name="children" id="hiddenChildren" />
+              <button type="submit" class="btn btn-dark w-100 mt-2">Đặt ngay</button>
+            </form>
           </div>
         </div>
-        <!-- --------------------------------------------- -->
-<div class="col-md-4 mt-5 mt-md-0">
-  <div class="price-table" style="background-color: #f3e6dc; padding: 20px; border-radius: 8px; margin-left: 40px;">
-    <h4>
-      Giá phòng: <%= Number(room.price_per_night).toLocaleString('vi-VN') %> đ / đêm
-    </h4>
-    <div class="booking-form mt-3">
-      <div class="form-group mb-2">
-        <label for="adults">Số người lớn:</label>
-        <input type="number" id="adults" class="form-control" value="1" min="1" max="10" />
-      </div>
-      <div class="form-group mb-2">
-        <label for="children">Số trẻ em:</label>
-        <input type="number" id="children" class="form-control" value="0" min="0" max="5" />
-      </div>
-      <div class="form-group mb-2">
-        <label for="checkin">Ngày nhận:</label>
-        <input type="date" id="checkin" class="form-control" />
-      </div>
-      <div class="form-group mb-2">
-        <label for="checkout">Ngày đi:</label>
-        <input type="date" id="checkout" class="form-control" />
-      </div>
-      
-      <!-- ✅ Updated form với adults và children -->
-      <form action="/payment" method="GET" id="bookingForm">
-        <input type="hidden" name="room_id" value="<%= room.room_type_id %>" />
-        <input type="hidden" name="checkin" id="hiddenCheckin" />
-        <input type="hidden" name="checkout" id="hiddenCheckout" />
-        <input type="hidden" name="adults" id="hiddenAdults" />
-        <input type="hidden" name="children" id="hiddenChildren" />
-        <button type="submit" class="btn btn-dark w-100 mt-2">Đặt ngay</button>
-      </form>
-    </div>
-  </div>
-        <%
-  const suggRooms = (typeof suggestedRooms !== 'undefined' && Array.isArray(suggestedRooms) && suggestedRooms.length > 0)
-    ? suggestedRooms.map(room => {
-        let thumb = room.thumbnail || 'https://via.placeholder.com/150';
+        <% const suggRooms=(typeof suggestedRooms !=='undefined' && Array.isArray(suggestedRooms) &&
+          suggestedRooms.length> 0)
+          ? suggestedRooms.map(room => {
+          let thumb = room.thumbnail || 'https://via.placeholder.com/150';
 
-        // Nếu thumbnail không bắt đầu bằng http hoặc / thì thêm tiền tố /uploads/
-        if (!thumb.startsWith('http') && !thumb.startsWith('/')) {
+          // Nếu thumbnail không bắt đầu bằng http hoặc / thì thêm tiền tố /uploads/
+          if (!thumb.startsWith('http') && !thumb.startsWith('/')) {
           thumb = '/uploads/' + thumb;
-        }
+          }
 
-        return {
+          return {
           ...room,
           thumbnail: thumb,
           price_per_night: room.price_per_night || (Math.floor(Math.random() * 500000) + 200000)
-        };
-      })
-    : [
-        { room_type_id: 1, type_name: "Phòng mẫu 1", price_per_night: 300000, thumbnail: "https://via.placeholder.com/150" },
-        { room_type_id: 2, type_name: "Phòng mẫu 2", price_per_night: 450000, thumbnail: "https://via.placeholder.com/150" },
-        { room_type_id: 3, type_name: "Phòng mẫu 3", price_per_night: 500000, thumbnail: "https://via.placeholder.com/150" }
-      ];
-%>
+          };
+          })
+          : [
+          { room_type_id: 1, type_name: "Phòng mẫu 1", price_per_night: 300000, thumbnail:
+          "https://via.placeholder.com/150" },
+          { room_type_id: 2, type_name: "Phòng mẫu 2", price_per_night: 450000, thumbnail:
+          "https://via.placeholder.com/150" },
+          { room_type_id: 3, type_name: "Phòng mẫu 3", price_per_night: 500000, thumbnail:
+          "https://via.placeholder.com/150" }
+          ];
+          %>
 
-        <div class="container mt-5">
-          <div class="suggested-rooms-wrapper p-4 rounded shadow-sm ">
-            <h5 class="mb-4">Gợi ý các phòng khác </h5>
-            <div class="d-flex gap-4 flex-wrap justify-content-center">
-              <% suggRooms.forEach(function(sroom) { %>
-                <div class="card" style="width: 18rem; cursor: pointer;">
-                  <a href="/room/<%= sroom.room_type_id %>">
-                    <img
-                      src="<%= sroom.thumbnail %>"
-                      class="card-img-top"
-                      alt="<%= sroom.type_name %>"
-                      style="height: 140px; object-fit: cover;"
-                    />
-                  </a>
-                  <div class="card-body p-3">
-                    <h6 class="card-title"><%= sroom.type_name %></h6>
-                    <p class="card-text" style="font-size: 0.95rem; color: #444;">
-                      Giá: <%= Number(sroom.price_per_night).toLocaleString('vi-VN') %> đ/đêm
-                    </p>
+          <div class="container mt-5">
+            <div class="suggested-rooms-wrapper p-4 rounded shadow-sm ">
+              <h5 class="mb-4">Gợi ý các phòng khác </h5>
+              <div class="d-flex gap-4 flex-wrap justify-content-center">
+                <% suggRooms.forEach(function(sroom) { %>
+                  <div class="card" style="width: 18rem; cursor: pointer;">
+                    <a href="/room/<%= sroom.room_type_id %>">
+                      <img src="<%= sroom.thumbnail %>" class="card-img-top" alt="<%= sroom.type_name %>"
+                        style="height: 140px; object-fit: cover;" />
+                    </a>
+                    <div class="card-body p-3">
+                      <h6 class="card-title">
+                        <%= sroom.type_name %>
+                      </h6>
+                      <p class="card-text" style="font-size: 0.95rem; color: #444;">
+                        Giá: <%= Number(sroom.price_per_night).toLocaleString('vi-VN') %> đ/đêm
+                      </p>
+                    </div>
                   </div>
-                </div>
-              <% }) %>
+                  <% }) %>
+              </div>
             </div>
+
           </div>
 
+
+
+      </div>
+
+      <!-- ----------------------------------- -->
+    </div>
+    <!-- Đóng row -->
+  </div>
+  <!-- Đóng product-info-container -->
+
+  <!-- Footer -->
+  <footer class="bg-light py-4" style="width: 100%" id="LH" style="margin-left: 0">
+    <div class="container" style="margin-top: 20px">
+      <div class="row">
+        <!-- Cột Liên Hệ -->
+        <div class="col-md-4">
+          <h5 class="fw-bold">LIÊN HỆ CHÚNG TÔI</h5>
+
+          <p>
+            <i class="fas fa-envelope" style="color: #9d972d"></i> Email: 23521265@gm.uit.edu.vn
+          </p>
+          <p><i class="fas fa-phone" style="color: #28a745"></i></i> Số điện thoại: 080-678-963-210</p>
+          <p>
+            <i class="fas fa-map-marker-alt" style="color: #dc3545"></i> Địa chỉ: 183B/19, quận Cam,
+            thành phố Sài Gòn
+          </p>
         </div>
 
-
-
-      </div>
-
-        <!-- ----------------------------------- -->
-      </div>
-      <!-- Đóng row -->
-    </div>
-    <!-- Đóng product-info-container -->
-
-    <!-- Footer -->
-    <footer
-      class="bg-light py-4"
-      style="width: 100%"
-      id="LH"
-      style="margin-left: 0"
-    >
-      <div class="container" style="margin-top: 20px">
-        <div class="row">
-          <!-- Cột Liên Hệ -->
-          <div class="col-md-4">
-            <h5 class="fw-bold">LIÊN HỆ CHÚNG TÔI</h5>
-            
-            <p>
-              <i class="fas fa-envelope" style="color: #9d972d"></i> Email: 23521265@gm.uit.edu.vn</p>
-            <p><i class="fas fa-phone" style="color: #28a745"></i></i> Số điện thoại: 080-678-963-210</p>
-            <p>
-              <i class="fas fa-map-marker-alt" style="color: #dc3545"></i> Địa chỉ: 183B/19, quận Cam,
-              thành phố Sài Gòn
-            </p>
-          </div>
-
-          <!-- Cột Mạng Xã Hội -->
-          <div class="col-md-4 text-left">
-            <h5 class="fw-bold">MẠNG XÃ HỘI</h5>
-            <a
-              href="https://www.instagram.com"
-              target="_blank"
-              class="d-block text-decoration-none text-dark mb-2"
-            >
-              <i class="fab fa-instagram" style="
+        <!-- Cột Mạng Xã Hội -->
+        <div class="col-md-4 text-left">
+          <h5 class="fw-bold">MẠNG XÃ HỘI</h5>
+          <a href="https://www.instagram.com" target="_blank" class="d-block text-decoration-none text-dark mb-2">
+            <i class="fab fa-instagram" style="
                   background: linear-gradient(
                     to right,
                     #f09433 0%,
@@ -475,197 +421,235 @@
                   -webkit-background-clip: text;
                   -webkit-text-fill-color: transparent;
                 "></i> Instagram
-            </a>
-            <a
-              href="https://www.facebook.com"
-              target="_blank"
-              class="d-block text-decoration-none text-dark mb-2"
-            >
-              <i class="fab fa-facebook" style="color: #1877f2"></i> Facebook
-            </a>
-            <a
-              href="https://www.youtube.com"
-              target="_blank"
-              class="d-block text-decoration-none text-dark mb-2"
-            >
-              <i class="fab fa-youtube" style="color: #ff0000"></i> Youtube
-            </a>
-            <a
-              href="https://www.twitter.com"
-              target="_blank"
-              class="d-block text-decoration-none text-dark mb-2"
-            >
-              <i class="fab fa-twitter" style="color: #000000"></i> Twitter
-            </a>
-          </div>
+          </a>
+          <a href="https://www.facebook.com" target="_blank" class="d-block text-decoration-none text-dark mb-2">
+            <i class="fab fa-facebook" style="color: #1877f2"></i> Facebook
+          </a>
+          <a href="https://www.youtube.com" target="_blank" class="d-block text-decoration-none text-dark mb-2">
+            <i class="fab fa-youtube" style="color: #ff0000"></i> Youtube
+          </a>
+          <a href="https://www.twitter.com" target="_blank" class="d-block text-decoration-none text-dark mb-2">
+            <i class="fab fa-twitter" style="color: #000000"></i> Twitter
+          </a>
+        </div>
 
-          <!-- Cột Bản Đồ -->
-          <div class="col-md-4">
-            <h5 class="fw-bold">MAPS</h5>
-            <iframe
-              src="https://www.google.com/maps?q=Vũng+Tàu&output=embed"
-              width="100%"
-              height="150"
-              style="border: 0"
-              allowfullscreen=""
-              loading="lazy"
-            >
-            </iframe>
-          </div>
+        <!-- Cột Bản Đồ -->
+        <div class="col-md-4">
+          <h5 class="fw-bold">MAPS</h5>
+          <iframe src="https://www.google.com/maps?q=Vũng+Tàu&output=embed" width="100%" height="150" style="border: 0"
+            allowfullscreen="" loading="lazy">
+          </iframe>
         </div>
       </div>
-    </footer>
-
-    <div class="text-center mt-3">
-      <p class="mb-0">© 2025 - All Rights Reserved</p>
     </div>
+  </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <div class="text-center mt-3">
+    <p class="mb-0">© 2025 - All Rights Reserved</p>
+  </div>
 
-<!-- ----------------------------------- -->
-<!-- script cho đánh giá  -->
- <script>
-// Xử lý chọn sao
-const stars = document.querySelectorAll('#starRating i');
-let selectedRating = 0;
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-stars.forEach(star => {
-    star.addEventListener('click', () => {
+  <!-- ----------------------------------- -->
+  <!-- script cho đánh giá  -->
+  <script>
+
+
+    // Xử lý chọn sao
+    const stars = document.querySelectorAll('#starRating i');
+    let selectedRating = 0;
+
+    stars.forEach(star => {
+      star.addEventListener('click', () => {
         selectedRating = parseInt(star.getAttribute('data-value'));
         updateStars();
-    });
+      });
 
-    star.addEventListener('mouseover', () => {
+      star.addEventListener('mouseover', () => {
         const value = parseInt(star.getAttribute('data-value'));
         highlightStars(value);
+      });
     });
-});
 
-document.getElementById('starRating').addEventListener('mouseleave', () => {
-    updateStars();
-});
+    document.getElementById('starRating').addEventListener('mouseleave', () => {
+      updateStars();
+    });
 
-function updateStars() {
-    stars.forEach((star, index) => {
+    function updateStars() {
+      stars.forEach((star, index) => {
         if (index < selectedRating) {
-            star.style.color = '#ffc107';
+          star.style.color = '#ffc107';
         } else {
-            star.style.color = '#ddd';
+          star.style.color = '#ddd';
         }
-    });
-}
+      });
+    }
 
-function highlightStars(rating) {
-    stars.forEach((star, index) => {
+    function highlightStars(rating) {
+      stars.forEach((star, index) => {
         if (index < rating) {
-            star.style.color = '#ffc107';
+          star.style.color = '#ffc107';
         } else {
-            star.style.color = '#ddd';
+          star.style.color = '#ddd';
         }
-    });
-}
-
-// Xử lý submit form - ĐÃ CẬP NHẬT
-const reviewForm = document.getElementById('reviewForm');
-reviewForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const comment = document.getElementById('commentBox').value.trim();
-    
-    if (selectedRating === 0) {
-        alert('Vui lòng chọn số sao đánh giá');
-        return;
-    }
-    
-    if (!comment) {
-        alert('Vui lòng nhập bình luận');
-        return;
+      });
     }
 
-    const roomTypeId = reviewForm.getAttribute('data-room-id');
-    
-    if (!roomTypeId) {
-        alert('Không tìm thấy thông tin phòng');
-        return;
-    }
+    // Xử lý submit form - ĐÃ CẬP NHẬT
+    const reviewForm = document.getElementById('reviewForm');
+    reviewForm.addEventListener('submit', function (e) {
+      e.preventDefault();
 
-    const data = {
+      const comment = document.getElementById('commentBox').value.trim();
+
+      if (selectedRating === 0) {
+        Swal.fire({
+          icon: 'info',
+          text: 'Vui lòng chọn số sao đánh giá.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        return;
+      }
+
+      if (!comment) {
+        Swal.fire({
+          icon: 'info',
+          text: 'Vui lòng nhập bình luận.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        return;
+      }
+
+      const roomTypeId = reviewForm.getAttribute('data-room-id');
+
+      if (!roomTypeId) {
+        Swal.fire({
+          icon: 'info',
+          text: 'Không tìm thấy thông tin phòng.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        return;
+      }
+
+      const data = {
         rating: selectedRating,
         comment: comment,
         room_type_id: roomTypeId
-    };
+      };
 
-    console.log('Sending data:', data);
+      console.log('Sending data:', data);
 
-    const submitBtn = reviewForm.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Đang gửi...';
+      const submitBtn = reviewForm.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Đang gửi...';
 
-    fetch('/api/review', {
+      fetch('/api/review', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(data),
         credentials: 'include'
-    })
-    .then(res => {
-        // ✅ XỬ LÝ LỖI 401 TRƯỚC KHI PARSE JSON
-        if (res.status === 401) {
-            alert('Bạn cần đăng nhập để có thể gửi đánh giá. Vui lòng đăng nhập và thử lại.');
+      })
+        .then(res => {
+          // ✅ XỬ LÝ LỖI 401 TRƯỚC KHI PARSE JSON
+          if (res.status === 401) {
+            Swal.fire({
+              icon: 'info',
+              title: 'Bạn chưa đăng nhập',
+              text: 'Vui lòng đăng nhập để gửi đánh giá.',
+              confirmButtonText: 'Đăng nhập'
+            }).then(() => {
+              window.location.href = '/login';
+            });
             // Tùy chọn: chuyển hướng đến trang đăng nhập
             // window.location.href = '/login';
             throw new Error('Unauthorized - Cần đăng nhập');
-        }
-        
-        if (!res.ok) {
+          }
+
+          if (!res.ok) {
             throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        return res.json();
-    })
-    .then(result => {
-        console.log('Response:', result);
-        if (result.success) {
-            alert('Gửi đánh giá thành công!');
+          }
+          return res.json();
+        })
+        .then(result => {
+          console.log('Response:', result);
+          if (result.success) {
+            Swal.fire({
+              icon: 'success',
+              text: 'Gửi đánh giá thành công.',
+              timer: 2000,
+              showConfirmButton: false
+            });
             addReviewToList(result.review);
             resetForm();
-        } else {
-            alert('Gửi đánh giá thất bại: ' + result.message);
-        }
-    })
-    .catch(err => {
-        console.error('Error:', err);
-        
-        // ✅ XỬ LÝ THÔNG BÁO LỖI THÂN THIỆN HƠN
-        if (err.message.includes('Unauthorized')) {
+          } else {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Error',
+              text: 'Gửi đánh giá thất bại.',
+              timer: 2000,
+              showConfirmButton: false
+            });
+          }
+        })
+        .catch(err => {
+          console.error('Error:', err);
+
+          // ✅ XỬ LÝ THÔNG BÁO LỖI THÂN THIỆN HƠN
+          if (err.message.includes('Unauthorized')) {
             // Đã xử lý ở trên, không cần làm gì thêm
             return;
-        }
-        
-        // Xử lý các lỗi khác
-        if (err.message.includes('status: 400')) {
-            alert('Dữ liệu không hợp lệ. Vui lòng kiểm tra lại thông tin đánh giá.');
-        } else if (err.message.includes('status: 500')) {
-            alert('Có lỗi xảy ra từ phía máy chủ. Vui lòng thử lại sau.');
-        } else {
-            alert('Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại sau.');
-        }
-    })
-    .finally(() => {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Gửi đánh giá';
+          }
+
+          // Xử lý các lỗi khác
+          if (err.message.includes('status: 400')) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Error',
+              text: 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại thông tin đánh giá.',
+              timer: 2000,
+              showConfirmButton: false
+            });
+            
+          } else if (err.message.includes('status: 500')) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Error',
+              text: 'Có lỗi xảy ra từ phía máy chủ. Vui lòng thử lại sau.',
+              timer: 2000,
+              showConfirmButton: false
+            });
+           
+          } else {
+             Swal.fire({
+              icon: 'warning',
+              title: 'Error',
+              text: 'Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại sau.',
+              timer: 2000,
+              showConfirmButton: false
+            });
+            
+          }
+        })
+        .finally(() => {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Gửi đánh giá';
+        });
     });
-});
 
-function resetForm() {
-    reviewForm.reset();
-    selectedRating = 0;
-    updateStars();
-}
+    function resetForm() {
+      reviewForm.reset();
+      selectedRating = 0;
+      updateStars();
+    }
 
-function addReviewToList(review) {
-    const reviewList = document.getElementById('reviewList');
-    const reviewHTML = `
+    function addReviewToList(review) {
+      const reviewList = document.getElementById('reviewList');
+      const reviewHTML = `
         <div style="border-top: 1px solid #dee2e6; padding-top: 15px; margin-top: 15px;">
             <div class="d-flex align-items-center mb-2">
                 <img src="https://i.postimg.cc/N0kXMjb5/avatarreview.jpg" 
@@ -679,103 +663,128 @@ function addReviewToList(review) {
             <small class="text-muted">Đăng ngày: ${new Date().toLocaleDateString('vi-VN')}</small>
         </div>
     `;
-    reviewList.insertAdjacentHTML('afterbegin', reviewHTML);
-}
-
-function renderStars(rating) {
-    let stars = '';
-    for (let i = 1; i <= 5; i++) {
-        stars += i <= rating 
-            ? '<i class="fas fa-star"></i>' 
-            : '<i class="far fa-star"></i>';
+      reviewList.insertAdjacentHTML('afterbegin', reviewHTML);
     }
-    return stars;
-}
 
-document.addEventListener('DOMContentLoaded', function() {
-    updateStars();
-});
-  document.addEventListener("DOMContentLoaded", () => {
-    const form = document.querySelector('form[action="/payment"]');
-    const checkinInput = document.getElementById("checkin");
-    const checkoutInput = document.getElementById("checkout");
-
-    form.addEventListener("submit", (e) => {
-      document.getElementById("hiddenCheckin").value = checkinInput.value;
-      document.getElementById("hiddenCheckout").value = checkoutInput.value;
-
-      // Validate trước khi submit nếu cần
-      if (!checkinInput.value || !checkoutInput.value) {
-        e.preventDefault();
-        alert("Vui lòng chọn ngày nhận và ngày đi.");
+    function renderStars(rating) {
+      let stars = '';
+      for (let i = 1; i <= 5; i++) {
+        stars += i <= rating
+          ? '<i class="fas fa-star"></i>'
+          : '<i class="far fa-star"></i>';
       }
+      return stars;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      updateStars();
     });
-  });
-document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById('bookingForm');
-  const checkinInput = document.getElementById("checkin");
-  const checkoutInput = document.getElementById("checkout");
-  const adultsInput = document.getElementById("adults");
-  const childrenInput = document.getElementById("children");
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.querySelector('form[action="/payment"]');
+      const checkinInput = document.getElementById("checkin");
+      const checkoutInput = document.getElementById("checkout");
 
-  // Set minimum date to today
-  const today = new Date().toISOString().split('T')[0];
-  checkinInput.min = today;
-  
-  // Update checkout minimum when checkin changes
-  checkinInput.addEventListener('change', function() {
-    const checkinDate = new Date(this.value);
-    const minCheckout = new Date(checkinDate);
-    minCheckout.setDate(minCheckout.getDate() + 1);
-    checkoutInput.min = minCheckout.toISOString().split('T')[0];
-    
-    // Auto-update checkout if it's invalid
-    if (checkoutInput.value && checkoutInput.value <= this.value) {
-      checkoutInput.value = minCheckout.toISOString().split('T')[0];
-    }
-  });
+      form.addEventListener("submit", (e) => {
+        document.getElementById("hiddenCheckin").value = checkinInput.value;
+        document.getElementById("hiddenCheckout").value = checkoutInput.value;
 
-  form.addEventListener("submit", (e) => {
-    // Validate required fields
-    if (!checkinInput.value || !checkoutInput.value) {
-      e.preventDefault();
-      alert("Vui lòng chọn ngày nhận và ngày đi.");
-      return;
-    }
-
-    const adults = parseInt(adultsInput.value) || 1;
-    const children = parseInt(childrenInput.value) || 0;
-
-    // Basic validation
-    if (adults < 1) {
-      e.preventDefault();
-      alert("Số người lớn phải ít nhất là 1.");
-      return;
-    }
-
-    if (adults + children > 15) {
-      e.preventDefault();
-      alert("Tổng số khách không được vượt quá 15 người.");
-      return;
-    }
-
-    // ✅ Set hidden values để truyền sang payment page
-    document.getElementById("hiddenCheckin").value = checkinInput.value;
-    document.getElementById("hiddenCheckout").value = checkoutInput.value;
-    document.getElementById("hiddenAdults").value = adults;
-    document.getElementById("hiddenChildren").value = children;
-
-    console.log("Booking data being sent:", {
-      room_id: "<%= room.room_type_id %>",
-      checkin: checkinInput.value,
-      checkout: checkoutInput.value,
-      adults: adults,
-      children: children
+        // Validate trước khi submit nếu cần
+        if (!checkinInput.value || !checkoutInput.value) {
+          e.preventDefault();
+          Swal.fire({
+            icon: 'warning',
+            title: 'Thiếu thông tin',
+            text: 'Vui lòng chọn ngày nhận và ngày đi.',
+            timer: 2500,
+            showConfirmButton: false
+          });
+        }
+      });
     });
-  });
-});
-</script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById('bookingForm');
+      const checkinInput = document.getElementById("checkin");
+      const checkoutInput = document.getElementById("checkout");
+      const adultsInput = document.getElementById("adults");
+      const childrenInput = document.getElementById("children");
 
-<!-- ----------------------------------- -->
-  </body>
+      // Set minimum date to today
+      const today = new Date().toISOString().split('T')[0];
+      checkinInput.min = today;
+
+      // Update checkout minimum when checkin changes
+      checkinInput.addEventListener('change', function () {
+        const checkinDate = new Date(this.value);
+        const minCheckout = new Date(checkinDate);
+        minCheckout.setDate(minCheckout.getDate() + 1);
+        checkoutInput.min = minCheckout.toISOString().split('T')[0];
+
+        // Auto-update checkout if it's invalid
+        if (checkoutInput.value && checkoutInput.value <= this.value) {
+          checkoutInput.value = minCheckout.toISOString().split('T')[0];
+        }
+      });
+
+      form.addEventListener("submit", (e) => {
+        // Validate required fields
+        if (!checkinInput.value || !checkoutInput.value) {
+          e.preventDefault();
+          Swal.fire({
+            icon: 'warning',
+            title: 'Thiếu thông tin',
+            text: 'Vui lòng chọn ngày nhận và ngày đi.',
+            timer: 2500,
+            showConfirmButton: false
+          });
+          return;
+        }
+
+        const adults = parseInt(adultsInput.value) || 1;
+        const children = parseInt(childrenInput.value) || 0;
+
+        // Basic validation
+        if (adults < 1) {
+          e.preventDefault();
+          Swal.fire({
+            icon: 'warning',
+            title: 'Lỗi nhập liệu',
+            text: 'Số người lớn phải ít nhất là 1.',
+            timer: 2500,
+            showConfirmButton: false
+          });
+          return;
+        }
+
+        if (adults + children > 15) {
+          e.preventDefault();
+          Swal.fire({
+            icon: 'warning',
+            title: 'Quá số lượng',
+            text: 'Tổng số khách không được vượt quá 15 người.',
+            timer: 2500,
+            showConfirmButton: false
+          });
+          return;
+        }
+
+        // ✅ Set hidden values để truyền sang payment page
+        document.getElementById("hiddenCheckin").value = checkinInput.value;
+        document.getElementById("hiddenCheckout").value = checkoutInput.value;
+        document.getElementById("hiddenAdults").value = adults;
+        document.getElementById("hiddenChildren").value = children;
+
+        console.log("Booking data being sent:", {
+          room_id: "<%= room.room_type_id %>",
+          checkin: checkinInput.value,
+          checkout: checkoutInput.value,
+          adults: adults,
+          children: children
+        });
+      });
+    });
+  </script>
+
+  <!-- ----------------------------------- -->
+</body>
+
 </html>

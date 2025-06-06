@@ -1,8 +1,8 @@
-const db = require("../models/index");
-const user_service = require("../services/user_service");
-const crypto = require("crypto");
-const bcrypt = require("bcryptjs");
-const sendEmail = require("../utils/email");
+import db from "../models/index";
+import user_service from "../services/user_service";
+import crypto from "crypto";
+import bcrypt from "bcryptjs";
+import sendEmail from "../utils/email";
 
 let getHomePage = async (req, res) => {
   const user = req.session?.user || null;

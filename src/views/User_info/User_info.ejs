@@ -19,6 +19,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <style>
     body {
@@ -188,11 +190,15 @@
 
                 <div class="col-md-9">
                     <% if (message) { %>
-                        <div class="alert alert-info alert-dismissible fade show" role="alert">
-                            <%= message %>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"
-                                    aria-label="Close"></button>
-                        </div>
+                        <script>
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Chúc mừng: ',
+                                text: "<%= message %>",
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        </script>
                         <% } %>
                             <div id="tab-info">
                                 <div class="bg-white p-4 rounded shadow-sm">
@@ -354,12 +360,15 @@
                                                                 <div
                                                                     class="d-flex justify-content-center gap-2 flex-wrap">
                                                                     <% if (b.payment_status !=='paid' ) { %>
-                                                                        <form action="/booking/cancel" method="POST"
-                                                                            onsubmit="return confirm('Bạn có chắc chắn muốn hủy hóa đơn này?');">
+                                                                        <form id="cancel-form-<%= index %>"
+                                                                            action="/booking/cancel" method="POST">
                                                                             <input type="hidden" name="booking_name"
                                                                                 value="<%= b.name %>">
-                                                                            <button class="btn btn-danger btn-sm">Hủy
-                                                                                đơn</button>
+                                                                            <button type="button"
+                                                                                class="btn btn-danger btn-sm"
+                                                                                onclick="confirmCancel(<%= index %>)">
+                                                                                Hủy đơn
+                                                                            </button>
                                                                         </form>
                                                                         <form action="/booking/pay" method="POST">
                                                                             <input type="hidden" name="booking_name"
@@ -452,6 +461,23 @@
         </div>
     </footer>
     <script>
+        function confirmCancel(index) {
+            Swal.fire({
+                title: 'Bạn có chắc chắn?',
+                text: "Bạn muốn hủy hóa đơn này?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Có, hủy ngay!',
+                cancelButtonText: 'Không',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById(`cancel-form-${index}`).submit();
+                }
+            });
+        }
+
         function updateTyped(id) {
             const value = document.getElementById(id).value;
             document.getElementById("typed_" + id).innerText = value;
@@ -517,7 +543,13 @@
             const newPassword = document.getElementById("newPassword").value;
             const confirmPassword = document.getElementById("confirmPassword").value;
             if (newPassword !== confirmPassword) {
-                alert("Mật khẩu mới và xác nhận mật khẩu không khớp!");
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Error',
+                    text: 'Mật khẩu và xác nhận mật khẩu không khớp.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
                 return false;
             }
             return true;
