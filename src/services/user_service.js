@@ -1,5 +1,5 @@
-import bcrypt from "bcryptjs";
-import db from "../models/index";
+const bcrypt = require("bcryptjs");
+const db = require("../models/index");
 
 let createNewUser = async (data) => {
   return new Promise(async (resolve, reject) => {

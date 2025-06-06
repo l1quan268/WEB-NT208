@@ -339,40 +339,40 @@
           </div>
         </div>
         <!-- --------------------------------------------- -->
-        <div class="col-md-4 mt-5 mt-md-0">
-        <div
-          class="price-table"
-          style="
-            background-color: #f3e6dc;
-            padding: 20px;
-            border-radius: 8px;
-            margin-left: 40px;
-          "
-        >
-          <h4>
-            Giá phòng: <%= Number(room.price_per_night).toLocaleString('vi-VN') %> đ / đêm
-          </h4>
-          <div class="booking-form mt-3">
-            <div class="form-group mb-2">
-              <label for="adults">Số khách:</label>
-              <input type="number" id="adults" class="form-control" value="1" />
-            </div>
-            <div class="form-group mb-2">
-              <label for="children">Số trẻ em:</label>
-              <input type="number" id="children" class="form-control" value="0" />
-            </div>
-            <div class="form-group mb-2">
-              <label for="checkin">Ngày nhận:</label>
-              <input type="date" id="checkin" class="form-control" />
-            </div>
-            <div class="form-group mb-2">
-              <label for="checkout">Ngày đi:</label>
-              <input type="date" id="checkout" class="form-control" />
-            </div>
-            <button class="btn btn-dark w-100 mt-2">Đặt ngay</button>
-          </div>
-          
-        </div>
+<div class="col-md-4 mt-5 mt-md-0">
+  <div class="price-table" style="background-color: #f3e6dc; padding: 20px; border-radius: 8px; margin-left: 40px;">
+    <h4>
+      Giá phòng: <%= Number(room.price_per_night).toLocaleString('vi-VN') %> đ / đêm
+    </h4>
+    <div class="booking-form mt-3">
+      <div class="form-group mb-2">
+        <label for="adults">Số người lớn:</label>
+        <input type="number" id="adults" class="form-control" value="1" min="1" max="10" />
+      </div>
+      <div class="form-group mb-2">
+        <label for="children">Số trẻ em:</label>
+        <input type="number" id="children" class="form-control" value="0" min="0" max="5" />
+      </div>
+      <div class="form-group mb-2">
+        <label for="checkin">Ngày nhận:</label>
+        <input type="date" id="checkin" class="form-control" />
+      </div>
+      <div class="form-group mb-2">
+        <label for="checkout">Ngày đi:</label>
+        <input type="date" id="checkout" class="form-control" />
+      </div>
+      
+      <!-- ✅ Updated form với adults và children -->
+      <form action="/payment" method="GET" id="bookingForm">
+        <input type="hidden" name="room_id" value="<%= room.room_type_id %>" />
+        <input type="hidden" name="checkin" id="hiddenCheckin" />
+        <input type="hidden" name="checkout" id="hiddenCheckout" />
+        <input type="hidden" name="adults" id="hiddenAdults" />
+        <input type="hidden" name="children" id="hiddenChildren" />
+        <button type="submit" class="btn btn-dark w-100 mt-2">Đặt ngay</button>
+      </form>
+    </div>
+  </div>
         <%
   const suggRooms = (typeof suggestedRooms !== 'undefined' && Array.isArray(suggestedRooms) && suggestedRooms.length > 0)
     ? suggestedRooms.map(room => {
@@ -694,6 +694,85 @@ function renderStars(rating) {
 
 document.addEventListener('DOMContentLoaded', function() {
     updateStars();
+});
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.querySelector('form[action="/payment"]');
+    const checkinInput = document.getElementById("checkin");
+    const checkoutInput = document.getElementById("checkout");
+
+    form.addEventListener("submit", (e) => {
+      document.getElementById("hiddenCheckin").value = checkinInput.value;
+      document.getElementById("hiddenCheckout").value = checkoutInput.value;
+
+      // Validate trước khi submit nếu cần
+      if (!checkinInput.value || !checkoutInput.value) {
+        e.preventDefault();
+        alert("Vui lòng chọn ngày nhận và ngày đi.");
+      }
+    });
+  });
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById('bookingForm');
+  const checkinInput = document.getElementById("checkin");
+  const checkoutInput = document.getElementById("checkout");
+  const adultsInput = document.getElementById("adults");
+  const childrenInput = document.getElementById("children");
+
+  // Set minimum date to today
+  const today = new Date().toISOString().split('T')[0];
+  checkinInput.min = today;
+  
+  // Update checkout minimum when checkin changes
+  checkinInput.addEventListener('change', function() {
+    const checkinDate = new Date(this.value);
+    const minCheckout = new Date(checkinDate);
+    minCheckout.setDate(minCheckout.getDate() + 1);
+    checkoutInput.min = minCheckout.toISOString().split('T')[0];
+    
+    // Auto-update checkout if it's invalid
+    if (checkoutInput.value && checkoutInput.value <= this.value) {
+      checkoutInput.value = minCheckout.toISOString().split('T')[0];
+    }
+  });
+
+  form.addEventListener("submit", (e) => {
+    // Validate required fields
+    if (!checkinInput.value || !checkoutInput.value) {
+      e.preventDefault();
+      alert("Vui lòng chọn ngày nhận và ngày đi.");
+      return;
+    }
+
+    const adults = parseInt(adultsInput.value) || 1;
+    const children = parseInt(childrenInput.value) || 0;
+
+    // Basic validation
+    if (adults < 1) {
+      e.preventDefault();
+      alert("Số người lớn phải ít nhất là 1.");
+      return;
+    }
+
+    if (adults + children > 15) {
+      e.preventDefault();
+      alert("Tổng số khách không được vượt quá 15 người.");
+      return;
+    }
+
+    // ✅ Set hidden values để truyền sang payment page
+    document.getElementById("hiddenCheckin").value = checkinInput.value;
+    document.getElementById("hiddenCheckout").value = checkoutInput.value;
+    document.getElementById("hiddenAdults").value = adults;
+    document.getElementById("hiddenChildren").value = children;
+
+    console.log("Booking data being sent:", {
+      room_id: "<%= room.room_type_id %>",
+      checkin: checkinInput.value,
+      checkout: checkoutInput.value,
+      adults: adults,
+      children: children
+    });
+  });
 });
 </script>
 

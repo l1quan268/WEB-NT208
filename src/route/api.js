@@ -1,9 +1,40 @@
-import express from "express";
-import homeController from "../controllers/homeController.js";
+// route/api.js - CommonJS version
+
+const express = require("express");
+const homeController = require("../controllers/homeController");
+const paymentRoutes = require("./paymentRoutes"); // ✅ Import CommonJS style
 
 const router = express.Router();
 
-// API: Gửi đánh giá
+// Debug middleware
+router.use((req, res, next) => {
+  console.log(`🔍 [${new Date().toISOString()}] API Route: ${req.method} ${req.originalUrl}`);
+  if (req.body && Object.keys(req.body).length > 0) {
+    console.log('📝 Request body:', req.body);
+  }
+  next();
+});
+
+// Health check route
+router.get("/health", (req, res) => {
+  res.json({
+    status: "OK",
+    timestamp: new Date().toISOString(),
+    message: "Payment API is running",
+    endpoints: {
+      health: "GET /api/health",
+      checkout: "POST /api/checkout",
+      vnpay_return: "GET /api/vnpay_return",
+      vnpay_ipn: "GET /api/vnpay_ipn",
+      review: "POST /api/review"
+    }
+  });
+});
+
+// ===== Đánh giá phòng =====
 router.post("/review", homeController.postReview);
 
-export default router;
+// ✅ Mount các route con từ paymentRoutes.js
+router.use("/", paymentRoutes);
+
+module.exports = router;

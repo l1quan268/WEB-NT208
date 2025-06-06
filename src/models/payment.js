@@ -1,5 +1,6 @@
 "use strict";
 const { Model } = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
   class Payment extends Model {
     static associate(models) {
@@ -7,6 +8,7 @@ module.exports = (sequelize, DataTypes) => {
       Payment.belongsTo(models.User, { foreignKey: "user_id" });
     }
   }
+  
   Payment.init(
     {
       payment_id: {
@@ -21,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       user_id: {
         type: DataTypes.BIGINT,
-        allowNull: false,
+        allowNull: true, // **FIX: Allow null for guest bookings**
       },
       amount: {
         type: DataTypes.DECIMAL(10, 2),
@@ -31,13 +33,26 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.ENUM("pending", "completed", "failed", "refunded"),
         defaultValue: "pending",
       },
+      // **ADD: Missing payment_method field**
+      payment_method: {
+        type: DataTypes.ENUM("cash", "vnpay", "momo", "bank_transfer"),
+        allowNull: false,
+        defaultValue: "cash"
+      },
       transaction_id: {
         type: DataTypes.STRING(100),
         allowNull: false,
       },
       paid_at: {
         type: DataTypes.DATE,
+        allowNull: true,
       },
+      // **ADD: Optional fields for more data**
+      gateway_response: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        comment: "JSON response from payment gateway"
+      }
     },
     {
       sequelize,
@@ -49,5 +64,6 @@ module.exports = (sequelize, DataTypes) => {
       underscored: true,
     }
   );
+  
   return Payment;
 };

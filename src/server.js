@@ -1,11 +1,13 @@
-import express from "express";
-import bodyParser from "body-parser";
-import session from "express-session";
-import viewEngine from "./config/viewEngine";
-import initWebRoutes from "./route/web";
-import connectDB from "./config/connectDb";
-import passport from "./config/passport";
-import apiRoutes from "./route/api.js";
+const express = require("express");
+const bodyParser = require("body-parser");
+const session = require("express-session");
+const viewEngine = require("./config/viewEngine");
+const initWebRoutes = require("./route/web");
+const connectDB = require("./config/connectDb");
+const passport = require("./config/passport");
+const apiRoutes = require("./route/api");
+require("dotenv").config();
+
 require("dotenv").config();
 
 const app = express();
