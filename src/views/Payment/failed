@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán thất bại</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        body { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); min-height: 100vh; }
+        .failed-container { background: white; border-radius: 15px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); }
+        .failed-icon { color: #dc3545; font-size: 4rem; animation: shake 1s infinite; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .error-card { border-left: 4px solid #dc3545; background: #f8d7da; color: #721c24; }
+        .retry-card { border-left: 4px solid #17a2b8; background: #d1ecf1; color: #0c5460; }
+        .btn-retry { background: linear-gradient(45deg, #17a2b8, #138496); border: none; }
+    </style>
+</head>
+<body>
+    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+        <div class="failed-container p-5 text-center" style="max-width: 600px;">
+            <div class="mb-4">
+                <i class="fas fa-times-circle failed-icon"></i>
+                <h2 class="text-danger mt-3 mb-2">Thanh toán thất bại!</h2>
+                <p class="text-muted">Đã có lỗi xảy ra trong quá trình thanh toán. Vui lòng thử lại.</p>
+            </div>
+
+            <div class="error-card p-4 rounded mb-4 text-start">
+                <h5 class="mb-3"><i class="fas fa-exclamation-triangle me-2"></i>Chi tiết lỗi</h5>
+                <div class="row">
+                    <div class="col-sm-4"><strong>Mã đặt phòng:</strong></div>
+                    <div class="col-sm-8" id="orderId">-</div>
+                    <div class="col-sm-4"><strong>Mã lỗi:</strong></div>
+                    <div class="col-sm-8" id="errorCode">-</div>
+                    <div class="col-sm-4"><strong>Lý do:</strong></div>
+                    <div class="col-sm-8" id="errorMessage">-</div>
+                    <div class="col-sm-4"><strong>Ngân hàng:</strong></div>
+                    <div class="col-sm-8" id="bank">-</div>
+                    <div class="col-sm-4"><strong>Thời gian:</strong></div>
+                    <div class="col-sm-8" id="failedTime">-</div>
+                </div>
+            </div>
+
+            <div class="retry-card p-4 rounded mb-4 text-start">
+                <h6><i class="fas fa-lightbulb me-2"></i>Gợi ý khắc phục:</h6>
+                <ul class="mb-0">
+                    <li>Kiểm tra số dư tài khoản</li>
+                    <li>Đảm bảo thông tin thẻ chính xác</li>
+                    <li>Thử với phương thức thanh toán khác</li>
+                    <li>Liên hệ ngân hàng nếu thẻ bị khóa</li>
+                    <li>Hoặc chọn thanh toán tiền mặt khi nhận phòng</li>
+                </ul>
+            </div>
+
+            <div class="alert alert-warning">
+                <h6><i class="fas fa-phone me-2"></i>Cần hỗ trợ?</h6>
+                <p class="mb-1">Hotline: <strong>1900-1234</strong></p>
+                <p class="mb-0">Email: <strong>support@sweethome.vn</strong></p>
+            </div>
+
+            <div class="d-flex gap-3 justify-content-center">
+                <button class="btn btn-retry text-white px-4" onclick="goBackToPayment()">
+                    <i class="fas fa-redo me-2"></i>Thử lại thanh toán
+                </button>
+                <button class="btn btn-outline-secondary px-4" onclick="window.location.href='/'">
+                    <i class="fas fa-home me-2"></i>Về trang chủ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('order_id');
+        const errorCode = urlParams.get('error_code');
+        const errorMessage = urlParams.get('error');
+        const bank = urlParams.get('bank');
+        const details = urlParams.get('details');
+
+        // Display error info
+        if (orderId) document.getElementById('orderId').textContent = orderId;
+        if (errorCode) document.getElementById('errorCode').textContent = errorCode;
+        if (errorMessage) document.getElementById('errorMessage').textContent = decodeURIComponent(errorMessage);
+        if (bank) document.getElementById('bank').textContent = bank;
+        document.getElementById('failedTime').textContent = new Date().toLocaleString('vi-VN');
+
+        // Show additional details if available
+        if (details) {
+            const errorCard = document.querySelector('.error-card .row');
+            errorCard.innerHTML += `
+                <div class="col-sm-4"><strong>Chi tiết:</strong></div>
+                <div class="col-sm-8">${decodeURIComponent(details)}</div>
+            `;
+        }
+
+        function goBackToPayment() {
+            if (orderId) {
+                // Try to get booking info and redirect to payment page
+                fetch(`/api/booking/${orderId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.booking) {
+                            const booking = data.booking;
+                            const paymentUrl = `/payment?room_id=${booking.room_type_id}&checkin=${booking.checkin_date}&checkout=${booking.checkout_date}&adults=${booking.adults || 1}&children=${booking.children || 0}`;
+                            window.location.href = paymentUrl;
+                        } else {
+                            alert('Không thể tìm thấy thông tin booking. Vui lòng đặt phòng lại.');
+                            window.location.href = '/';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Có lỗi xảy ra. Vui lòng thử lại sau.');
+                        window.location.href = '/';
+                    });
+            } else {
+                // No order ID, go back to home
+                window.location.href = '/';
+            }
+        }
+
+        // Show specific help based on error code
+        if (errorCode) {
+            let helpText = '';
+            switch(errorCode) {
+                case '11':
+                case '13':
+                    helpText = '💡 Mẹo: Kiểm tra lại mật khẩu và mã OTP';
+                    break;
+                case '12':
+                    helpText = '💡 Mẹo: Liên hệ ngân hàng để mở khóa thẻ';
+                    break;
+                case '24':
+                    helpText = '💡 Mẹo: Bạn đã hủy giao dịch, có thể thử lại';
+                    break;
+                case '51':
+                    helpText = '💡 Mẹo: Nạp thêm tiền vào tài khoản';
+                    break;
+                case '75':
+                    helpText = '💡 Mẹo: Thử lại sau hoặc chọn ngân hàng khác';
+                    break;
+            }
+            
+            if (helpText) {
+                const retryCard = document.querySelector('.retry-card');
+                retryCard.innerHTML += `<div class="alert alert-info mt-3 mb-0">${helpText}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

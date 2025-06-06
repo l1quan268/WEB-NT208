@@ -4,12 +4,13 @@ const db = require("../models/index.js");
 const crypto = require("crypto");
 const querystring = require("qs");
 
-// VNPay configuration
+// VNPay configuration - ✅ UPDATED with better error handling
 const VNP_TMN_CODE = process.env.VNP_TMN_CODE || "S2TTOR81";
 const VNP_HASH_SECRET = process.env.VNP_HASH_SECRET || "MTXXC74DNQWKRHOQ6N08CGAYJ5EXIYLZ";
 const VNP_URL = process.env.VNP_URL || "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
 const BASE_URL = process.env.BASE_URL || "http://sweethome.id.vn";
 
+// ✅ IMPROVED VNPay URL builder with better timeout and error handling
 const buildVNPayUrl = (params) => {
   const {
     amount,
@@ -23,7 +24,8 @@ const buildVNPayUrl = (params) => {
   } = params;
 
   const createDate = moment().format("YYYYMMDDHHmmss");
-  const expireDate = moment().add(15, "minutes").format("YYYYMMDDHHmmss");
+  // ✅ Extend timeout to 30 minutes instead of 15
+  const expireDate = moment().add(30, "minutes").format("YYYYMMDDHHmmss");
 
   const vnp_Params = {
     vnp_Version: "2.1.0",
@@ -34,18 +36,20 @@ const buildVNPayUrl = (params) => {
     vnp_TxnRef: orderId,
     vnp_OrderInfo: orderInfo,
     vnp_OrderType: orderType,
-    vnp_Amount: amount * 100,
+    vnp_Amount: amount * 100, // VNPay requires amount in VND * 100
     vnp_ReturnUrl: returnUrl,
     vnp_IpAddr: ipAddr,
     vnp_CreateDate: createDate,
     vnp_ExpireDate: expireDate,
   };
 
+  // ✅ Sort parameters alphabetically (required by VNPay)
   const sortedParams = {};
   Object.keys(vnp_Params).sort().forEach((key) => {
     sortedParams[key] = vnp_Params[key];
   });
 
+  // ✅ Create secure hash
   const signData = querystring.stringify(sortedParams, { encode: false });
   const hmac = crypto.createHmac("sha512", VNP_HASH_SECRET);
   const secureHash = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
@@ -53,6 +57,16 @@ const buildVNPayUrl = (params) => {
   sortedParams.vnp_SecureHash = secureHash;
 
   const paymentUrl = VNP_URL + "?" + querystring.stringify(sortedParams, { encode: false });
+  
+  console.log("🔐 VNPay URL Generated:", {
+    orderId,
+    amount,
+    createDate,
+    expireDate,
+    returnUrl,
+    paymentUrl: paymentUrl.substring(0, 100) + "..."
+  });
+
   return paymentUrl;
 };
 
@@ -249,15 +263,52 @@ const postCheckout = async (req, res) => {
     }
 
     if (paymentMethod === "vnpay") {
+      // ✅ IMPROVED VNPay integration with better URL handling
       const returnUrl = `${BASE_URL}/api/vnpay_return`;
-      const ipAddr = req.headers["x-forwarded-for"] || req.connection.remoteAddress || req.socket.remoteAddress || "127.0.0.1";
-      const paymentUrl = buildVNPayUrl({
-        amount: pricing.totalAmount, // ✅ Use calculated total
+      const ipAddr = req.headers["x-forwarded-for"] || 
+                    req.connection.remoteAddress || 
+                    req.socket.remoteAddress || 
+                    req.ip || 
+                    "127.0.0.1";
+      
+      // ✅ Clean IP address format
+      const cleanIpAddr = ipAddr.replace("::ffff:", "").replace("::1", "127.0.0.1");
+      
+      // ✅ Enhanced order info with more details
+      const orderInfo = `Thanh toan dat phong ${room.type_name} - ${fullname} - Ma: ${orderId}`;
+      
+      console.log("🏦 Creating VNPay payment:", {
+        amount: pricing.totalAmount,
         orderId,
-        orderInfo: `Thanh toan dat phong - ${fullname} - ${orderId}`,
+        orderInfo,
         returnUrl,
-        ipAddr: ipAddr.replace("::ffff:", ""),
+        ipAddr: cleanIpAddr,
+        roomType: room.type_name,
+        customer: fullname
+      });
+
+      const paymentUrl = buildVNPayUrl({
+        amount: pricing.totalAmount,
+        orderId,
+        orderInfo,
+        returnUrl,
+        ipAddr: cleanIpAddr,
         locale: "vn"
+      });
+
+      // ✅ Also create a payment record before redirect
+      await db.Payment.create({
+        booking_id: booking.booking_id || booking.id,
+        user_id: userId,
+        amount: pricing.totalAmount,
+        status: 'pending',
+        payment_method: 'vnpay',
+        transaction_id: orderId,
+        gateway_response: JSON.stringify({
+          vnpay_url: paymentUrl,
+          created_at: new Date(),
+          ip_address: cleanIpAddr
+        })
       });
 
       return res.json({
@@ -265,7 +316,9 @@ const postCheckout = async (req, res) => {
         payment_method: "vnpay",
         redirect_url: paymentUrl,
         order_id: orderId,
-        booking_id: booking.booking_id || booking.id
+        booking_id: booking.booking_id || booking.id,
+        expires_in: "30 minutes",
+        amount: pricing.totalAmount
       });
     }
 
@@ -675,28 +728,29 @@ export const getCashPaymentReport = async (req, res) => {
   }
 };
 
+// ✅ ENHANCED VNPay error messages with more specific descriptions
 const getVNPayErrorMessage = (responseCode) => {
   const errorMessages = {
-    "01": "Giao dịch chưa hoàn tất",
-    "02": "Giao dịch bị lỗi",
-    "04": "Giao dịch đảo (Khách hàng đã bị trừ tiền tại Ngân hàng nhưng GD chưa thành công ở VNPAY)",
-    "05": "VNPAY đang xử lý giao dịch này (GD hoàn tiền)",
-    "06": "VNPAY đã gửi yêu cầu hoàn tiền sang Ngân hàng (GD hoàn tiền)",
-    "07": "Giao dịch bị nghi ngờ gian lận",
-    "09": "GD Hoàn trả bị từ chối",
-    "10": "Đã giao hàng",
-    "11": "Giao dịch không thành công do: Khách hàng nhập sai mật khẩu",
-    "12": "Giao dịch không thành công do: Thẻ/Tài khoản của khách hàng bị khóa",
-    "13": "Giao dịch không thành công do Quý khách nhập sai mật khẩu xác thực giao dịch (OTP)",
-    "24": "Giao dịch không thành công do: Khách hàng hủy giao dịch",
-    "51": "Giao dịch không thành công do: Tài khoản của quý khách không đủ số dư để thực hiện giao dịch",
-    "65": "Giao dịch không thành công do: Tài khoản của Quý khách đã vượt quá hạn mức giao dịch trong ngày",
-    "75": "Ngân hàng thanh toán đang bảo trì",
-    "79": "Giao dịch không thành công do: KH nhập sai mật khẩu thanh toán quá số lần quy định",
-    "99": "Các lỗi khác"
+    "01": "Giao dịch chưa hoàn tất - Vui lòng thử lại",
+    "02": "Giao dịch bị lỗi - Có lỗi xảy ra trong quá trình xử lý",
+    "04": "Giao dịch đảo - Khách hàng đã bị trừ tiền nhưng giao dịch chưa thành công",
+    "05": "VNPay đang xử lý giao dịch hoàn tiền",
+    "06": "VNPay đã gửi yêu cầu hoàn tiền tới ngân hàng",
+    "07": "Giao dịch bị nghi ngờ gian lận - Vui lòng liên hệ ngân hàng",
+    "09": "Giao dịch hoàn trả bị từ chối",
+    "10": "Đã giao hàng - Không thể hoàn tiền",
+    "11": "Giao dịch thất bại - Sai mật khẩu xác thực",
+    "12": "Giao dịch thất bại - Thẻ/Tài khoản bị khóa",
+    "13": "Giao dịch thất bại - Sai mã OTP xác thực",
+    "24": "Giao dịch bị hủy - Khách hàng đã hủy giao dịch",
+    "51": "Giao dịch thất bại - Tài khoản không đủ số dư",
+    "65": "Giao dịch thất bại - Vượt quá hạn mức giao dịch trong ngày",
+    "75": "Ngân hàng thanh toán đang bảo trì - Vui lòng thử lại sau",
+    "79": "Giao dịch thất bại - Nhập sai mật khẩu quá số lần cho phép",
+    "99": "Lỗi không xác định - Vui lòng liên hệ hỗ trợ"
   };
 
-  return errorMessages[responseCode] || "Lỗi không xác định";
+  return errorMessages[responseCode] || `Mã lỗi ${responseCode} - Lỗi không xác định`;
 };
 
 module.exports = {

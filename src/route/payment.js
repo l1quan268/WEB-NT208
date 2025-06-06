@@ -242,5 +242,16 @@ const PORT = process.env.PORT || 9999;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+// Trong routes/index.js hoặc routes/payment.js
+app.get('/payment-success', (req, res) => {
+  res.sendFile(path.join(__dirname, '../views/payment-success.html'));
+});
 
+app.get('/payment-failed', (req, res) => {
+  res.sendFile(path.join(__dirname, '../views/payment-failed.html'));
+});
+
+// VNPay return endpoint
+app.get('/api/vnpay_return', handleVNPayReturn);
+app.post('/api/vnpay_return', handleVNPayReturn); // Support both GET/POST
 module.exports = app;
