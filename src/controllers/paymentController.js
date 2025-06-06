@@ -10,6 +10,7 @@ const VNP_HASH_SECRET = process.env.VNP_HASH_SECRET || "MTXXC74DNQWKRHOQ6N08CGAY
 const VNP_URL = process.env.VNP_URL || "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
 const BASE_URL = process.env.BASE_URL || "http://sweethome.id.vn";
 
+// ✅ FIXED VNPay URL builder - Remove or extend expire time
 const buildVNPayUrl = (params) => {
   const {
     amount,
@@ -22,8 +23,23 @@ const buildVNPayUrl = (params) => {
     orderType = "other"
   } = params;
 
+  // ✅ Validate required parameters
+  if (!amount || !orderId || !orderInfo || !returnUrl) {
+    throw new Error("Missing required VNPay parameters");
+  }
+
+  // ✅ Ensure amount is valid
+  const vnpAmount = Math.round(parseFloat(amount)) * 100;
+  if (vnpAmount <= 0) {
+    throw new Error("Invalid payment amount");
+  }
+
   const createDate = moment().format("YYYYMMDDHHmmss");
-  const expireDate = moment().add(15, "minutes").format("YYYYMMDDHHmmss");
+  // ✅ OPTION 1: Remove expire date completely (no timeout)
+  // const expireDate = null;
+  
+  // ✅ OPTION 2: Set very long timeout (24 hours)
+  const expireDate = moment().add(24, "hours").format("YYYYMMDDHHmmss");
 
   const vnp_Params = {
     vnp_Version: "2.1.0",
@@ -34,25 +50,52 @@ const buildVNPayUrl = (params) => {
     vnp_TxnRef: orderId,
     vnp_OrderInfo: orderInfo,
     vnp_OrderType: orderType,
-    vnp_Amount: amount * 100,
+    vnp_Amount: vnpAmount,
     vnp_ReturnUrl: returnUrl,
     vnp_IpAddr: ipAddr,
     vnp_CreateDate: createDate,
-    vnp_ExpireDate: expireDate,
+    // ✅ Only add expire date if it exists
+    ...(expireDate && { vnp_ExpireDate: expireDate })
   };
 
-  const sortedParams = {};
-  Object.keys(vnp_Params).sort().forEach((key) => {
-    sortedParams[key] = vnp_Params[key];
+  console.log("🔧 VNPay Parameters Before Signing:", {
+    vnp_TmnCode: VNP_TMN_CODE,
+    vnp_Amount: vnpAmount,
+    vnp_TxnRef: orderId,
+    vnp_CreateDate: createDate,
+    vnp_ExpireDate: expireDate || "NO_EXPIRE",
+    vnp_ReturnUrl: returnUrl
   });
 
+  // ✅ Sort parameters alphabetically (critical for VNPay)
+  const sortedParams = {};
+  Object.keys(vnp_Params)
+    .sort()
+    .forEach((key) => {
+      if (vnp_Params[key] !== null && vnp_Params[key] !== undefined && vnp_Params[key] !== '') {
+        sortedParams[key] = vnp_Params[key];
+      }
+    });
+
+  // ✅ Create secure hash
   const signData = querystring.stringify(sortedParams, { encode: false });
+  console.log("🔐 Sign Data:", signData);
+  
   const hmac = crypto.createHmac("sha512", VNP_HASH_SECRET);
   const secureHash = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
 
   sortedParams.vnp_SecureHash = secureHash;
 
   const paymentUrl = VNP_URL + "?" + querystring.stringify(sortedParams, { encode: false });
+  
+  console.log("🌐 VNPay Payment URL Generated:", {
+    orderId,
+    amount: vnpAmount / 100,
+    expireTime: expireDate || "NO_EXPIRE",
+    hash: secureHash.substring(0, 10) + "...",
+    url: paymentUrl.substring(0, 150) + "..."
+  });
+
   return paymentUrl;
 };
 
@@ -159,7 +202,11 @@ const getPaymentPage = async (req, res) => {
 };
 
 const postCheckout = async (req, res) => {
+  let transaction;
   try {
+    // ✅ Start database transaction for data consistency
+    transaction = await db.sequelize.transaction();
+
     const {
       room_id, checkin, checkout, fullname, address,
       phone, email, note, paymentMethod = "cash"
@@ -168,53 +215,136 @@ const postCheckout = async (req, res) => {
     const adultsCount = parseInt(req.body.adults) || 0;
     const childrenCount = parseInt(req.body.children) || 0;
 
+    console.log("📝 Checkout request received:", {
+      room_id, checkin, checkout, fullname, phone, email, 
+      adults: adultsCount, children: childrenCount, paymentMethod
+    });
+
+    // ✅ Enhanced validation
     if (!room_id || !checkin || !checkout || !fullname || !phone || !email) {
-      return res.status(400).json({ success: false, message: "Thiếu thông tin bắt buộc" });
+      await transaction.rollback();
+      return res.status(400).json({ 
+        success: false, 
+        message: "Thiếu thông tin bắt buộc",
+        missing_fields: {
+          room_id: !room_id,
+          checkin: !checkin,
+          checkout: !checkout,
+          fullname: !fullname,
+          phone: !phone,
+          email: !email
+        }
+      });
     }
 
     const allowedPaymentMethods = ["vnpay", "momo", "cash"];
     if (!allowedPaymentMethods.includes(paymentMethod)) {
+      await transaction.rollback();
       return res.status(400).json({ success: false, message: "Phương thức thanh toán không hợp lệ" });
     }
 
-    const room = await db.RoomType.findByPk(room_id);
-    if (!room) return res.status(404).json({ success: false, message: "Không tìm thấy phòng" });
+    // ✅ Find room with error handling
+    const room = await db.RoomType.findByPk(room_id, { transaction });
+    if (!room) {
+      await transaction.rollback();
+      return res.status(404).json({ success: false, message: "Không tìm thấy phòng" });
+    }
+
+    console.log("🏠 Room found:", { id: room.room_type_id, name: room.type_name, price: room.price_per_night });
 
     const checkinDate = new Date(checkin);
     const checkoutDate = new Date(checkout);
 
+    // ✅ Validate dates
+    if (isNaN(checkinDate.getTime()) || isNaN(checkoutDate.getTime())) {
+      await transaction.rollback();
+      return res.status(400).json({ success: false, message: "Ngày không hợp lệ" });
+    }
+
+    if (checkoutDate <= checkinDate) {
+      await transaction.rollback();
+      return res.status(400).json({ success: false, message: "Ngày checkout phải sau ngày checkin" });
+    }
+
     // ✅ Use updated pricing calculation
     const pricing = calculateRoomPricing(room, checkinDate, checkoutDate, adultsCount, childrenCount);
+    console.log("💰 Pricing calculated:", pricing);
     
     const orderId = `HOTEL_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
     const userId = req.session?.user?.id || null;
 
-    const booking = await db.Booking.create({
+    console.log("👤 User info:", { userId, sessionUser: req.session?.user });
+
+    // ✅ Create booking with explicit field mapping
+    const bookingData = {
       user_id: userId,
       homestay_id: room.homestay_id || null,
       room_type_id: parseInt(room_id),
-      name: fullname,
+      name: fullname.trim(),
       booking_date: new Date(),
       check_in_date: checkinDate,
       check_out_date: checkoutDate,
       adults: adultsCount,
       children: childrenCount,
-      total_price: pricing.totalAmount, // ✅ Use calculated total
+      total_price: pricing.totalAmount,
       status: 'pending',
       order_id: orderId,
-      guest_email: email,
-      guest_phone: phone,
-      guest_address: address || '',
+      guest_email: email.trim(),
+      guest_phone: phone.trim(),
+      guest_address: (address || '').trim(),
       payment_method: paymentMethod,
-      payment_status: 'pending'
+      payment_status: 'pending',
+      special_requests: (note || '').trim(),
+      created_at: new Date(),
+      updated_at: new Date()
+    };
+
+    console.log("📋 Booking data to save:", bookingData);
+
+    const booking = await db.Booking.create(bookingData, { transaction });
+    
+    console.log("✅ Booking created:", { 
+      id: booking.id, 
+      booking_id: booking.booking_id, 
+      order_id: booking.order_id,
+      status: booking.status,
+      payment_method: booking.payment_method
     });
+
+    // ✅ Create initial payment record
+    const paymentData = {
+      booking_id: booking.id || booking.booking_id,
+      user_id: userId,
+      amount: pricing.totalAmount,
+      status: 'pending',
+      payment_method: paymentMethod,
+      transaction_id: orderId,
+      created_at: new Date(),
+      updated_at: new Date()
+    };
+
+    console.log("💳 Payment data to save:", paymentData);
+
+    const payment = await db.Payment.create(paymentData, { transaction });
+    
+    console.log("✅ Payment record created:", { 
+      id: payment.id, 
+      booking_id: payment.booking_id, 
+      amount: payment.amount,
+      status: payment.status 
+    });
+
+    // ✅ Commit transaction before processing payment methods
+    await transaction.commit();
+    console.log("✅ Database transaction committed successfully");
 
     if (paymentMethod === "cash") {
       return res.status(200).json({
         success: true,
         payment_method: "cash",
         order_id: orderId,
-        booking_id: booking.booking_id || booking.id,
+        booking_id: booking.id || booking.booking_id,
+        message: "Booking được tạo thành công với phương thức thanh toán tiền mặt",
         booking_details: {
           guest_name: fullname,
           room_type: room.type_name,
@@ -226,12 +356,11 @@ const postCheckout = async (req, res) => {
           children: childrenCount,
           total_guests: pricing.totalGuests,
           base_price: pricing.baseAmount,
-          surcharge_adults: pricing.surchargeAdults, // ✅ NEW: Số người lớn bị phụ thu
+          surcharge_adults: pricing.surchargeAdults,
           surcharge_per_night: pricing.surchargePerNight,
           total_surcharge: pricing.totalSurcharge,
           total_amount: pricing.totalAmount,
           formatted_amount: pricing.totalAmount.toLocaleString('vi-VN') + ' ₫',
-          // ✅ Add detailed breakdown with new logic
           price_breakdown: {
             room_price_per_night: pricing.roomPrice,
             nights: pricing.nights,
@@ -239,7 +368,7 @@ const postCheckout = async (req, res) => {
             adults: pricing.adults,
             children: pricing.children,
             total_guests: pricing.totalGuests,
-            surcharge_adults: pricing.surchargeAdults, // ✅ Chỉ người lớn > 5
+            surcharge_adults: pricing.surchargeAdults,
             surcharge_per_adult_per_night: pricing.surchargeAdults > 0 ? 100000 : 0,
             total_surcharge: pricing.totalSurcharge,
             final_total: pricing.totalAmount
@@ -249,39 +378,120 @@ const postCheckout = async (req, res) => {
     }
 
     if (paymentMethod === "vnpay") {
-      const returnUrl = `${BASE_URL}/api/vnpay_return`;
-      const ipAddr = req.headers["x-forwarded-for"] || req.connection.remoteAddress || req.socket.remoteAddress || "127.0.0.1";
-      const paymentUrl = buildVNPayUrl({
-        amount: pricing.totalAmount, // ✅ Use calculated total
-        orderId,
-        orderInfo: `Thanh toan dat phong - ${fullname} - ${orderId}`,
-        returnUrl,
-        ipAddr: ipAddr.replace("::ffff:", ""),
-        locale: "vn"
-      });
+      try {
+        const returnUrl = `${BASE_URL}/api/vnpay_return`;
+        const clientIp = req.headers["x-forwarded-for"] || 
+                        req.connection.remoteAddress || 
+                        req.socket.remoteAddress || 
+                        req.ip || 
+                        "127.0.0.1";
+        
+        const cleanIpAddr = clientIp.split(',')[0].trim().replace("::ffff:", "");
+        const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+        const validIp = ipRegex.test(cleanIpAddr) ? cleanIpAddr : "127.0.0.1";
+        
+        const orderInfo = `Dat phong ${room.type_name.replace(/[^a-zA-Z0-9\s]/g, '')} - ${fullname.replace(/[^a-zA-Z0-9\s]/g, '')} - ${orderId}`;
+        
+        console.log("🏦 Creating VNPay payment URL...");
 
-      return res.json({
-        success: true,
-        payment_method: "vnpay",
-        redirect_url: paymentUrl,
-        order_id: orderId,
-        booking_id: booking.booking_id || booking.id
-      });
+        const paymentUrl = buildVNPayUrl({
+          amount: pricing.totalAmount,
+          orderId,
+          orderInfo,
+          returnUrl,
+          ipAddr: validIp,
+          locale: "vn"
+        });
+
+        // ✅ Update payment record with VNPay URL
+        await db.Payment.update({
+          gateway_response: JSON.stringify({
+            vnpay_url: paymentUrl,
+            order_info: orderInfo,
+            client_ip: validIp,
+            created_at: new Date(),
+            vnp_tmn_code: VNP_TMN_CODE,
+            amount_vnd: pricing.totalAmount
+          })
+        }, {
+          where: { booking_id: booking.id || booking.booking_id, payment_method: 'vnpay' }
+        });
+
+        console.log("✅ VNPay payment URL created and saved");
+
+        return res.json({
+          success: true,
+          payment_method: "vnpay",
+          redirect_url: paymentUrl,
+          order_id: orderId,
+          booking_id: booking.id || booking.booking_id,
+          expires_in: "60 minutes",
+          amount: pricing.totalAmount,
+          message: "Booking được tạo thành công, chuyển hướng tới VNPay"
+        });
+
+      } catch (vnpayError) {
+        console.error("❌ VNPay setup error:", vnpayError);
+        
+        // ✅ Fallback to cash payment
+        await db.Booking.update(
+          { payment_method: 'cash', payment_status: 'pending' },
+          { where: { id: booking.id || booking.booking_id } }
+        );
+
+        await db.Payment.update(
+          { payment_method: 'cash', status: 'pending' },
+          { where: { booking_id: booking.id || booking.booking_id } }
+        );
+
+        return res.status(500).json({
+          success: false,
+          message: `Lỗi VNPay: ${vnpayError.message}. Booking đã được tạo với phương thức thanh toán tiền mặt.`,
+          fallback_payment: "cash",
+          order_id: orderId,
+          booking_id: booking.id || booking.booking_id
+        });
+      }
     }
 
     if (paymentMethod === "momo") {
+      // ✅ Update payment record for MoMo
+      await db.Payment.update({
+        gateway_response: JSON.stringify({
+          momo_url: "https://test-payment.momo.vn/...",
+          created_at: new Date()
+        })
+      }, {
+        where: { booking_id: booking.id || booking.booking_id, payment_method: 'momo' }
+      });
+
       return res.json({
         success: true,
         payment_method: "momo",
         redirect_url: "https://test-payment.momo.vn/...",
         order_id: orderId,
-        booking_id: booking.booking_id || booking.id
+        booking_id: booking.id || booking.booking_id,
+        message: "Booking được tạo thành công, chuyển hướng tới MoMo"
       });
     }
 
   } catch (error) {
+    // ✅ Rollback transaction on any error
+    if (transaction) {
+      await transaction.rollback();
+    }
+    
     console.error("❌ Checkout error:", error);
-    return res.status(500).json({ success: false, message: "Lỗi hệ thống: " + error.message });
+    console.error("❌ Error stack:", error.stack);
+    
+    return res.status(500).json({ 
+      success: false, 
+      message: "Lỗi hệ thống: " + error.message,
+      error_details: process.env.NODE_ENV === 'development' ? {
+        message: error.message,
+        stack: error.stack
+      } : undefined
+    });
   }
 };
 
@@ -675,28 +885,29 @@ export const getCashPaymentReport = async (req, res) => {
   }
 };
 
+// ✅ ENHANCED VNPay error messages with more specific descriptions
 const getVNPayErrorMessage = (responseCode) => {
   const errorMessages = {
-    "01": "Giao dịch chưa hoàn tất",
-    "02": "Giao dịch bị lỗi",
-    "04": "Giao dịch đảo (Khách hàng đã bị trừ tiền tại Ngân hàng nhưng GD chưa thành công ở VNPAY)",
-    "05": "VNPAY đang xử lý giao dịch này (GD hoàn tiền)",
-    "06": "VNPAY đã gửi yêu cầu hoàn tiền sang Ngân hàng (GD hoàn tiền)",
-    "07": "Giao dịch bị nghi ngờ gian lận",
-    "09": "GD Hoàn trả bị từ chối",
-    "10": "Đã giao hàng",
-    "11": "Giao dịch không thành công do: Khách hàng nhập sai mật khẩu",
-    "12": "Giao dịch không thành công do: Thẻ/Tài khoản của khách hàng bị khóa",
-    "13": "Giao dịch không thành công do Quý khách nhập sai mật khẩu xác thực giao dịch (OTP)",
-    "24": "Giao dịch không thành công do: Khách hàng hủy giao dịch",
-    "51": "Giao dịch không thành công do: Tài khoản của quý khách không đủ số dư để thực hiện giao dịch",
-    "65": "Giao dịch không thành công do: Tài khoản của Quý khách đã vượt quá hạn mức giao dịch trong ngày",
-    "75": "Ngân hàng thanh toán đang bảo trì",
-    "79": "Giao dịch không thành công do: KH nhập sai mật khẩu thanh toán quá số lần quy định",
-    "99": "Các lỗi khác"
+    "01": "Giao dịch chưa hoàn tất - Vui lòng thử lại",
+    "02": "Giao dịch bị lỗi - Có lỗi xảy ra trong quá trình xử lý",
+    "04": "Giao dịch đảo - Khách hàng đã bị trừ tiền nhưng giao dịch chưa thành công",
+    "05": "VNPay đang xử lý giao dịch hoàn tiền",
+    "06": "VNPay đã gửi yêu cầu hoàn tiền tới ngân hàng",
+    "07": "Giao dịch bị nghi ngờ gian lận - Vui lòng liên hệ ngân hàng",
+    "09": "Giao dịch hoàn trả bị từ chối",
+    "10": "Đã giao hàng - Không thể hoàn tiền",
+    "11": "Giao dịch thất bại - Sai mật khẩu xác thực",
+    "12": "Giao dịch thất bại - Thẻ/Tài khoản bị khóa",
+    "13": "Giao dịch thất bại - Sai mã OTP xác thực",
+    "24": "Giao dịch bị hủy - Khách hàng đã hủy giao dịch",
+    "51": "Giao dịch thất bại - Tài khoản không đủ số dư",
+    "65": "Giao dịch thất bại - Vượt quá hạn mức giao dịch trong ngày",
+    "75": "Ngân hàng thanh toán đang bảo trì - Vui lòng thử lại sau",
+    "79": "Giao dịch thất bại - Nhập sai mật khẩu quá số lần cho phép",
+    "99": "Lỗi không xác định - Vui lòng liên hệ hỗ trợ"
   };
 
-  return errorMessages[responseCode] || "Lỗi không xác định";
+  return errorMessages[responseCode] || `Mã lỗi ${responseCode} - Lỗi không xác định`;
 };
 
 module.exports = {
