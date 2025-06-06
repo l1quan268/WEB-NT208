@@ -296,89 +296,92 @@
                                 <div class="bg-white p-4 rounded shadow-sm">
                                     <h4 class="mb-4 fw-bold text-center">LỊCH SỬ GIAO DỊCH</h4>
                                     <% if (bookings && bookings.length> 0) { %>
-                                        <table class="table table-bordered text-center align-middle">
-                                            <thead class="table-warning">
-                                                <tr>
-                                                    <th>STT</th>
-                                                    <th>Họ và tên</th>
-                                                    <th>Ngày đặt</th>
-                                                    <th>Phòng</th>
-                                                    <th>Ngày đến</th>
-                                                    <th>Ngày đi</th>
-                                                    <th>Người lớn</th>
-                                                    <th>Trẻ em</th>
-                                                    <th>Giá</th>
-                                                    <th>Trạng thái</th>
-                                                    <th>Tùy chọn</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <% bookings.forEach((b, index)=> { %>
+                                        <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc;">
+                                            <table class="table table-bordered text-center align-middle"
+                                                style="table-layout: fixed; width: 100%;">
+                                                <thead class="table-warning"
+                                                    style="display: table; width: 100%; table-layout: fixed;">
                                                     <tr>
-                                                        <td>
-                                                            <%= index + 1 %>
-                                                        </td>
-                                                        <td>
-                                                            <%= b.name %>
-                                                        </td>
-                                                        <td>
-                                                            <%= new Date(b.booking_date).toLocaleDateString("vi-VN") %>
-                                                        </td>
-                                                        <td>
-                                                            <%= b.room_name %>
-                                                        </td>
-                                                        <td>
-                                                            <%= new Date(b.check_in_date).toLocaleDateString("vi-VN") %>
-                                                        </td>
-                                                        <td>
-                                                            <%= new Date(b.check_out_date).toLocaleDateString("vi-VN")
-                                                                %>
-                                                        </td>
-                                                        <td>
-                                                            <%= b.adults %>
-                                                        </td>
-                                                        <td>
-                                                            <%= b.children %>
-                                                        </td>
-                                                        <td>
-                                                            <%= Number(b.total_price).toLocaleString("vi-VN") + " vnđ" %>
-                                                        </td>
-                                                        <td
-                                                            class="<%= b.payment_status === 'paid' ? 'text-success' : 'text-warning' %> fw-bold">
-                                                            <%= b.payment_status==='paid' ? 'Đã trả' : 'Chưa trả' %>
-
-
-                                                        </td>
-                                                        <td class="text-nowrap">
-                                                            <% if (b.payment_status !=='paid' ) { %>
-                                                                <form action="/booking/cancel" method="POST"
-                                                                    style="display:inline-block;"
-                                                                    onsubmit="return confirm('Bạn có chắc chắn muốn hủy hóa đơn này?');">
-                                                                    <input type="hidden" name="booking_name"
-                                                                        value="<%= b.name %>">
-                                                                    <button class="btn btn-danger btn-sm">Hủy đơn</button>
-                                                                </form>
-                                                                <form action="/booking/pay" method="POST"
-                                                                    style="display:inline-block;">
-                                                                    <input type="hidden" name="booking_name"
-                                                                        value="<%= b.name %>">
-                                                                    <button class="btn btn-success btn-sm">Thanh
-                                                                        toán</button>
-                                                                </form>
-                                                                <% } else { %>
-                                                                    <span class="text-muted">Không khả dụng</span>
-                                                                    <% } %>
-                                                        </td>
-
+                                                        <th style="width: 60px; white-space: nowrap;">STT</th>
+                                                        <th style="width: 180px; white-space: nowrap;">Họ và tên</th>
+                                                        <th style="width: 120px; white-space: nowrap;">Ngày đặt</th>
+                                                        <th style="width: 160px; white-space: nowrap;">Phòng</th>
+                                                        <th style="width: 120px; white-space: nowrap;">Ngày đến</th>
+                                                        <th style="width: 120px; white-space: nowrap;">Ngày đi</th>
+                                                        <th style="width: 100px; white-space: nowrap;">Lớn/Nhỏ</th>
+                                                        <th style="width: 160px; white-space: nowrap;">Giá</th>
+                                                        <th style="width: 100px; white-space: nowrap;">Trạng thái</th>
+                                                        <th style="width: 160px; white-space: nowrap;">Tùy chọn</th>
                                                     </tr>
-                                                    <% }) %>
-                                            </tbody>
-                                        </table>
+                                                </thead>
+                                                <tbody style="display: block; width: 100%;">
+                                                    <% bookings.forEach((b, index)=> { %>
+                                                        <tr style="display: table; table-layout: fixed; width: 100%;">
+                                                            <td style="width: 60px">
+                                                                <%= index + 1 %>
+                                                            </td>
+                                                            <td style="width: 180px">
+                                                                <%= b.name %>
+                                                            </td>
+                                                            <td style="width: 120px">
+                                                                <%= new Date(b.booking_date).toLocaleDateString("vi-VN")
+                                                                    %>
+                                                            </td>
+                                                            <td style="width: 160px">
+                                                                <%= b.room_name %>
+                                                            </td>
+                                                            <td style="width: 120px">
+                                                                <%= new
+                                                                    Date(b.check_in_date).toLocaleDateString("vi-VN") %>
+                                                            </td>
+                                                            <td style="width: 120px">
+                                                                <%= new
+                                                                    Date(b.check_out_date).toLocaleDateString("vi-VN")
+                                                                    %>
+                                                            </td>
+                                                            <td style="width: 100px">
+                                                                <%= b.adults %> / <%= b.children %>
+                                                            </td>
+                                                            <td style="width: 160px">
+                                                                <%= Number(b.total_price).toLocaleString("vi-VN")
+                                                                    + " vnđ" %>
+                                                            </td>
+                                                            <td style="width: 100px"
+                                                                class="<%= b.payment_status === 'paid' ? 'text-success' : 'text-warning' %> fw-bold">
+                                                                <%= b.payment_status==='paid' ? 'Đã trả' : 'Chưa trả' %>
+                                                            </td>
+                                                            <td style="width: 160px" class="text-nowrap">
+                                                                <div
+                                                                    class="d-flex justify-content-center gap-2 flex-wrap">
+                                                                    <% if (b.payment_status !=='paid' ) { %>
+                                                                        <form action="/booking/cancel" method="POST"
+                                                                            onsubmit="return confirm('Bạn có chắc chắn muốn hủy hóa đơn này?');">
+                                                                            <input type="hidden" name="booking_name"
+                                                                                value="<%= b.name %>">
+                                                                            <button class="btn btn-danger btn-sm">Hủy
+                                                                                đơn</button>
+                                                                        </form>
+                                                                        <form action="/booking/pay" method="POST">
+                                                                            <input type="hidden" name="booking_name"
+                                                                                value="<%= b.name %>">
+                                                                            <button class="btn btn-success btn-sm">Thanh
+                                                                                toán</button>
+                                                                        </form>
+                                                                        <% } else { %>
+                                                                            <span class="text-muted">Không khả
+                                                                                dụng</span>
+                                                                            <% } %>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <% }) %>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                         <% } else { %>
                                             <p class="text-center text-muted">Chưa có hóa đơn nào.</p>
                                             <% } %>
                                 </div>
-
                             </div>
 
                 </div>
