@@ -309,6 +309,7 @@
                                                     style="display: table; width: 100%; table-layout: fixed;">
                                                     <tr>
                                                         <th style="width: 60px; white-space: nowrap;">STT</th>
+                                                        <th style="width: 60px; white-space: nowrap;">Mã</th>
                                                         <th style="width: 180px; white-space: nowrap;">Họ và tên</th>
                                                         <th style="width: 120px; white-space: nowrap;">Ngày đặt</th>
                                                         <th style="width: 160px; white-space: nowrap;">Phòng</th>
@@ -325,6 +326,9 @@
                                                         <tr style="display: table; table-layout: fixed; width: 100%;">
                                                             <td style="width: 60px">
                                                                 <%= index + 1 %>
+                                                            </td>
+                                                            <td style="width: 60px">
+                                                                <%= b.booking_id %>
                                                             </td>
                                                             <td style="width: 180px">
                                                                 <%= b.name %>
@@ -353,17 +357,17 @@
                                                                     + " vnđ" %>
                                                             </td>
                                                             <td style="width: 100px"
-                                                                class="<%= b.payment_status === 'paid' ? 'text-success' : 'text-warning' %> fw-bold">
-                                                                <%= b.payment_status==='paid' ? 'Đã trả' : 'Chưa trả' %>
+                                                                class="<%= b.payment_status === 'paid' ? 'text-success' : (b.payment_status === 'failed' ? 'text-danger' : 'text-warning') %> fw-bold">
+                                                                    <%= b.payment_status === 'paid' ? 'Đã trả' : (b.payment_status === 'failed' ? 'Đã hủy' : 'Chưa trả') %>
                                                             </td>
                                                             <td style="width: 160px" class="text-nowrap">
                                                                 <div
                                                                     class="d-flex justify-content-center gap-2 flex-wrap">
-                                                                    <% if (b.payment_status !=='paid' ) { %>
+                                                                    <% if (b.payment_status !== 'paid' && b.payment_status !== 'failed') { %>
                                                                         <form id="cancel-form-<%= index %>"
                                                                             action="/booking/cancel" method="POST">
-                                                                            <input type="hidden" name="booking_name"
-                                                                                value="<%= b.name %>">
+                                                                            <input type="hidden" name="booking_id"
+                                                                                value="<%= b.booking_id %>">
                                                                             <button type="button"
                                                                                 class="btn btn-danger btn-sm"
                                                                                 onclick="confirmCancel(<%= index %>)">

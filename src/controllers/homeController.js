@@ -1105,6 +1105,7 @@ let getUserInfoPage = async (req, res) => {
   const bookings = await db.sequelize.query(`
     SELECT 
       b.name,
+      b.booking_id,
       b.booking_date,
       rt.type_name AS room_name,
       b.check_in_date,
@@ -1112,7 +1113,7 @@ let getUserInfoPage = async (req, res) => {
       b.adults,
       b.children,
       b.total_price,
-      b.status AS payment_status
+      b.payment_status
     FROM bookings b
     JOIN roomtypes rt ON b.room_type_id = rt.room_type_id
     WHERE b.user_id = ?
@@ -1137,20 +1138,27 @@ let getUserInfoPage = async (req, res) => {
 };
 let cancelBooking = async (req, res) => {
   const user = req.session?.user;
-  const bookingName = req.body.booking_name;
+  const bookingName = req.body.booking_id;
 
   if (!user || !bookingName) return res.redirect("/bookings");
 
   try {
-    await db.Booking.destroy({
-      where: {
-        name: bookingName,
-        user_id: user.user_id,
-        status: { [db.Sequelize.Op.ne]: "paid" }, // Không xóa nếu đã thanh toán
-      },
-    });
+    const result = await db.Booking.update(
+      { payment_status: "failed" },
+      {
+        where: {
+          booking_id: bookingName,
+          user_id: user.user_id,
+          payment_status: { [db.Sequelize.Op.ne]: "paid" }, // Không cập nhật nếu đã thanh toán
+        },
+      }
+    );
 
-    req.session.message = "Đã hủy hóa đơn thành công!";
+    if (result[0] > 0) {
+      req.session.message = "Đã hủy hóa đơn thành công!";
+    } else {
+      req.session.message = "Không thể hủy hóa đơn (đã thanh toán hoặc không tồn tại)!";
+    }
   } catch (error) {
     console.error("❌ Lỗi khi hủy booking:", error);
     req.session.message = "Lỗi khi hủy hóa đơn!";
