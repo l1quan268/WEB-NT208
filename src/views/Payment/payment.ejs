@@ -174,6 +174,39 @@
     .cash-color {
       color: #28a745;
     }
+    /* ✅ NEW: Pricing breakdown styles */
+    .pricing-breakdown {
+      background-color: #f8f9fa;
+      border-radius: 5px;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-left: 4px solid #007bff;
+    }
+    .pricing-breakdown .breakdown-title {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    .pricing-breakdown .breakdown-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      font-size: 13px;
+      color: #666;
+    }
+    .pricing-breakdown .breakdown-item.highlight {
+      color: #dc3545;
+      font-weight: 500;
+    }
+    .guest-info {
+      background-color: #e3f2fd;
+      border-radius: 5px;
+      padding: 10px;
+      margin-bottom: 15px;
+      font-size: 13px;
+      color: #1976d2;
+    }
     /* Debug styles */
     .debug-info {
       position: fixed;
@@ -201,11 +234,12 @@
 
   <div class="container my-5">
     <form id="checkoutForm">
-      <!-- Hidden fields from backend or URL -->
-    <input type="hidden" name="room_id" id="hiddenRoomId" value="<%= room_id %>">
-    <input type="hidden" name="checkin" id="hiddenCheckin" value="<%= checkin %>">
-    <input type="hidden" name="checkout" id="hiddenCheckout" value="<%= checkout %>">
-
+      <!-- Hidden fields from backend -->
+      <input type="hidden" name="room_id" id="hiddenRoomId" value="<%= room_id %>">
+      <input type="hidden" name="checkin" id="hiddenCheckin" value="<%= checkin %>">
+      <input type="hidden" name="checkout" id="hiddenCheckout" value="<%= checkout %>">
+      <input type="hidden" name="adults" id="hiddenAdults" value="<%= adults %>">
+      <input type="hidden" name="children" id="hiddenChildren" value="<%= children %>">
 
       <div class="row">
         <div class="col-lg-6 col-md-6">
@@ -214,22 +248,26 @@
 
             <div class="mb-3">
               <label for="fullname" class="form-label">Họ và tên <span class="required">*</span></label>
-              <input type="text" class="form-control" id="fullname" name="fullname" required />
+              <input type="text" class="form-control" id="fullname" name="fullname" 
+                     value="<%= user?.name || '' %>" required />
             </div>
 
             <div class="mb-3">
               <label for="address" class="form-label">Địa chỉ <span class="required">*</span></label>
-              <input type="text" class="form-control" id="address" name="address" placeholder="Ví dụ: Số xx Ngõ xx Phú Kiều, Bắc Từ Liêm, Hà Nội" required />
+              <input type="text" class="form-control" id="address" name="address" 
+                     placeholder="Ví dụ: Số xx Ngõ xx Phú Kiều, Bắc Từ Liêm, Hà Nội" required />
             </div>
 
             <div class="mb-3">
               <label for="phone" class="form-label">Số điện thoại <span class="required">*</span></label>
-              <input type="tel" class="form-control" id="phone" name="phone" required />
+              <input type="tel" class="form-control" id="phone" name="phone" 
+                     value="<%= user?.phone || '' %>" required />
             </div>
 
             <div class="mb-3">
               <label for="email" class="form-label">Địa chỉ email <span class="required">*</span></label>
-              <input type="email" class="form-control" id="email" name="email" required />
+              <input type="email" class="form-control" id="email" name="email" 
+                     value="<%= user?.email || '' %>" required />
             </div>
 
             <div class="form-check">
@@ -241,7 +279,8 @@
               <h6 class="section-title">THÔNG TIN BỔ SUNG</h6>
               <div class="mb-3">
                 <label for="notes" class="form-label">Ghi chú đặt phòng (tuỳ chọn)</label>
-                <textarea class="form-control" id="notes" name="note" rows="4" placeholder="Ghi chú đặt phòng: Ví dụ: Tôi khách sạn vào lúc chiều, Tôi khách sẵn sàng chờ hai tiếng..v.v."></textarea>
+                <textarea class="form-control" id="notes" name="note" rows="4" 
+                          placeholder="Ghi chú đặt phòng: Ví dụ: Tôi sẽ đến khách sạn vào lúc chiều, Tôi sẵn sàng chờ hai tiếng..v.v."></textarea>
               </div>
             </div>
           </div>
@@ -251,7 +290,7 @@
           <div class="order-summary">
             <div class="order-header">
               <span>THÔNG TIN ĐẶT PHÒNG</span>
-              <span>TẠM TÍNH</span>
+              <span>CHI TIẾT GIÁ</span>
             </div>
 
             <div class="order-content">
@@ -260,24 +299,86 @@
                   <div class="flex-grow-1">
                     <div class="room-name">
                       <strong>Phòng:</strong><br />
-                      Deluxe Room × <span id="nightCount">1</span>
+                      <%= room?.type_name || 'Deluxe Room' %> × <span id="nightCount"><%= pricing?.nights || 1 %></span> đêm
                     </div>
                     <div class="room-dates">
-                      <div><strong>NGÀY NHẬN PHÒNG:</strong> <span id="checkinDisplay">2025-05-31</span></div>
-                      <div><strong>NGÀY TRẢ PHÒNG:</strong> <span id="checkoutDisplay">2025-06-01</span></div>
+                      <div><strong>NGÀY NHẬN PHÒNG:</strong> <span id="checkinDisplay"><%= checkin %></span></div>
+                      <div><strong>NGÀY TRẢ PHÒNG:</strong> <span id="checkoutDisplay"><%= checkout %></span></div>
                     </div>
                   </div>
                 </div>
               </div>
 
+              <!-- ✅ Guest Information -->
+              <div class="guest-info">
+                <div class="d-flex justify-content-between">
+                  <span><i class="fas fa-users me-1"></i> Tổng khách:</span>
+                  <span><strong id="totalGuests"><%= (adults + children) %> người</strong></span>
+                </div>
+                <div class="d-flex justify-content-between">
+                  <span>└ Người lớn:</span>
+                  <span id="adultsDisplay"><%= adults %></span>
+                </div>
+                <div class="d-flex justify-content-between">
+                  <span>└ Trẻ em:</span>
+                  <span id="childrenDisplay"><%= children %></span>
+                </div>
+                <% if (adults > 5) { %>
+                <div class="d-flex justify-content-between text-warning">
+                  <span><i class="fas fa-exclamation-triangle me-1"></i> Phụ thu (người lớn > 5):</span>
+                  <span><%= (adults - 5) %> người lớn</span>
+                </div>
+                <% } %>
+                <% if (children > 0) { %>
+                <div class="d-flex justify-content-between text-info">
+                  <span><i class="fas fa-child me-1"></i> Trẻ em miễn phụ thu</span>
+                  <span><i class="fas fa-check text-success"></i></span>
+                </div>
+                <% } %>
+              </div>
+
+              <!-- ✅ Detailed Pricing Breakdown -->
+              <div class="pricing-breakdown">
+                <div class="breakdown-title">
+                  <i class="fas fa-calculator me-1"></i> Chi tiết tính giá
+                </div>
+                
+                <div class="breakdown-item">
+                  <span>Giá phòng/đêm:</span>
+                  <span id="roomPricePerNight"><%= Number(room?.price_per_night || 500000).toLocaleString('vi-VN') %> ₫</span>
+                </div>
+                
+                <div class="breakdown-item">
+                  <span>Số đêm:</span>
+                  <span id="nightsCount"><%= pricing?.nights || 1 %> đêm</span>
+                </div>
+                
+                <div class="breakdown-item">
+                  <span>Thành tiền phòng:</span>
+                  <span id="baseAmount"><%= Number(pricing?.baseAmount || 500000).toLocaleString('vi-VN') %> ₫</span>
+                </div>
+                
+                <% if (pricing && pricing.surchargeAdults > 0) { %>
+                <div class="breakdown-item highlight">
+                  <span>Phụ thu (<%= pricing.surchargeAdults %> người lớn × <%= pricing.nights %> đêm):</span>
+                  <span id="surchargeAmount">+<%= Number(pricing.totalSurcharge).toLocaleString('vi-VN') %> ₫</span>
+                </div>
+                <div class="breakdown-item" style="font-size: 12px; color: #666;">
+                  <span>└ Chỉ tính phụ thu cho người lớn thứ 6 trở lên</span>
+                  <span></span>
+                </div>
+                <% } %>
+              </div>
+
+              <!-- ✅ Price Summary -->
               <div class="price-row">
                 <span>Tạm tính:</span>
-                <span id="subtotalAmount">500,000 ₫</span>
+                <span id="subtotalAmount"><%= Number(pricing?.totalAmount || 500000).toLocaleString('vi-VN') %> ₫</span>
               </div>
 
               <div class="price-total">
-                <span>Tổng:</span>
-                <span id="totalAmount">500,000 ₫</span>
+                <span>Tổng cộng:</span>
+                <span id="totalAmount"><%= Number(pricing?.totalAmount || 500000).toLocaleString('vi-VN') %> ₫</span>
               </div>
 
               <div class="payment-methods">
@@ -360,8 +461,7 @@
                         </div>
                         <div class="mt-1">
                           <small class="text-warning">
-                            <i class="fas fa-exclamation-triangle me-1"></i> Vui lòng chuẩn bị đủ tiền mặt khi
-                            check-in
+                            <i class="fas fa-exclamation-triangle me-1"></i> Vui lòng chuẩn bị đủ tiền mặt khi check-in
                           </small>
                         </div>
                       </div>
@@ -382,6 +482,19 @@
   <script>
     const API_BASE_URL = "/api";
     const CHECKOUT_ENDPOINT = `${API_BASE_URL}/checkout`;
+
+    // ✅ Get pricing data from server
+    const PRICING_DATA = {
+      roomPrice: <%= room?.price_per_night || 500000 %>,
+      nights: <%= pricing?.nights || 1 %>,
+      adults: <%= adults %>,
+      children: <%= children %>,
+      totalGuests: <%= (adults + children) %>,
+      baseAmount: <%= pricing?.baseAmount || 500000 %>,
+      surchargePerNight: <%= pricing?.surchargePerNight || 0 %>,
+      totalSurcharge: <%= pricing?.totalSurcharge || 0 %>,
+      totalAmount: <%= pricing?.totalAmount || 500000 %>
+    };
 
     // Debug log panel
     function debugLog(message, data = null) {
@@ -419,17 +532,12 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       debugLog("Page loaded successfully");
-      const roomId = document.getElementById("hiddenRoomId").value;
-      const checkin = document.getElementById("hiddenCheckin").value;
-      const checkout = document.getElementById("hiddenCheckout").value;
-
-      debugLog("EJS values loaded", { room_id: roomId, checkin: checkin, checkout: checkout, source: "EJS template" });
+      debugLog("Pricing data from server", PRICING_DATA);
 
       const form = document.getElementById("checkoutForm");
       const bookBtn = document.getElementById("bookBtn");
 
       testAPIConnectivity();
-      calculateAndDisplayPricing();
 
       const paymentOptions = document.querySelectorAll(".form-check[data-payment]");
       const paymentRadios = document.querySelectorAll('input[name="paymentMethod"]');
@@ -456,41 +564,6 @@
         debugLog("Form submitted");
         if (validateForm()) processBooking();
       });
-
-      function calculateAndDisplayPricing() {
-        const checkinInput = document.getElementById("hiddenCheckin");
-        const checkoutInput = document.getElementById("hiddenCheckout");
-
-        if (checkinInput && checkoutInput && checkinInput.value && checkoutInput.value) {
-          const checkinDate = new Date(checkinInput.value);
-          const checkoutDate = new Date(checkoutInput.value);
-
-          const timeDiff = checkoutDate.getTime() - checkinDate.getTime();
-          const nights = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
-          document.getElementById("nightCount").textContent = nights;
-
-          document.getElementById("checkinDisplay").textContent = formatDateVietnamese(checkinDate);
-          document.getElementById("checkoutDisplay").textContent = formatDateVietnamese(checkoutDate);
-
-          const pricePerNight = 500000;
-          const totalPrice = nights * pricePerNight;
-
-          document.getElementById("subtotalAmount").textContent = totalPrice.toLocaleString("vi-VN") + " ₫";
-          document.getElementById("totalAmount").textContent = totalPrice.toLocaleString("vi-VN") + " ₫";
-
-          debugLog("Pricing calculated", { nights, pricePerNight, totalPrice });
-        } else {
-          debugLog("Missing date inputs for pricing calculation");
-        }
-      }
-
-      function formatDateVietnamese(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
-      }
 
       function validateForm() {
         const requiredFields = ["fullname", "address", "phone", "email"];
@@ -654,7 +727,7 @@
                 <div class="mb-4">
                   <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
                   <h4 class="text-success mb-3">Đặt phòng thành công!</h4>
-                  <p class="text-muted mb-4">${result.message}</p>
+                  <p class="text-muted mb-4">Booking đã được tạo. Vui lòng thanh toán khi check-in.</p>
                 </div>
                 
                 <div class="row">
@@ -672,6 +745,9 @@
                           <p class="mb-1"><strong>Check-in:</strong> ${result.booking_details?.checkin || "N/A"}</p>
                           <p class="mb-1"><strong>Check-out:</strong> ${result.booking_details?.checkout || "N/A"}</p>
                           <p class="mb-1"><strong>Số đêm:</strong> ${result.booking_details?.nights || "N/A"}</p>
+                          <p class="mb-1"><strong>Số khách:</strong> ${result.booking_details?.total_guests || "N/A"} người</p>
+                          ${result.booking_details?.total_surcharge > 0 ? 
+                            `<p class="mb-1 text-warning"><strong>Phụ thu:</strong> ${Number(result.booking_details?.total_surcharge).toLocaleString('vi-VN')} ₫</p>` : ''}
                           <p class="mb-0"><strong>Tổng tiền:</strong> <span class="text-danger">${result.booking_details?.formatted_amount || "N/A"}</span></p>
                         </div>
                       </div>
@@ -682,37 +758,38 @@
                       <div class="card-body">
                         <h6 class="card-title">
                           <i class="fas fa-money-bill-wave me-2 text-warning"></i>
-                          Hướng dẫn thanh toán
+                          Chi tiết thanh toán
                         </h6>
                         <div class="text-start">
-                          ${
-                            result.instructions?.steps
-                              ? result.instructions.steps
-                                  .map((step) => `<p class="mb-1 small">${step}</p>`)
-                                  .join("")
-                              : '<p class="small">Vui lòng thanh toán khi check-in</p>'
-                          }
+                          ${result.booking_details?.price_breakdown ? `
+                            <p class="mb-1 small">Giá phòng: ${Number(result.booking_details.price_breakdown.room_price_per_night).toLocaleString('vi-VN')} ₫/đêm</p>
+                            <p class="mb-1 small">Số đêm: ${result.booking_details.price_breakdown.nights}</p>
+                            <p class="mb-1 small">Thành tiền phòng: ${Number(result.booking_details.price_breakdown.base_total).toLocaleString('vi-VN')} ₫</p>
+                            ${result.booking_details.price_breakdown.surcharge_adults > 0 ? 
+                              `<p class="mb-1 small text-warning">Phụ thu ${result.booking_details.price_breakdown.surcharge_adults} người lớn: +${Number(result.booking_details.price_breakdown.total_surcharge).toLocaleString('vi-VN')} ₫</p>
+                               <p class="mb-1 small text-muted">└ Trẻ em không tính phụ thu</p>` : ''}
+                            <hr class="my-2">
+                            <p class="mb-1 small"><strong>Tổng cộng: ${Number(result.booking_details.price_breakdown.final_total).toLocaleString('vi-VN')} ₫</strong></p>
+                          ` : '<p class="small">Thanh toán khi check-in</p>'}
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                ${
-                  result.contact_info
-                    ? `<div class="alert alert-info mt-4">
-                        <h6 class="alert-heading">
-                          <i class="fas fa-phone me-2"></i>
-                          Liên hệ hỗ trợ:
-                        </h6>
-                        <p class="mb-0 small">
-                          Hotline: <strong>${result.contact_info.hotline}</strong> | 
-                          Email: <strong>${result.contact_info.email}</strong>
-                        </p>
-                      </div>`
-                    : ""
-                }
+                
+                <div class="alert alert-info mt-4">
+                  <h6 class="alert-heading">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Hướng dẫn thanh toán:
+                  </h6>
+                  <p class="mb-1 small">1. Vui lòng chuẩn bị đủ tiền mặt khi check-in</p>
+                  <p class="mb-1 small">2. Mang theo CMND/CCCD khi nhận phòng</p>
+                  <p class="mb-1 small">3. Check-in từ 14:00, Check-out trước 12:00</p>
+                  <p class="mb-0 small">Hotline hỗ trợ: <strong>1900-1234</strong></p>
+                </div>
+                
                 <div class="mt-4">
-                  <button type="button" class="btn btn-success btn-lg me-3" onclick="window.location.reload()">
+                  <button type="button" class="btn btn-success btn-lg me-3" onclick="window.location.href='/'">
                     <i class="fas fa-home me-2"></i>
                     Về trang chủ
                   </button>

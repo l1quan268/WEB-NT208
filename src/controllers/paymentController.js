@@ -8,7 +8,7 @@ const querystring = require("qs");
 const VNP_TMN_CODE = process.env.VNP_TMN_CODE || "S2TTOR81";
 const VNP_HASH_SECRET = process.env.VNP_HASH_SECRET || "MTXXC74DNQWKRHOQ6N08CGAYJ5EXIYLZ";
 const VNP_URL = process.env.VNP_URL || "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-const BASE_URL = process.env.BASE_URL || "http://sweethome.id.vn"; // Updated to match server port
+const BASE_URL = process.env.BASE_URL || "http://sweethome.id.vn";
 
 const buildVNPayUrl = (params) => {
   const {
@@ -56,11 +56,40 @@ const buildVNPayUrl = (params) => {
   return paymentUrl;
 };
 
+// ✅ UPDATED: Calculate pricing with adult-only surcharge logic
+const calculateRoomPricing = (room, checkinDate, checkoutDate, adults, children) => {
+  const nights = Math.ceil((checkoutDate - checkinDate) / (1000 * 3600 * 24));
+  const roomPrice = parseFloat(room.price_per_night || 500000);
+  const baseAmount = roomPrice * nights;
+  
+  // ✅ NEW LOGIC: Phụ thu chỉ áp dụng cho NGƯỜI LỚN > 5, trẻ em KHÔNG tính phụ thu
+  const surchargePerNight = adults > 5 ? (adults - 5) * 100000 : 0;
+  const totalSurcharge = surchargePerNight * nights;
+  
+  const totalAmount = baseAmount + totalSurcharge;
+  const totalGuests = adults + children;
+
+  return {
+    nights,
+    roomPrice,
+    baseAmount,
+    adults,
+    children,
+    totalGuests,
+    surchargeAdults: adults > 5 ? adults - 5 : 0, // ✅ Số người lớn bị phụ thu
+    surchargePerNight,
+    totalSurcharge,
+    totalAmount
+  };
+};
+
 const getPaymentPage = async (req, res) => {
   try {
-    const { room_id, checkin, checkout } = req.query;
+    const { room_id, checkin, checkout, adults, children } = req.query;
+    
+    // ✅ Enhanced validation
     if (!room_id || !checkin || !checkout) {
-      return res.status(400).send(`<h3>Thiếu thông tin</h3>`);
+      return res.status(400).send(`<h3>Thiếu thông tin</h3><p>Vui lòng chọn phòng, ngày nhận và ngày trả phòng.</p>`);
     }
 
     let room = await db.RoomType.findByPk(room_id);
@@ -68,15 +97,59 @@ const getPaymentPage = async (req, res) => {
       room = {
         id: room_id,
         type_name: "Default Room",
-        price_per_night: 500000
+        price_per_night: 500000,
+        max_guests: 4
       };
     }
+
+    // ✅ Get adults and children from URL params (from detail page form)
+    const adultsCount = parseInt(adults) || 1;
+    const childrenCount = parseInt(children) || 0;
+    
+    // ✅ Validate dates
+    const checkinDate = new Date(checkin);
+    const checkoutDate = new Date(checkout);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (checkinDate < today) {
+      return res.status(400).send(`<h3>Ngày nhận phòng không hợp lệ</h3><p>Ngày nhận phòng phải từ hôm nay trở đi.</p>`);
+    }
+
+    if (checkoutDate <= checkinDate) {
+      return res.status(400).send(`<h3>Ngày trả phòng không hợp lệ</h3><p>Ngày trả phòng phải sau ngày nhận phòng.</p>`);
+    }
+
+    // ✅ Validate guest count
+    const totalGuests = adultsCount + childrenCount;
+    if (totalGuests > 15) {
+      return res.status(400).send(`<h3>Số khách vượt quá giới hạn</h3><p>Tối đa 15 khách mỗi phòng.</p>`);
+    }
+
+    if (adultsCount < 1) {
+      return res.status(400).send(`<h3>Số khách không hợp lệ</h3><p>Phải có ít nhất 1 người lớn.</p>`);
+    }
+
+    // ✅ Calculate pricing details
+    const pricing = calculateRoomPricing(room, checkinDate, checkoutDate, adultsCount, childrenCount);
+
+    console.log("🔍 Payment page data:", {
+      room_id, checkin, checkout, 
+      adults: adultsCount, 
+      children: childrenCount,
+      totalGuests,
+      room: room.type_name,
+      pricing
+    });
 
     return res.render("Payment/payment.ejs", {
       room_id,
       room,
       checkin,
       checkout,
+      adults: adultsCount,
+      children: childrenCount,
+      pricing, // ✅ Pass pricing object to template
       user: req.session?.user || null
     });
   } catch (err) {
@@ -89,14 +162,12 @@ const postCheckout = async (req, res) => {
   try {
     const {
       room_id, checkin, checkout, fullname, address,
-      phone, email, note, paymentMethod = "cash", createAccount
+      phone, email, note, paymentMethod = "cash"
     } = req.body;
 
-    // ✅ Lấy số người lớn và trẻ em từ client
     const adultsCount = parseInt(req.body.adults) || 0;
     const childrenCount = parseInt(req.body.children) || 0;
 
-    // Kiểm tra bắt buộc
     if (!room_id || !checkin || !checkout || !fullname || !phone || !email) {
       return res.status(400).json({ success: false, message: "Thiếu thông tin bắt buộc" });
     }
@@ -109,24 +180,16 @@ const postCheckout = async (req, res) => {
     const room = await db.RoomType.findByPk(room_id);
     if (!room) return res.status(404).json({ success: false, message: "Không tìm thấy phòng" });
 
-    // Tính số đêm
     const checkinDate = new Date(checkin);
     const checkoutDate = new Date(checkout);
-    const nights = Math.ceil((checkoutDate - checkinDate) / (1000 * 3600 * 24));
 
-    const roomPrice = parseFloat(room.price_per_night || 500000);
-    const baseAmount = roomPrice * nights;
-
-    // ✅ Phụ thu nếu có trên 5 người lớn
-    const surcharge = adultsCount > 5 ? (adultsCount - 5) * 100000 : 0;
-
-    const totalAmount = baseAmount + surcharge;
+    // ✅ Use updated pricing calculation
+    const pricing = calculateRoomPricing(room, checkinDate, checkoutDate, adultsCount, childrenCount);
+    
     const orderId = `HOTEL_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
     const userId = req.session?.user?.id || null;
 
-    // Lưu thông tin booking
-    const bookingData = {
-      booking_id: null,
+    const booking = await db.Booking.create({
       user_id: userId,
       homestay_id: room.homestay_id || null,
       room_type_id: parseInt(room_id),
@@ -136,21 +199,16 @@ const postCheckout = async (req, res) => {
       check_out_date: checkoutDate,
       adults: adultsCount,
       children: childrenCount,
-      total_price: totalAmount,
+      total_price: pricing.totalAmount, // ✅ Use calculated total
       status: 'pending',
       order_id: orderId,
       guest_email: email,
       guest_phone: phone,
       guest_address: address || '',
       payment_method: paymentMethod,
-      payment_status: 'pending',
-      transaction_id: null,
-      paid_at: null
-    };
+      payment_status: 'pending'
+    });
 
-    const booking = await db.Booking.create(bookingData);
-
-    // 💵 Nếu thanh toán tiền mặt
     if (paymentMethod === "cash") {
       return res.status(200).json({
         success: true,
@@ -163,38 +221,38 @@ const postCheckout = async (req, res) => {
           homestay_name: 'Homestay Name',
           checkin: checkinDate.toISOString().split('T')[0],
           checkout: checkoutDate.toISOString().split('T')[0],
-          nights: nights,
+          nights: pricing.nights,
           adults: adultsCount,
           children: childrenCount,
-          base_price: baseAmount,
-          surcharge: surcharge,
-          total_amount: totalAmount,
-          formatted_amount: totalAmount.toLocaleString('vi-VN') + ' ₫'
-        },
-        instructions: {
-          title: "Hướng dẫn thanh toán tiền mặt",
-          steps: [
-            "1. Vui lòng có mặt đúng giờ check-in",
-            "2. Chuẩn bị đủ tiền mặt để thanh toán",
-            "3. Mang theo giấy tờ tùy thân hợp lệ",
-            "4. Xuất trình mã đặt phòng: " + orderId
-          ]
-        },
-        contact_info: {
-          hotline: "1900-xxx-xxx",
-          email: "support@sweethome.vn"
-        },
-        message: "Đặt phòng thành công! Vui lòng thanh toán bằng tiền mặt khi nhận phòng.",
-        note: note ? `Ghi chú: ${note}` : null
+          total_guests: pricing.totalGuests,
+          base_price: pricing.baseAmount,
+          surcharge_adults: pricing.surchargeAdults, // ✅ NEW: Số người lớn bị phụ thu
+          surcharge_per_night: pricing.surchargePerNight,
+          total_surcharge: pricing.totalSurcharge,
+          total_amount: pricing.totalAmount,
+          formatted_amount: pricing.totalAmount.toLocaleString('vi-VN') + ' ₫',
+          // ✅ Add detailed breakdown with new logic
+          price_breakdown: {
+            room_price_per_night: pricing.roomPrice,
+            nights: pricing.nights,
+            base_total: pricing.baseAmount,
+            adults: pricing.adults,
+            children: pricing.children,
+            total_guests: pricing.totalGuests,
+            surcharge_adults: pricing.surchargeAdults, // ✅ Chỉ người lớn > 5
+            surcharge_per_adult_per_night: pricing.surchargeAdults > 0 ? 100000 : 0,
+            total_surcharge: pricing.totalSurcharge,
+            final_total: pricing.totalAmount
+          }
+        }
       });
     }
 
-    // 🌐 VNPay
     if (paymentMethod === "vnpay") {
-      const returnUrl = `http://localhost:9999/api/vnpay_return`;
+      const returnUrl = `${BASE_URL}/api/vnpay_return`;
       const ipAddr = req.headers["x-forwarded-for"] || req.connection.remoteAddress || req.socket.remoteAddress || "127.0.0.1";
       const paymentUrl = buildVNPayUrl({
-        amount: totalAmount,
+        amount: pricing.totalAmount, // ✅ Use calculated total
         orderId,
         orderInfo: `Thanh toan dat phong - ${fullname} - ${orderId}`,
         returnUrl,
@@ -211,12 +269,11 @@ const postCheckout = async (req, res) => {
       });
     }
 
-    // 🤖 MOMO (giả lập)
     if (paymentMethod === "momo") {
       return res.json({
         success: true,
         payment_method: "momo",
-        redirect_url: "https://test-payment.momo.vn/...", // Placeholder
+        redirect_url: "https://test-payment.momo.vn/...",
         order_id: orderId,
         booking_id: booking.booking_id || booking.id
       });
@@ -224,14 +281,11 @@ const postCheckout = async (req, res) => {
 
   } catch (error) {
     console.error("❌ Checkout error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Lỗi hệ thống: " + error.message
-    });
+    return res.status(500).json({ success: false, message: "Lỗi hệ thống: " + error.message });
   }
 };
 
-// Xử lý kết quả thanh toán trả về từ VNPay
+// Rest of the functions remain the same...
 export const handleVNPayReturn = async (req, res) => {
   try {
     console.log("🔄 VNPay return params:", req.query);
@@ -239,11 +293,9 @@ export const handleVNPayReturn = async (req, res) => {
     const vnp_Params = { ...req.query };
     const secureHash = vnp_Params["vnp_SecureHash"];
 
-    // Remove secure hash for verification
     delete vnp_Params["vnp_SecureHash"];
     delete vnp_Params["vnp_SecureHashType"];
 
-    // Sort parameters
     const sortedParams = {};
     Object.keys(vnp_Params)
       .sort()
@@ -251,7 +303,6 @@ export const handleVNPayReturn = async (req, res) => {
         sortedParams[key] = vnp_Params[key];
       });
 
-    // Create signature
     const signData = querystring.stringify(sortedParams, { encode: false });
     const hmac = crypto.createHmac("sha512", VNP_HASH_SECRET);
     const calculatedHash = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
@@ -266,17 +317,15 @@ export const handleVNPayReturn = async (req, res) => {
       const { vnp_ResponseCode, vnp_TxnRef, vnp_Amount, vnp_BankCode, vnp_PayDate, vnp_TransactionNo } = vnp_Params;
 
       if (vnp_ResponseCode === "00") {
-        // Payment successful
         console.log("✅ Payment successful:", {
           orderId: vnp_TxnRef,
           amount: vnp_Amount / 100,
           transactionNo: vnp_TransactionNo
         });
 
-        // Update booking status using existing table structure
         const updateResult = await db.Booking.update(
           { 
-            status: "completed", // Using existing enum values
+            status: "completed",
             payment_status: "paid", 
             transaction_id: vnp_TransactionNo,
             paid_at: new Date()
@@ -284,7 +333,6 @@ export const handleVNPayReturn = async (req, res) => {
           { where: { order_id: vnp_TxnRef } }
         );
 
-        // Create or update payment record
         const booking = await db.Booking.findOne({ 
           where: { order_id: vnp_TxnRef } 
         });
@@ -305,11 +353,9 @@ export const handleVNPayReturn = async (req, res) => {
           console.log("⚠️ No booking found to update for order:", vnp_TxnRef);
         }
 
-        // Redirect to success page
         return res.redirect(`/payment-success?order_id=${vnp_TxnRef}&transaction_id=${vnp_TransactionNo}&amount=${vnp_Amount / 100}`);
 
       } else {
-        // Payment failed
         console.log("❌ Payment failed:", {
           orderId: vnp_TxnRef,
           responseCode: vnp_ResponseCode
@@ -317,16 +363,14 @@ export const handleVNPayReturn = async (req, res) => {
 
         const errorMessage = getVNPayErrorMessage(vnp_ResponseCode);
         
-        // Update booking status to cancelled
         await db.Booking.update(
           { 
-            status: "canceled", // Using existing enum value
+            status: "canceled",
             payment_status: "failed" 
           },
           { where: { order_id: vnp_TxnRef } }
         );
 
-        // Create failed payment record
         const booking = await db.Booking.findOne({ 
           where: { order_id: vnp_TxnRef } 
         });
@@ -355,7 +399,7 @@ export const handleVNPayReturn = async (req, res) => {
   }
 };
 
-// VNPay IPN (Instant Payment Notification) handler
+// Continue with other existing functions...
 export const handleVNPayIPN = async (req, res) => {
   try {
     const vnp_Params = { ...req.query };
@@ -378,14 +422,12 @@ export const handleVNPayIPN = async (req, res) => {
     if (secureHash === calculatedHash) {
       const { vnp_ResponseCode, vnp_TxnRef } = vnp_Params;
 
-      // Check if order exists in database
       const booking = await db.Booking.findOne({ where: { order_id: vnp_TxnRef } });
       if (!booking) {
         return res.json({ RspCode: "01", Message: "Order not found" });
       }
 
       if (vnp_ResponseCode === "00") {
-        // Update booking status
         await db.Booking.update(
           { 
             status: "completed",
@@ -396,7 +438,6 @@ export const handleVNPayIPN = async (req, res) => {
         
         return res.json({ RspCode: "00", Message: "Success" });
       } else {
-        // Payment failed
         await db.Booking.update(
           { 
             status: "canceled",
@@ -416,12 +457,11 @@ export const handleVNPayIPN = async (req, res) => {
   }
 };
 
-// **FIX: Add safer association handling for other functions**
+// Continue with remaining functions unchanged...
 export const getBookingInfo = async (req, res) => {
   try {
     const { order_id } = req.params;
     
-    // **FIX: Try different association approaches**
     let booking;
     try {
       booking = await db.Booking.findOne({
@@ -485,13 +525,11 @@ export const getBookingInfo = async (req, res) => {
   }
 };
 
-// Confirm cash payment (for staff use)
 export const confirmCashPayment = async (req, res) => {
   try {
     const { order_id } = req.params;
     const { staff_id, notes } = req.body;
 
-    // Find booking
     const booking = await db.Booking.findOne({
       where: { order_id }
     });
@@ -517,7 +555,6 @@ export const confirmCashPayment = async (req, res) => {
       });
     }
 
-    // Update booking status
     await db.Booking.update(
       { 
         payment_status: 'paid',
@@ -527,7 +564,6 @@ export const confirmCashPayment = async (req, res) => {
       { where: { order_id } }
     );
 
-    // Update payment record
     await db.Payment.update(
       {
         status: 'completed',
@@ -562,13 +598,11 @@ export const confirmCashPayment = async (req, res) => {
   }
 };
 
-// Get cash payment report
 export const getCashPaymentReport = async (req, res) => {
   try {
     const { date } = req.query;
     const targetDate = date ? new Date(date) : new Date();
     
-    // **FIX: Safer query for cash payment report**
     let cashBookings;
     try {
       cashBookings = await db.Booking.findAll({
