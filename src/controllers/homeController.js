@@ -121,6 +121,84 @@ let postRegister = async (req, res) => {
   }
 };
 
+const axios = require("axios");
+
+let postLogin = async (req, res) => {
+  try {
+    const { email, password, "g-recaptcha-response": captcha } = req.body;
+
+    // Kiểm tra captcha
+    if (!captcha) {
+      return res.render("Login/login.ejs", {
+        error: "Vui lòng xác nhận CAPTCHA.",
+        success: null,
+      });
+    }
+
+    const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+    const response = await axios.post(
+      "https://www.google.com/recaptcha/api/siteverify",
+      new URLSearchParams({
+        secret: secretKey,
+        response: captcha,
+        remoteip: req.ip,
+      })
+    );
+
+    if (!response.data.success) {
+      return res.render("Login/login.ejs", {
+        error: "Xác thực CAPTCHA thất bại.",
+        success: null,
+      });
+    }
+
+    // Nếu captcha ok → kiểm tra đăng nhập
+    const result = await user_service.handleUserLogin(email, password);
+
+    if (result.success) {
+      console.log("✅ LOGIN SUCCESS - User data:", result.user);
+
+      req.session.user = {
+        user_id: result.user.user_id,
+        id: result.user.user_id,
+        name: result.user.name,
+        email: result.user.email,
+        role: result.user.role, // ✅ Thêm role vào session
+      };
+
+      req.session.save((err) => {
+        if (err) {
+          console.error("❌ Session save error:", err);
+          return res.render("Login/login.ejs", {
+            error: "Lỗi lưu session",
+            success: null,
+          });
+        }
+
+        console.log("✅ SESSION SAVED SUCCESSFULLY:", req.session.user);
+        
+        // ✅ Kiểm tra nếu user là admin thì redirect đến trang admin
+        if (result.user.role === 'admin') {
+          return res.redirect("/admin");
+        } else {
+          return res.redirect("/");
+        }
+      });
+    } else {
+      return res.render("Login/login.ejs", {
+        error: result.message,
+        success: null,
+      });
+    }
+  } catch (error) {
+    console.error("❌ Lỗi đăng nhập:", error);
+    return res.render("Login/login.ejs", {
+      error: "Lỗi hệ thống",
+      success: null,
+    });
+  }
+};
+
 const { Op } = require("sequelize");
 
 // let postLogin = async (req, res) => {
@@ -179,48 +257,8 @@ const { Op } = require("sequelize");
 //     });
 //   }
 // };
-let postLogin = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const result = await user_service.handleUserLogin(email, password);
 
-    if (result.success) {
-      console.log("✅ LOGIN SUCCESS - User data:", result.user);
 
-      req.session.user = {
-        user_id: result.user.user_id,
-        id: result.user.user_id, // THÊM: backup cho compatibility
-        name: result.user.name,
-        email: result.user.email,
-      };
-
-      // ✅ SAVE SESSION EXPLICITLY
-      req.session.save((err) => {
-        if (err) {
-          console.error("❌ Session save error:", err);
-          return res.render("Login/login.ejs", {
-            error: "Lỗi lưu session",
-            success: null,
-          });
-        }
-
-        console.log("✅ SESSION SAVED SUCCESSFULLY:", req.session.user);
-        return res.redirect("/");
-      });
-    } else {
-      return res.render("Login/login.ejs", {
-        error: result.message,
-        success: null,
-      });
-    }
-  } catch (error) {
-    console.error("❌ Lỗi đăng nhập:", error);
-    return res.render("Login/login.ejs", {
-      error: "Lỗi hệ thống",
-      success: null,
-    });
-  }
-};
 let getLogout = (req, res) => {
   // Kiểm tra xem session có tồn tại không
   if (req.session) {
@@ -1105,6 +1143,7 @@ let getUserInfoPage = async (req, res) => {
   const bookings = await db.sequelize.query(`
     SELECT 
       b.name,
+      b.booking_id,
       b.booking_date,
       rt.type_name AS room_name,
       b.check_in_date,
@@ -1112,7 +1151,7 @@ let getUserInfoPage = async (req, res) => {
       b.adults,
       b.children,
       b.total_price,
-      b.status AS payment_status
+      b.payment_status
     FROM bookings b
     JOIN roomtypes rt ON b.room_type_id = rt.room_type_id
     WHERE b.user_id = ?
@@ -1137,20 +1176,27 @@ let getUserInfoPage = async (req, res) => {
 };
 let cancelBooking = async (req, res) => {
   const user = req.session?.user;
-  const bookingName = req.body.booking_name;
+  const bookingName = req.body.booking_id;
 
   if (!user || !bookingName) return res.redirect("/bookings");
 
   try {
-    await db.Booking.destroy({
-      where: {
-        name: bookingName,
-        user_id: user.user_id,
-        status: { [db.Sequelize.Op.ne]: "paid" }, // Không xóa nếu đã thanh toán
-      },
-    });
+    const result = await db.Booking.update(
+      { payment_status: "failed" },
+      {
+        where: {
+          booking_id: bookingName,
+          user_id: user.user_id,
+          payment_status: { [db.Sequelize.Op.ne]: "paid" }, // Không cập nhật nếu đã thanh toán
+        },
+      }
+    );
 
-    req.session.message = "Đã hủy hóa đơn thành công!";
+    if (result[0] > 0) {
+      req.session.message = "Đã hủy hóa đơn thành công!";
+    } else {
+      req.session.message = "Không thể hủy hóa đơn (đã thanh toán hoặc không tồn tại)!";
+    }
   } catch (error) {
     console.error("❌ Lỗi khi hủy booking:", error);
     req.session.message = "Lỗi khi hủy hóa đơn!";

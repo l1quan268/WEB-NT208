@@ -5,7 +5,7 @@ const {
   getPaymentPage,
   handleVNPayReturn,
 } = require("../controllers/paymentController");
-
+const adminRoutes = require("./adminRoutes"); // ✅ Đảm bảo đường dẫn này đúng
 let router = express.Router();
 
 let initWebRoutes = (app) => {
@@ -71,7 +71,8 @@ let initWebRoutes = (app) => {
 
   router.post("/booking/cancel", homeController.cancelBooking);
 
-
+  // ✅ Admin routes - Mount tất cả admin routes với prefix /admin
+  router.use("/admin", adminRoutes);
   router.get("/test-session", (req, res) => {
     if (!req.session) {
       return res.send("Session không tồn tại!");
