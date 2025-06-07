@@ -121,6 +121,84 @@ let postRegister = async (req, res) => {
   }
 };
 
+const axios = require("axios");
+
+let postLogin = async (req, res) => {
+  try {
+    const { email, password, "g-recaptcha-response": captcha } = req.body;
+
+    // Kiểm tra captcha
+    if (!captcha) {
+      return res.render("Login/login.ejs", {
+        error: "Vui lòng xác nhận CAPTCHA.",
+        success: null,
+      });
+    }
+
+    const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+    const response = await axios.post(
+      "https://www.google.com/recaptcha/api/siteverify",
+      new URLSearchParams({
+        secret: secretKey,
+        response: captcha,
+        remoteip: req.ip,
+      })
+    );
+
+    if (!response.data.success) {
+      return res.render("Login/login.ejs", {
+        error: "Xác thực CAPTCHA thất bại.",
+        success: null,
+      });
+    }
+
+    // Nếu captcha ok → kiểm tra đăng nhập
+    const result = await user_service.handleUserLogin(email, password);
+
+    if (result.success) {
+      console.log("✅ LOGIN SUCCESS - User data:", result.user);
+
+      req.session.user = {
+        user_id: result.user.user_id,
+        id: result.user.user_id,
+        name: result.user.name,
+        email: result.user.email,
+        role: result.user.role, // ✅ Thêm role vào session
+      };
+
+      req.session.save((err) => {
+        if (err) {
+          console.error("❌ Session save error:", err);
+          return res.render("Login/login.ejs", {
+            error: "Lỗi lưu session",
+            success: null,
+          });
+        }
+
+        console.log("✅ SESSION SAVED SUCCESSFULLY:", req.session.user);
+        
+        // ✅ Kiểm tra nếu user là admin thì redirect đến trang admin
+        if (result.user.role === 'admin') {
+          return res.redirect("/admin");
+        } else {
+          return res.redirect("/");
+        }
+      });
+    } else {
+      return res.render("Login/login.ejs", {
+        error: result.message,
+        success: null,
+      });
+    }
+  } catch (error) {
+    console.error("❌ Lỗi đăng nhập:", error);
+    return res.render("Login/login.ejs", {
+      error: "Lỗi hệ thống",
+      success: null,
+    });
+  }
+};
+
 const { Op } = require("sequelize");
 
 // let postLogin = async (req, res) => {
@@ -179,76 +257,7 @@ const { Op } = require("sequelize");
 //     });
 //   }
 // };
-const axios = require("axios");
 
-let postLogin = async (req, res) => {
-  try {
-    const { email, password, "g-recaptcha-response": captcha } = req.body;
-
-    // Kiểm tra captcha
-    if (!captcha) {
-      return res.render("Login/login.ejs", {
-        error: "Vui lòng xác nhận CAPTCHA.",
-        success: null,
-      });
-    }
-
-    const secretKey = "6LeA71crAAAAABpchTUeINnQ3kIxMdkX8C6cbJJR"; // 🔒 Thay bằng key từ Google reCAPTCHA
-    const response = await axios.post(
-      "https://www.google.com/recaptcha/api/siteverify",
-      new URLSearchParams({
-        secret: secretKey,
-        response: captcha,
-        remoteip: req.ip,
-      })
-    );
-
-    if (!response.data.success) {
-      return res.render("Login/login.ejs", {
-        error: "Xác thực CAPTCHA thất bại.",
-        success: null,
-      });
-    }
-
-    // Nếu captcha ok → kiểm tra đăng nhập
-    const result = await user_service.handleUserLogin(email, password);
-
-    if (result.success) {
-      console.log("✅ LOGIN SUCCESS - User data:", result.user);
-
-      req.session.user = {
-        user_id: result.user.user_id,
-        id: result.user.user_id,
-        name: result.user.name,
-        email: result.user.email,
-      };
-
-      req.session.save((err) => {
-        if (err) {
-          console.error("❌ Session save error:", err);
-          return res.render("Login/login.ejs", {
-            error: "Lỗi lưu session",
-            success: null,
-          });
-        }
-
-        console.log("✅ SESSION SAVED SUCCESSFULLY:", req.session.user);
-        return res.redirect("/");
-      });
-    } else {
-      return res.render("Login/login.ejs", {
-        error: result.message,
-        success: null,
-      });
-    }
-  } catch (error) {
-    console.error("❌ Lỗi đăng nhập:", error);
-    return res.render("Login/login.ejs", {
-      error: "Lỗi hệ thống",
-      success: null,
-    });
-  }
-};
 
 let getLogout = (req, res) => {
   // Kiểm tra xem session có tồn tại không
