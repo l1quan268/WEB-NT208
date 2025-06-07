@@ -22,7 +22,22 @@
       display: flex;
       min-height: 100vh;
     }
+    /* Logout */
+    .logout-link {
+    display: flex;
+    align-items: center;
+    padding: 15px 25px;
+    color: #ecf0f1;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+}
 
+.logout-link:hover {
+  background: rgba(231, 76, 60, 0.2); /* Màu đỏ cho logout */
+  border-left-color: #e74c3c;
+  color: white;
+}
     /* Sidebar */
     .sidebar {
       width: 280px;
@@ -400,7 +415,7 @@
           </a>
         </li>
         <li>
-          <a href="/logout" class="menu-link">
+          <a href="/logout" class="logout-link">
             <i class="fas fa-sign-out-alt"></i>
             <span>Đăng xuất</span>
           </a>
