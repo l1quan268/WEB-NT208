@@ -376,7 +376,7 @@ let updateBookingStatus = async (req, res) => {
     }
 
     await db.Booking.update(
-      { status: status },
+      { payment_status: status },
       { where: { booking_id: bookingId } }
     );
 
@@ -414,20 +414,16 @@ let deleteUser = async (req, res) => {
       });
     }
 
-    await db.User.destroy({
-      where: { user_id: userId }
-    });
+    // Xóa liên quan: Review → Booking → Payment → User
+    await db.Review.destroy({ where: { user_id: userId } });
+    await db.Payment.destroy({ where: { user_id: userId } });
+    await db.Booking.destroy({ where: { user_id: userId } });
+    await db.User.destroy({ where: { user_id: userId } });
 
-    return res.json({
-      success: true,
-      message: "Xóa user thành công"
-    });
+    return res.json({ success: true, message: "Đã xóa user và dữ liệu liên quan" });
   } catch (error) {
-    console.error("Error deleting user:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Lỗi xóa user"
-    });
+    console.error("❌ Lỗi xóa user:", error);
+    return res.status(500).json({ success: false, message: "Lỗi hệ thống" });
   }
 };
 
@@ -547,7 +543,70 @@ let deleteService = async (req, res) => {
     });
   }
 };
+let getUserInfoById = async (req, res) => {
+  try {
+    const { userId } = req.params;
 
+    const user = await db.User.findByPk(userId, {
+      attributes: ['user_id', 'role', 'name', 'dob', 'email', 'phone', 'gender', 'created_at', 'updated_at'],
+    });
+
+    if (!user) return res.status(404).json({ success: false, message: "Không tìm thấy người dùng" });
+
+    const bookingCount = await db.Booking.count({ where: { user_id: userId } });
+
+    return res.json({ success: true, user, bookingCount });
+  } catch (err) {
+    console.error("❌ Lỗi lấy thông tin user:", err);
+    return res.status(500).json({ success: false, message: "Lỗi hệ thống" });
+  }
+};
+let updateUserInfo = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { name, dob, phone, gender, email, currentPassword, newPassword } = req.body;
+
+    const user = await db.User.findByPk(userId);
+    if (!user) return res.status(404).json({ success: false, message: "Không tìm thấy người dùng" });
+
+    // ✅ Cập nhật thông tin cơ bản
+    await user.update({ name, dob, phone, gender, email });
+
+    // ✅ Nếu đổi mật khẩu → phải xác minh
+    if (newPassword && currentPassword) {
+      const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
+      if (!isMatch) {
+        return res.status(400).json({ success: false, message: "Mật khẩu hiện tại không đúng" });
+      }
+
+      const hashed = await bcrypt.hash(newPassword, 10);
+      await user.update({ password_hash: hashed });
+    }
+
+    return res.json({ success: true, message: "Cập nhật thông tin thành công" });
+  } catch (error) {
+    console.error("❌ Lỗi cập nhật user:", error);
+    return res.status(500).json({ success: false, message: "Lỗi hệ thống" });
+  }
+};
+let getBookingById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const booking = await db.Booking.findOne({
+      where: { booking_id: id },
+      include: [{ model: db.User }, { model: db.RoomType }],
+    });
+
+    if (!booking) {
+      return res.json({ success: false, message: "Không tìm thấy hóa đơn" });
+    }
+
+    return res.json({ success: true, booking });
+  } catch (err) {
+    console.error(err);
+    return res.json({ success: false, message: "Lỗi khi lấy hóa đơn" });
+  }
+};
 module.exports = {
   checkAdminRole,
   getAdminDashboard,
@@ -562,5 +621,8 @@ module.exports = {
   deleteReview,
   addService,
   updateService,
-  deleteService
+  deleteService,
+  getUserInfoById,
+  updateUserInfo,
+  getBookingById
 };

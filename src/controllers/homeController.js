@@ -266,14 +266,14 @@ let getLogout = (req, res) => {
       if (err) {
         console.error("Lỗi khi đăng xuất:", err);
         // Nếu có lỗi, chuyển hướng về trang chủ với thông báo lỗi (nếu bạn có cơ chế hiển thị flash message)
-        return res.redirect("/?logoutError=1");
+        return res.redirect("/");
       }
 
       // Xóa cookie session (nếu sử dụng cookie-based session)
       res.clearCookie("connect.sid"); // hoặc tên cookie session của bạn
 
       // Chuyển hướng về trang chủ với thông báo đăng xuất thành công
-      res.redirect("/?logoutSuccess=1");
+      res.redirect("/");
     });
   } else {
     // Nếu không có session, vẫn chuyển hướng về trang chủ

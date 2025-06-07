@@ -12,6 +12,8 @@ router.get("/", adminController.getAdminDashboard);
 // User management
 router.get("/users", adminController.getUsersAdmin);
 router.delete("/users/:userId", adminController.deleteUser);
+router.get("/users/:userId", adminController.getUserInfoById);
+router.put("/users/:userId", adminController.updateUserInfo);
 
 // Homestay management
 router.get("/homestays", adminController.getHomestaysAdmin);
@@ -22,6 +24,7 @@ router.get("/rooms", adminController.getRoomsAdmin);
 // Booking management
 router.get("/bookings", adminController.getBookingsAdmin);
 router.put("/bookings/:bookingId/status", adminController.updateBookingStatus);
+router.get('/bookings/:id', adminController.getBookingById);
 
 // Review management
 router.get("/reviews", adminController.getReviewsAdmin);
@@ -32,5 +35,6 @@ router.get("/services", adminController.getServicesAdmin);
 router.post("/services", adminController.addService);
 router.put("/services/:serviceId", adminController.updateService);
 router.delete("/services/:serviceId", adminController.deleteService);
+
 
 module.exports = router;

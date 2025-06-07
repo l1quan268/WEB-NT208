@@ -1,11 +1,18 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Dashboard - SweetHome</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+  <!-- ✅ Toastify CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+  <!-- ✅ Toastify JS -->
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     * {
       margin: 0;
@@ -33,17 +40,19 @@
       overflow-y: auto;
       transition: all 0.3s ease;
       z-index: 1000;
-      transform: translateX(-100%); /* Ẩn sidebar mặc định */
+      transform: translateX(-100%);
+      /* Ẩn sidebar mặc định */
     }
 
     .sidebar.show {
-      transform: translateX(0); /* Hiện sidebar khi có class show */
+      transform: translateX(0);
+      /* Hiện sidebar khi có class show */
     }
 
     .sidebar-header {
       padding: 20px;
-      background: rgba(0,0,0,0.1);
-      border-bottom: 1px solid rgba(255,255,255,0.1);
+      background: rgba(0, 0, 0, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .sidebar-header h3 {
@@ -87,20 +96,22 @@
     /* Main Content */
     .main-content {
       flex: 1;
-      margin-left: 0; /* Bỏ margin-left mặc định */
+      margin-left: 0;
+      /* Bỏ margin-left mặc định */
       background-color: #f8f9fa;
       transition: margin-left 0.3s ease;
     }
 
     .main-content.sidebar-open {
-      margin-left: 280px; /* Thêm margin khi sidebar mở */
+      margin-left: 280px;
+      /* Thêm margin khi sidebar mở */
     }
 
     .top-navbar {
       background: linear-gradient(135deg, #3498db, #2980b9);
       color: white;
       padding: 15px 30px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
 
     .top-navbar .navbar-brand {
@@ -112,7 +123,7 @@
     }
 
     .sidebar-toggle {
-      background: rgba(255,255,255,0.2);
+      background: rgba(255, 255, 255, 0.2);
       border: none;
       color: white;
       padding: 8px 12px;
@@ -123,7 +134,7 @@
     }
 
     .sidebar-toggle:hover {
-      background: rgba(255,255,255,0.3);
+      background: rgba(255, 255, 255, 0.3);
       transform: scale(1.05);
     }
 
@@ -145,7 +156,7 @@
       background: white;
       padding: 20px 30px;
       border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
       margin-bottom: 30px;
     }
 
@@ -166,7 +177,7 @@
       background: white;
       border-radius: 10px;
       padding: 25px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
       border-left: 4px solid #3498db;
       transition: transform 0.2s ease;
     }
@@ -212,7 +223,7 @@
       background: white;
       border-radius: 10px;
       overflow: hidden;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     }
 
     .table-header {
@@ -292,7 +303,7 @@
       .sidebar {
         width: 100%;
         transform: translateX(-100%);
-        box-shadow: 2px 0 20px rgba(0,0,0,0.3);
+        box-shadow: 2px 0 20px rgba(0, 0, 0, 0.3);
       }
 
       .sidebar.show {
@@ -522,7 +533,7 @@
       .sidebar {
         width: 260px;
         transform: translateX(-100%);
-        box-shadow: 3px 0 15px rgba(0,0,0,0.2);
+        box-shadow: 3px 0 15px rgba(0, 0, 0, 0.2);
       }
 
       .sidebar.show {
@@ -747,6 +758,7 @@
 
     /* ============ ACCESSIBILITY IMPROVEMENTS ============ */
     @media (prefers-reduced-motion: reduce) {
+
       .sidebar,
       .main-content,
       .stats-card,
@@ -784,7 +796,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0, 0, 0, 0.5);
       z-index: 999;
       opacity: 0;
       transition: opacity 0.3s ease;
@@ -816,7 +828,7 @@
   <div class="admin-container">
     <!-- Overlay cho mobile -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    
+
     <!-- Sidebar -->
     <nav class="sidebar">
       <div class="sidebar-header">
@@ -853,16 +865,17 @@
             <span>Quản lý hóa đơn</span>
           </a>
         </li>
-        <li>
-          <a href="#" class="menu-link" data-section="reviews">
-            <i class="fas fa-star"></i>
-            <span>Quản lý đánh giá</span>
-          </a>
-        </li>
+
         <li>
           <a href="#" class="menu-link" data-section="services">
             <i class="fas fa-concierge-bell"></i>
             <span>Quản lý dịch vụ</span>
+          </a>
+        </li>
+        <li>
+          <a href="/" class="menu-link">
+            <i class="fas fa-arrow-left"></i>
+            <span>Trở về trang chủ</span>
           </a>
         </li>
         <li>
@@ -886,7 +899,9 @@
         </div>
         <div class="user-info">
           <i class="fas fa-user-circle fa-2x"></i>
-          <span><%= adminUser ? adminUser.name : 'Admin' %></span>
+          <span>
+            <%= adminUser ? adminUser.name : 'Admin' %>
+          </span>
         </div>
       </nav>
 
@@ -909,7 +924,9 @@
                 <div class="icon">
                   <i class="fas fa-users"></i>
                 </div>
-                <h3><%= stats.totalUsers %></h3>
+                <h3>
+                  <%= stats.totalUsers %>
+                </h3>
                 <p>Tổng người dùng</p>
               </div>
             </div>
@@ -918,7 +935,9 @@
                 <div class="icon">
                   <i class="fas fa-home"></i>
                 </div>
-                <h3><%= stats.totalHomestays %></h3>
+                <h3>
+                  <%= stats.totalHomestays %>
+                </h3>
                 <p>Tổng Homestay</p>
               </div>
             </div>
@@ -927,7 +946,9 @@
                 <div class="icon">
                   <i class="fas fa-calendar-alt"></i>
                 </div>
-                <h3><%= stats.totalBookings %></h3>
+                <h3>
+                  <%= stats.totalBookings %>
+                </h3>
                 <p>Tổng đặt phòng</p>
                 <small class="text-muted">
                   (<%= stats.paidBookings || 0 %> đã thanh toán, <%= stats.pendingBookings || 0 %> chờ thanh toán)
@@ -939,7 +960,9 @@
                 <div class="icon">
                   <i class="fas fa-dollar-sign"></i>
                 </div>
-                <h3><%= Math.round((stats.totalRevenue || 0) / 1000000 * 10) / 10 %>M</h3>
+                <h3>
+                  <%= Math.round((stats.totalRevenue || 0) / 1000000 * 10) / 10 %>M
+                </h3>
                 <p>Doanh thu (VND)</p>
                 <small class="text-muted">
                   Chỉ tính booking đã thanh toán
@@ -955,7 +978,9 @@
                 <div class="icon" style="background: linear-gradient(135deg, #27ae60, #2ecc71);">
                   <i class="fas fa-calendar-day"></i>
                 </div>
-                <h3><%= new Intl.NumberFormat('vi-VN').format(stats.todayRevenue || 0) %></h3>
+                <h3>
+                  <%= new Intl.NumberFormat('vi-VN').format(stats.todayRevenue || 0) %>
+                </h3>
                 <p>Doanh thu hôm nay (VND)</p>
               </div>
             </div>
@@ -964,7 +989,9 @@
                 <div class="icon" style="background: linear-gradient(135deg, #e67e22, #f39c12);">
                   <i class="fas fa-calendar-alt"></i>
                 </div>
-                <h3><%= new Intl.NumberFormat('vi-VN').format(stats.monthRevenue || 0) %></h3>
+                <h3>
+                  <%= new Intl.NumberFormat('vi-VN').format(stats.monthRevenue || 0) %>
+                </h3>
                 <p>Doanh thu tháng này (VND)</p>
               </div>
             </div>
@@ -985,47 +1012,49 @@
                     <th>Ngày đặt</th>
                     <th>Tổng tiền</th>
                     <th>Trạng thái</th>
-                    <th>Thanh toán</th>
+
                   </tr>
                 </thead>
                 <tbody>
-                  <% if (recentBookings && recentBookings.length > 0) { %>
-                    <% recentBookings.forEach(booking => { %>
+                  <% if (recentBookings && recentBookings.length> 0) { %>
+                    <% recentBookings.forEach(booking=> { %>
                       <tr>
-                        <td><%= booking.booking_id %></td>
-                        <td><%= booking.User?.name || booking.name %></td>
-                        <td><%= booking.RoomType?.type_name || 'N/A' %></td>
-                        <td><%= new Date(booking.booking_date).toLocaleDateString('vi-VN') %></td>
-                        <td><%= new Intl.NumberFormat('vi-VN').format(booking.total_price) %> VND</td>
                         <td>
-                          <% if (booking.status === 'completed') { %>
-                            <span class="badge bg-success">Hoàn thành</span>
-                          <% } else if (booking.status === 'pending') { %>
-                            <span class="badge bg-warning">Chờ xử lý</span>
-                          <% } else if (booking.status === 'canceled') { %>
-                            <span class="badge bg-danger">Đã hủy</span>
-                          <% } else { %>
-                            <span class="badge bg-secondary"><%= booking.status %></span>
-                          <% } %>
+                          <%= booking.booking_id %>
                         </td>
                         <td>
-                          <% if (booking.payment_status === 'paid') { %>
+                          <%= booking.User?.name || booking.name %>
+                        </td>
+                        <td>
+                          <%= booking.RoomType?.type_name || 'N/A' %>
+                        </td>
+                        <td>
+                          <%= new Date(booking.booking_date).toLocaleDateString('vi-VN') %>
+                        </td>
+                        <td>
+                          <%= new Intl.NumberFormat('vi-VN').format(booking.total_price) %> VND
+                        </td>
+
+                        <td>
+                          <% if (booking.payment_status==='paid' ) { %>
                             <span class="badge bg-success">Đã thanh toán</span>
-                          <% } else if (booking.payment_status === 'pending') { %>
-                            <span class="badge bg-warning">Chờ thanh toán</span>
-                          <% } else if (booking.payment_status === 'failed') { %>
-                            <span class="badge bg-danger">Thất bại</span>
-                          <% } else { %>
-                            <span class="badge bg-secondary"><%= booking.payment_status %></span>
-                          <% } %>
+                            <% } else if (booking.payment_status==='pending' ) { %>
+                              <span class="badge bg-warning">Chờ thanh toán</span>
+                              <% } else if (booking.payment_status==='failed' ) { %>
+                                <span class="badge bg-danger">Thất bại</span>
+                                <% } else { %>
+                                  <span class="badge bg-secondary">
+                                    <%= booking.payment_status %>
+                                  </span>
+                                  <% } %>
                         </td>
                       </tr>
-                    <% }); %>
-                  <% } else { %>
-                    <tr>
-                      <td colspan="7" class="text-center">Chưa có đặt phòng nào</td>
-                    </tr>
-                  <% } %>
+                      <% }); %>
+                        <% } else { %>
+                          <tr>
+                            <td colspan="7" class="text-center">Chưa có đặt phòng nào</td>
+                          </tr>
+                          <% } %>
                 </tbody>
               </table>
             </div>
@@ -1132,9 +1161,9 @@
                 <select class="form-select form-select-sm me-2" id="bookingStatusFilter" onchange="refreshBookings()">
                   <option value="all">Tất cả</option>
                   <option value="pending">Chờ xử lý</option>
-                  <option value="completed">Hoàn thành</option>
-                  <option value="canceled">Đã hủy</option>
-                  <option value="rejected">Từ chối</option>
+                  <option value="paid">Hoàn thành</option>
+                  <option value="failed">Đã hủy</option>
+
                 </select>
                 <button class="btn btn-light btn-sm" onclick="refreshBookings()">
                   <i class="fas fa-refresh"></i> Tải lại
@@ -1258,36 +1287,38 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // Menu navigation
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       const menuLinks = document.querySelectorAll('.menu-link');
       const contentSections = document.querySelectorAll('.content-section');
 
       menuLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-          // ✅ Cho phép link đăng xuất hoạt động bình thường
-          if (this.getAttribute('href') === '/logout') {
-            return; // Không ngăn chặn link đăng xuất
+        link.addEventListener('click', function (e) {
+          const href = this.getAttribute('href');
+
+          // ✅ Cho phép logout và về trang chủ hoạt động bình thường
+          if (href === '/logout' || href === '/') {
+            return;
           }
-          
+
           e.preventDefault();
-          
+
           const targetSection = this.getAttribute('data-section');
-          
+
           if (targetSection) {
             // Remove active class from all menu links
             menuLinks.forEach(ml => ml.classList.remove('active'));
-            
+
             // Add active class to clicked link
             this.classList.add('active');
-            
+
             // Hide all content sections
             contentSections.forEach(section => section.classList.remove('active'));
-            
+
             // Show target section
             const targetElement = document.getElementById(targetSection);
             if (targetElement) {
               targetElement.classList.add('active');
-              
+
               // Load data for the section
               loadSectionData(targetSection);
             }
@@ -1295,16 +1326,17 @@
         });
       });
 
+
       // Sidebar toggle
       const sidebarToggle = document.getElementById('sidebarToggle');
       const sidebar = document.querySelector('.sidebar');
       const mainContent = document.querySelector('.main-content');
       const sidebarOverlay = document.getElementById('sidebarOverlay');
-      
+
       if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', function() {
+        sidebarToggle.addEventListener('click', function () {
           const isOpen = sidebar.classList.contains('show');
-          
+
           if (isOpen) {
             closeSidebar();
           } else {
@@ -1331,7 +1363,7 @@
       sidebarOverlay.addEventListener('click', closeSidebar);
 
       // Đóng sidebar khi click bên ngoài (mobile)
-      document.addEventListener('click', function(e) {
+      document.addEventListener('click', function (e) {
         if (window.innerWidth <= 768) {
           if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
             closeSidebar();
@@ -1340,7 +1372,7 @@
       });
 
       // Xử lý resize window
-      window.addEventListener('resize', function() {
+      window.addEventListener('resize', function () {
         if (window.innerWidth > 768) {
           sidebarOverlay.classList.remove('show');
         }
@@ -1352,7 +1384,7 @@
 
     // Load data for different sections
     function loadSectionData(section) {
-      switch(section) {
+      switch (section) {
         case 'users':
           refreshUsers();
           break;
@@ -1384,11 +1416,11 @@
           },
           ...options
         });
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         return await response.json();
       } catch (error) {
         console.error('API call failed:', error);
@@ -1400,7 +1432,7 @@
     async function refreshUsers(page = 1) {
       const content = document.getElementById('users-content');
       content.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>';
-      
+
       try {
         const data = await apiCall(`/admin/users?page=${page}`);
         renderUsersTable(data);
@@ -1412,45 +1444,45 @@
     function renderUsersTable(data) {
       const content = document.getElementById('users-content');
       let html = `
-        <div class="table-responsive">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Tên</th>
-                <th>Email</th>
-                <th>Vai trò</th>
-                <th>Điện thoại</th>
-                <th>Ngày tạo</th>
-                <th>Hành động</th>
-              </tr>
-            </thead>
-            <tbody>
-      `;
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tên</th>
+              <th>Email</th>
+              <th>Vai trò</th>
+              <th>Điện thoại</th>
+              <th>Ngày tạo</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
 
       if (data.users && data.users.length > 0) {
         data.users.forEach(user => {
+          const isAdmin = user.role === 'admin';
           html += `
-            <tr>
-              <td>${user.user_id}</td>
-              <td>${user.name}</td>
-              <td>${user.email}</td>
-              <td>
-                ${user.role === 'admin' ? 
-                  '<span class="badge bg-danger">Admin</span>' : 
-                  '<span class="badge bg-primary">User</span>'
-                }
-              </td>
-              <td>${user.phone || 'N/A'}</td>
-              <td>${new Date(user.created_at).toLocaleDateString('vi-VN')}</td>
-              <td>
-                ${user.role !== 'admin' ? 
-                  `<button class="btn-action btn-delete" onclick="deleteUser(${user.user_id})">Xóa</button>` :
-                  '<span class="text-muted">Không thể xóa</span>'
-                }
-              </td>
-            </tr>
-          `;
+          <tr>
+            <td>${user.user_id}</td>
+            <td>${user.name}</td>
+            <td>${user.email}</td>
+            <td>
+              ${isAdmin ?
+              '<span class="badge bg-danger">Admin</span>' :
+              '<span class="badge bg-primary">User</span>'
+            }
+            </td>
+            <td>${user.phone || 'N/A'}</td>
+            <td>${new Date(user.created_at).toLocaleDateString('vi-VN')}</td>
+            <td>
+              <button class="btn-action btn-view" onclick="viewUser(${user.user_id})">Xem</button>
+              ${isAdmin ? '' : `<button class="btn-action btn-edit" onclick="editUser(${user.user_id})">Sửa</button>`}
+              ${isAdmin ? '<span class="text-muted">Không thể xóa</span>' : `<button class="btn-action btn-delete" onclick="deleteUser(${user.user_id})">Xóa</button>`}
+            </td>
+          </tr>
+        `;
         });
       } else {
         html += '<tr><td colspan="7" class="text-center">Không có dữ liệu</td></tr>';
@@ -1458,7 +1490,6 @@
 
       html += '</tbody></table></div>';
 
-      // Add pagination if needed
       if (data.pagination && data.pagination.totalPages > 1) {
         html += renderPagination(data.pagination, 'refreshUsers');
       }
@@ -1466,23 +1497,174 @@
       content.innerHTML = html;
     }
 
-    async function deleteUser(userId) {
-      if (!confirm('Bạn có chắc chắn muốn xóa người dùng này?')) return;
-      
+    async function viewUser(id) {
       try {
-        await apiCall(`/admin/users/${userId}`, { method: 'DELETE' });
-        alert('Xóa người dùng thành công');
-        refreshUsers();
+        const res = await apiCall(`/admin/users/${id}`);
+        if (!res.success || !res.user) {
+          return Swal.fire({
+            icon: 'error',
+            title: 'Lỗi',
+            text: res.message || 'Không tìm thấy người dùng!'
+          });
+        }
+
+        const user = res.user;
+        const bookingCount = res.bookingCount || 0;
+
+        // Format thông tin user (ẩn trường null)
+        const info = `
+      <strong>ID:</strong> ${user.user_id}<br>
+      ${user.name ? `<strong>Họ tên:</strong> ${user.name}<br>` : ''}
+      ${user.email ? `<strong>Email:</strong> ${user.email}<br>` : ''}
+      ${user.phone ? `<strong>Điện thoại:</strong> ${user.phone}<br>` : ''}
+      ${user.dob ? `<strong>Ngày sinh:</strong> ${new Date(user.dob).toLocaleDateString('vi-VN')}<br>` : ''}
+      ${user.gender ? `<strong>Giới tính:</strong> ${user.gender === 'male' ? 'Nam' : 'Nữ'}<br>` : ''}
+      <strong>Vai trò:</strong> ${user.role === 'admin' ? 'Quản trị viên' : 'Người dùng'}<br>
+      <strong>Số hóa đơn hiện tại:</strong> ${bookingCount}
+    `;
+
+        Swal.fire({
+          title: 'Thông tin tài khoản',
+          html: info,
+          icon: 'info',
+          confirmButtonText: 'Đóng',
+        });
       } catch (error) {
-        alert('Lỗi xóa người dùng');
+        console.error("❌ Lỗi khi xem thông tin:", error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Lỗi hệ thống',
+          text: 'Không thể lấy thông tin người dùng!'
+        });
       }
     }
+
+    async function editUser(id) {
+      try {
+        const res = await apiCall(`/admin/users/${id}`);
+        if (!res.success || !res.user) {
+          return Swal.fire({
+            icon: 'error',
+            title: 'Lỗi',
+            text: res.message || 'Không tìm thấy người dùng!'
+          });
+        }
+
+        const user = res.user;
+        const bookingCount = res.bookingCount || 0;
+        const paidBookings = res.paidBookings || 0;
+
+        const { value: formValues } = await Swal.fire({
+          title: 'Chỉnh sửa thông tin người dùng',
+          html:
+            `<p><strong>Hóa đơn đã thanh toán:</strong> ${paidBookings} / ${bookingCount}</p>` +
+            `<input id="swal-name" class="swal2-input" placeholder="Tên" value="${user.name || ''}">` +
+            `<input id="swal-email" class="swal2-input" placeholder="Email" value="${user.email || ''}">` +
+            `<input id="swal-phone" class="swal2-input" placeholder="Số điện thoại" value="${user.phone || ''}">` +
+            `<input id="swal-dob" class="swal2-input" type="date" value="${user.dob ? user.dob.split('T')[0] : ''}">` +
+            `<select id="swal-gender" class="swal2-input">
+          <option value="">-- Giới tính --</option>
+          <option value="male" ${user.gender === 'male' ? 'selected' : ''}>Nam</option>
+          <option value="female" ${user.gender === 'female' ? 'selected' : ''}>Nữ</option>
+        </select>` +
+            `<input id="swal-new-password" type="password" class="swal2-input" placeholder="Mật khẩu mới (nếu muốn đổi)">`,
+          focusConfirm: false,
+          showCancelButton: true,
+          confirmButtonText: 'Lưu thay đổi',
+          cancelButtonText: 'Hủy',
+          preConfirm: () => {
+            return {
+              name: document.getElementById('swal-name').value.trim(),
+              email: document.getElementById('swal-email').value.trim(),
+              phone: document.getElementById('swal-phone').value.trim(),
+              dob: document.getElementById('swal-dob').value || null,
+              gender: document.getElementById('swal-gender').value || null,
+              newPassword: document.getElementById('swal-new-password').value || null
+            };
+          }
+        });
+
+        if (!formValues) return;
+
+        const updateRes = await apiCall(`/admin/users/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify(formValues)
+        });
+
+        if (updateRes.success) {
+          await Swal.fire({
+            icon: 'success',
+            title: 'Cập nhật thành công',
+            text: updateRes.message || 'Thông tin người dùng đã được cập nhật!'
+          });
+          refreshUsers();
+        } else {
+          await Swal.fire({
+            icon: 'error',
+            title: 'Thất bại',
+            text: updateRes.message || 'Không thể cập nhật.'
+          });
+        }
+
+      } catch (error) {
+        console.error("❌ Edit user error:", error);
+        await Swal.fire({
+          icon: 'error',
+          title: 'Lỗi hệ thống',
+          text: 'Không thể kết nối tới máy chủ!'
+        });
+      }
+    }
+
+    async function deleteUser(userId) {
+      const result = await Swal.fire({
+        title: 'Bạn có chắc chắn?',
+        text: 'Bạn muốn xóa người dùng này?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Có, xóa ngay!',
+        cancelButtonText: 'Không',
+      });
+
+      if (!result.isConfirmed) return;
+
+      try {
+        const res = await apiCall(`/admin/users/${userId}`, { method: 'DELETE' });
+        if (res.success) {
+          await Swal.fire({
+            icon: 'success',
+            title: 'Đã xóa!',
+            text: res.message || 'Người dùng đã được xóa thành công!',
+            confirmButtonColor: '#3085d6'
+          });
+          refreshUsers();
+        } else {
+          await Swal.fire({
+            icon: 'error',
+            title: 'Không thể xóa',
+            text: res.message || 'Có lỗi xảy ra khi xóa người dùng!',
+            confirmButtonColor: '#d33'
+          });
+        }
+      } catch (error) {
+        console.error('❌ Delete user error:', error);
+        await Swal.fire({
+          icon: 'error',
+          title: 'Lỗi hệ thống',
+          text: 'Không thể kết nối tới máy chủ hoặc lỗi không xác định!',
+          confirmButtonColor: '#d33'
+        });
+      }
+    }
+
 
     // Homestays functions
     async function refreshHomestays(page = 1) {
       const content = document.getElementById('homestays-content');
       content.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>';
-      
+
       try {
         const data = await apiCall(`/admin/homestays?page=${page}`);
         renderHomestaysTable(data);
@@ -1542,7 +1724,7 @@
     async function refreshRooms(page = 1) {
       const content = document.getElementById('rooms-content');
       content.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>';
-      
+
       try {
         const data = await apiCall(`/admin/rooms?page=${page}`);
         renderRoomsTable(data);
@@ -1603,7 +1785,7 @@
       const content = document.getElementById('bookings-content');
       const status = document.getElementById('bookingStatusFilter')?.value || 'all';
       content.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>';
-      
+
       try {
         const data = await apiCall(`/admin/bookings?page=${page}&status=${status}`);
         renderBookingsTable(data);
@@ -1634,21 +1816,18 @@
       if (data.bookings && data.bookings.length > 0) {
         data.bookings.forEach(booking => {
           let statusBadge = '';
-          switch(booking.status) {
-            case 'completed':
+          switch (booking.payment_status) {
+            case 'paid':
               statusBadge = '<span class="badge bg-success">Hoàn thành</span>';
               break;
             case 'pending':
               statusBadge = '<span class="badge bg-warning">Chờ xử lý</span>';
               break;
-            case 'canceled':
+            case 'failed':
               statusBadge = '<span class="badge bg-danger">Đã hủy</span>';
               break;
-            case 'rejected':
-              statusBadge = '<span class="badge bg-secondary">Từ chối</span>';
-              break;
             default:
-              statusBadge = `<span class="badge bg-light">${booking.status}</span>`;
+              statusBadge = `<span class="badge bg-light">${booking.payment_status}</span>`;
           }
 
           html += `
@@ -1661,13 +1840,13 @@
               <td>${statusBadge}</td>
               <td>
                 <button class="btn-action btn-view" onclick="viewBooking(${booking.booking_id})">Xem</button>
-                ${booking.status === 'pending' ? 
-                  `<select class="form-select form-select-sm d-inline-block w-auto" onchange="updateBookingStatus(${booking.booking_id}, this.value)">
-                    <option value="">Chọn</option>
-                    <option value="completed">Hoàn thành</option>
-                    <option value="rejected">Từ chối</option>
-                  </select>` : ''
-                }
+                <select class="form-select form-select-sm d-inline-block w-auto" onchange="updateBookingStatus(${booking.booking_id}, this.value)">
+  <option value="">Chọn</option>
+  <option value="pending" ${booking.payment_status === 'pending' ? 'selected' : ''}>Chờ xử lý</option>
+  <option value="paid" ${booking.payment_status === 'paid' ? 'selected' : ''}>Hoàn thành</option>
+  <option value="failed" ${booking.payment_status === 'failed' ? 'selected' : ''}>Từ chối</option>
+</select>
+            
               </td>
             </tr>
           `;
@@ -1687,24 +1866,46 @@
 
     async function updateBookingStatus(bookingId, status) {
       if (!status) return;
-      
+
       try {
-        await apiCall(`/admin/bookings/${bookingId}/status`, {
+        const res = await apiCall(`/admin/bookings/${bookingId}/status`, {
           method: 'PUT',
           body: JSON.stringify({ status })
         });
-        alert('Cập nhật trạng thái thành công');
-        refreshBookings();
+
+        if (res.success) {
+          Toastify({
+            text: "✅ Cập nhật trạng thái thành công!",
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            backgroundColor: "#28a745",
+          }).showToast();
+
+          refreshBookings();
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Thất bại',
+            text: res.message || 'Không thể cập nhật trạng thái!'
+          });
+        }
       } catch (error) {
-        alert('Lỗi cập nhật trạng thái');
+        console.error("❌ Cập nhật thất bại:", error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Lỗi hệ thống',
+          text: 'Không thể kết nối tới máy chủ!'
+        });
       }
     }
+
 
     // Reviews functions
     async function refreshReviews(page = 1) {
       const content = document.getElementById('reviews-content');
       content.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>';
-      
+
       try {
         const data = await apiCall(`/admin/reviews?page=${page}`);
         renderReviewsTable(data);
@@ -1735,7 +1936,7 @@
       if (data.reviews && data.reviews.length > 0) {
         data.reviews.forEach(review => {
           const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
-          
+
           html += `
             <tr>
               <td>${review.review_id}</td>
@@ -1766,7 +1967,7 @@
 
     async function deleteReview(reviewId) {
       if (!confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) return;
-      
+
       try {
         await apiCall(`/admin/reviews/${reviewId}`, { method: 'DELETE' });
         alert('Xóa đánh giá thành công');
@@ -1780,7 +1981,7 @@
     async function refreshServices() {
       const content = document.getElementById('services-content');
       content.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>';
-      
+
       try {
         const data = await apiCall('/admin/services');
         renderServicesTable(data);
@@ -1838,12 +2039,12 @@
 
     async function addService() {
       const serviceName = document.getElementById('serviceName').value;
-      
+
       if (!serviceName.trim()) {
         alert('Vui lòng nhập tên dịch vụ');
         return;
       }
-      
+
       try {
         await apiCall('/admin/services', {
           method: 'POST',
@@ -1860,12 +2061,12 @@
     async function updateService() {
       const serviceId = document.getElementById('editServiceId').value;
       const serviceName = document.getElementById('editServiceName').value;
-      
+
       if (!serviceName.trim()) {
         alert('Vui lòng nhập tên dịch vụ');
         return;
       }
-      
+
       try {
         await apiCall(`/admin/services/${serviceId}`, {
           method: 'PUT',
@@ -1881,7 +2082,7 @@
 
     async function deleteService(serviceId) {
       if (!confirm('Bạn có chắc chắn muốn xóa dịch vụ này?')) return;
-      
+
       try {
         await apiCall(`/admin/services/${serviceId}`, { method: 'DELETE' });
         alert('Xóa dịch vụ thành công');
@@ -1894,31 +2095,31 @@
     // Utility functions
     function renderPagination(pagination, functionName) {
       let html = '<nav aria-label="Page navigation"><ul class="pagination justify-content-center">';
-      
+
       // Previous button
       if (pagination.currentPage > 1) {
         html += `<li class="page-item">
           <a class="page-link" href="#" onclick="${functionName}(${pagination.currentPage - 1})">Trước</a>
         </li>`;
       }
-      
+
       // Page numbers
       const startPage = Math.max(1, pagination.currentPage - 2);
       const endPage = Math.min(pagination.totalPages, pagination.currentPage + 2);
-      
+
       for (let i = startPage; i <= endPage; i++) {
         html += `<li class="page-item ${i === pagination.currentPage ? 'active' : ''}">
           <a class="page-link" href="#" onclick="${functionName}(${i})">${i}</a>
         </li>`;
       }
-      
+
       // Next button
       if (pagination.currentPage < pagination.totalPages) {
         html += `<li class="page-item">
           <a class="page-link" href="#" onclick="${functionName}(${pagination.currentPage + 1})">Sau</a>
         </li>`;
       }
-      
+
       html += '</ul></nav>';
       return html;
     }
@@ -1940,13 +2141,53 @@
       alert(`Sửa phòng ID: ${id} - Chức năng này sẽ được phát triển`);
     }
 
-    function viewBooking(id) {
-      alert(`Xem booking ID: ${id} - Chức năng này sẽ được phát triển`);
+    async function viewBooking(id) {
+      try {
+        const res = await apiCall(`/admin/bookings/${id}`);
+        if (!res.success || !res.booking) {
+          return Swal.fire({
+            icon: 'error',
+            title: 'Lỗi',
+            text: res.message || 'Không tìm thấy hóa đơn!'
+          });
+        }
+
+        const b = res.booking;
+
+        const info = `
+      <strong>ID Hóa đơn:</strong> ${b.booking_id}<br>
+      <strong>ID Tài khoản:</strong> ${b.user_id}<br>
+      <strong>Tên tài khoản:</strong> ${b.User?.name || 'Ẩn danh'}<br>
+      <strong>Tên người đặt:</strong> ${b.name}<br>
+      <strong>Ngày đặt:</strong> ${new Date(b.booking_date).toLocaleDateString('vi-VN')}<br>
+      <strong>Ngày nhận:</strong> ${new Date(b.check_in_date).toLocaleDateString('vi-VN')}<br>
+      <strong>Ngày đi:</strong> ${new Date(b.check_out_date).toLocaleDateString('vi-VN')}<br>
+      <strong>Người lớn:</strong> ${b.adults} - <strong>Trẻ em:</strong> ${b.children}<br>
+      <strong>Tổng tiền:</strong> ${new Intl.NumberFormat('vi-VN').format(b.total_price)} VND<br>
+      <strong>Trạng thái:</strong> ${b.payment_status === 'paid' ? 'Đã thanh toán' : b.payment_status === 'pending' ? 'Chờ thanh toán' : 'Thất bại'}
+    `;
+
+        Swal.fire({
+          title: 'Thông tin hóa đơn',
+          html: info,
+          icon: 'info',
+          confirmButtonText: 'Đóng'
+        });
+      } catch (error) {
+        console.error("❌ Lỗi khi xem hóa đơn:", error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Lỗi hệ thống',
+          text: 'Không thể lấy thông tin hóa đơn!'
+        });
+      }
     }
 
     function viewReview(id) {
       alert(`Xem đánh giá ID: ${id} - Chức năng này sẽ được phát triển`);
     }
+
   </script>
 </body>
+
 </html>
