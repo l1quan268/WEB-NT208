@@ -22,22 +22,7 @@
       display: flex;
       min-height: 100vh;
     }
-    /* Logout */
-    .logout-link {
-    display: flex;
-    align-items: center;
-    padding: 15px 25px;
-    color: #ecf0f1;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    border-left: 3px solid transparent;
-}
 
-.logout-link:hover {
-  background: rgba(231, 76, 60, 0.2); /* Màu đỏ cho logout */
-  border-left-color: #e74c3c;
-  color: white;
-}
     /* Sidebar */
     .sidebar {
       width: 280px;
@@ -298,10 +283,16 @@
       color: white;
     }
 
-    /* Responsive */
-    @media (max-width: 768px) {
+    /* ============================================
+       RESPONSIVE DESIGN - MOBILE FIRST APPROACH
+    ============================================ */
+
+    /* ============ MOBILE PHONES (320px - 767px) ============ */
+    @media (max-width: 767px) {
       .sidebar {
+        width: 100%;
         transform: translateX(-100%);
+        box-shadow: 2px 0 20px rgba(0,0,0,0.3);
       }
 
       .sidebar.show {
@@ -315,6 +306,466 @@
       .content-area {
         padding: 15px;
       }
+
+      .top-navbar {
+        padding: 10px 15px;
+        flex-wrap: wrap;
+      }
+
+      .top-navbar .navbar-brand {
+        font-size: 1.1rem;
+      }
+
+      .sidebar-toggle {
+        padding: 6px 10px;
+        margin-right: 10px;
+      }
+
+      .sidebar-toggle i {
+        font-size: 1rem;
+      }
+
+      .user-info {
+        gap: 5px;
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        margin-top: 10px;
+      }
+
+      .user-info i {
+        font-size: 1.5rem !important;
+      }
+
+      .user-info span {
+        font-size: 0.9rem;
+      }
+
+      .page-header {
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+
+      .page-header h2 {
+        font-size: 1.4rem;
+      }
+
+      .breadcrumb {
+        font-size: 0.8rem;
+      }
+
+      /* Stats Cards on Mobile */
+      .stats-card {
+        padding: 15px;
+        margin-bottom: 15px;
+        text-align: center;
+      }
+
+      .stats-card .icon {
+        width: 45px;
+        height: 45px;
+        font-size: 1.1rem;
+        margin: 0 auto 10px;
+      }
+
+      .stats-card h3 {
+        font-size: 1.4rem;
+      }
+
+      .stats-card p {
+        font-size: 0.85rem;
+      }
+
+      .stats-card small {
+        font-size: 0.75rem;
+      }
+
+      /* Table on Mobile */
+      .table-header {
+        padding: 15px !important;
+        flex-direction: column !important;
+        gap: 10px;
+        text-align: center;
+      }
+
+      .table-header h4 {
+        font-size: 1rem;
+      }
+
+      .table-header .d-flex {
+        flex-direction: column !important;
+        align-items: center !important;
+      }
+
+      .table-header div {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+      }
+
+      .table {
+        font-size: 0.75rem;
+      }
+
+      .table th,
+      .table td {
+        padding: 8px 4px;
+        white-space: nowrap;
+      }
+
+      .btn-action {
+        padding: 4px 6px;
+        font-size: 0.65rem;
+        margin: 1px;
+        display: inline-block;
+      }
+
+      .form-select-sm {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        width: 100% !important;
+        margin-bottom: 10px;
+      }
+
+      /* Horizontal scroll for tables */
+      .table-responsive {
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      /* Modal on Mobile */
+      .modal-dialog {
+        margin: 10px;
+        max-width: calc(100% - 20px);
+      }
+
+      .modal-body {
+        padding: 15px;
+      }
+
+      .modal-header {
+        padding: 10px 15px;
+      }
+
+      .modal-footer {
+        padding: 10px 15px;
+        flex-direction: column;
+      }
+
+      .modal-footer button {
+        width: 100%;
+        margin-bottom: 5px;
+      }
+
+      /* Grid adjustments */
+      .col-lg-3,
+      .col-md-6 {
+        padding: 0 7px;
+      }
+
+      .row {
+        margin: 0 -7px;
+      }
+    }
+
+    /* ============ SMALL MOBILE (320px - 480px) ============ */
+    @media (max-width: 480px) {
+      .top-navbar .navbar-brand {
+        font-size: 1rem;
+      }
+
+      .sidebar-toggle {
+        padding: 5px 8px;
+      }
+
+      .stats-card {
+        padding: 12px 8px;
+      }
+
+      .stats-card h3 {
+        font-size: 1.2rem;
+      }
+
+      .stats-card p {
+        font-size: 0.8rem;
+      }
+
+      .table th,
+      .table td {
+        padding: 6px 3px;
+        font-size: 0.7rem;
+      }
+
+      .btn-action {
+        padding: 3px 5px;
+        font-size: 0.6rem;
+      }
+
+      .page-header {
+        padding: 12px;
+      }
+
+      .page-header h2 {
+        font-size: 1.2rem;
+      }
+
+      .content-area {
+        padding: 10px;
+      }
+    }
+
+    /* ============ TABLETS - iPAD PORTRAIT (768px - 1024px) ============ */
+    @media (min-width: 768px) and (max-width: 1024px) {
+      .sidebar {
+        width: 260px;
+        transform: translateX(-100%);
+        box-shadow: 3px 0 15px rgba(0,0,0,0.2);
+      }
+
+      .sidebar.show {
+        transform: translateX(0);
+      }
+
+      .main-content {
+        margin-left: 0;
+        transition: margin-left 0.3s ease;
+      }
+
+      .main-content.sidebar-open {
+        margin-left: 260px;
+      }
+
+      .content-area {
+        padding: 25px;
+      }
+
+      .top-navbar {
+        padding: 12px 25px;
+      }
+
+      .top-navbar .navbar-brand {
+        font-size: 1.3rem;
+      }
+
+      .sidebar-toggle {
+        min-width: 44px;
+        min-height: 44px;
+        padding: 10px;
+      }
+
+      .user-info {
+        gap: 8px;
+      }
+
+      .stats-card {
+        padding: 20px;
+      }
+
+      .stats-card .icon {
+        width: 55px;
+        height: 55px;
+        font-size: 1.3rem;
+      }
+
+      .stats-card h3 {
+        font-size: 1.8rem;
+      }
+
+      .table-header {
+        padding: 18px 25px;
+      }
+
+      .table th,
+      .table td {
+        padding: 12px;
+      }
+
+      /* Better touch targets for iPad */
+      .btn-action {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        margin: 0 3px;
+        min-width: 44px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .form-select {
+        min-height: 44px;
+        font-size: 0.9rem;
+      }
+
+      .sidebar-menu a {
+        padding: 18px 25px;
+        min-height: 54px;
+        font-size: 0.95rem;
+      }
+
+      .sidebar-menu i {
+        font-size: 1.1rem;
+      }
+
+      /* Table responsive on iPad */
+      .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      /* Modal on iPad */
+      .modal-dialog {
+        max-width: 600px;
+      }
+    }
+
+    /* ============ iPAD LANDSCAPE & SMALL LAPTOPS (1025px - 1366px) ============ */
+    @media (min-width: 1025px) and (max-width: 1366px) {
+      .sidebar {
+        width: 270px;
+        transform: translateX(-100%);
+      }
+
+      .sidebar.show {
+        transform: translateX(0);
+      }
+
+      .main-content {
+        margin-left: 0;
+      }
+
+      .main-content.sidebar-open {
+        margin-left: 270px;
+      }
+
+      .content-area {
+        padding: 28px;
+      }
+
+      .top-navbar {
+        padding: 14px 28px;
+      }
+
+      .stats-card {
+        padding: 22px;
+      }
+
+      .stats-card .icon {
+        width: 58px;
+        height: 58px;
+      }
+
+      .table-header {
+        padding: 19px 28px;
+      }
+
+      .btn-action {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+      }
+    }
+
+    /* ============ LARGE LAPTOPS & DESKTOPS (1367px+) ============ */
+    @media (min-width: 1367px) {
+      .sidebar {
+        width: 280px;
+        transform: translateX(-100%);
+      }
+
+      .sidebar.show {
+        transform: translateX(0);
+      }
+
+      .main-content {
+        margin-left: 0;
+      }
+
+      .main-content.sidebar-open {
+        margin-left: 280px;
+      }
+
+      .content-area {
+        padding: 30px;
+      }
+
+      .stats-card {
+        padding: 25px;
+      }
+
+      .stats-card .icon {
+        width: 60px;
+        height: 60px;
+      }
+
+      .table-header {
+        padding: 20px 30px;
+      }
+
+      .btn-action {
+        padding: 5px 10px;
+        font-size: 0.8rem;
+      }
+    }
+
+    /* ============ LANDSCAPE ORIENTATION ADJUSTMENTS ============ */
+    @media (orientation: landscape) and (max-height: 600px) {
+      .sidebar-header {
+        padding: 15px 20px;
+      }
+
+      .sidebar-header h3 {
+        font-size: 1.1rem;
+      }
+
+      .sidebar-menu {
+        padding: 10px 0;
+      }
+
+      .sidebar-menu a {
+        padding: 12px 25px;
+        font-size: 0.9rem;
+      }
+
+      .stats-card {
+        padding: 15px;
+      }
+
+      .stats-card .icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+        margin-bottom: 8px;
+      }
+
+      .stats-card h3 {
+        font-size: 1.4rem;
+      }
+    }
+
+    /* ============ ACCESSIBILITY IMPROVEMENTS ============ */
+    @media (prefers-reduced-motion: reduce) {
+      .sidebar,
+      .main-content,
+      .stats-card,
+      .btn-action,
+      .sidebar-toggle {
+        transition: none;
+      }
+    }
+
+    /* Focus states for better accessibility */
+    .btn-action:focus,
+    .sidebar-toggle:focus {
+      outline: 2px solid #3498db;
+      outline-offset: 2px;
+    }
+
+    .sidebar-menu a:focus {
+      outline: 2px solid #3498db;
+      outline-offset: -2px;
     }
 
     .content-section {
@@ -402,12 +853,12 @@
             <span>Quản lý hóa đơn</span>
           </a>
         </li>
-        <!-- <li>
+        <li>
           <a href="#" class="menu-link" data-section="reviews">
             <i class="fas fa-star"></i>
             <span>Quản lý đánh giá</span>
           </a>
-        </li> -->
+        </li>
         <li>
           <a href="#" class="menu-link" data-section="services">
             <i class="fas fa-concierge-bell"></i>
@@ -415,7 +866,7 @@
           </a>
         </li>
         <li>
-          <a href="/logout" class="logout-link">
+          <a href="/logout" class="menu-link">
             <i class="fas fa-sign-out-alt"></i>
             <span>Đăng xuất</span>
           </a>
@@ -547,14 +998,14 @@
                         <td><%= new Date(booking.booking_date).toLocaleDateString('vi-VN') %></td>
                         <td><%= new Intl.NumberFormat('vi-VN').format(booking.total_price) %> VND</td>
                         <td>
-                          <% if (booking.payment_status === 'paid') { %>
+                          <% if (booking.status === 'completed') { %>
                             <span class="badge bg-success">Hoàn thành</span>
-                          <% } else if (booking.payment_status === 'pending') { %>
+                          <% } else if (booking.status === 'pending') { %>
                             <span class="badge bg-warning">Chờ xử lý</span>
-                          <% } else if (booking.payment_status === 'failed') { %>
+                          <% } else if (booking.status === 'canceled') { %>
                             <span class="badge bg-danger">Đã hủy</span>
                           <% } else { %>
-                            <span class="badge bg-secondary"><%= booking.payment_status %></span>
+                            <span class="badge bg-secondary"><%= booking.status %></span>
                           <% } %>
                         </td>
                         <td>
@@ -813,6 +1264,11 @@
 
       menuLinks.forEach(link => {
         link.addEventListener('click', function(e) {
+          // ✅ Cho phép link đăng xuất hoạt động bình thường
+          if (this.getAttribute('href') === '/logout') {
+            return; // Không ngăn chặn link đăng xuất
+          }
+          
           e.preventDefault();
           
           const targetSection = this.getAttribute('data-section');
@@ -1178,17 +1634,19 @@
       if (data.bookings && data.bookings.length > 0) {
         data.bookings.forEach(booking => {
           let statusBadge = '';
-          switch(booking.payment_status) {
-            case 'paid':
+          switch(booking.status) {
+            case 'completed':
               statusBadge = '<span class="badge bg-success">Hoàn thành</span>';
               break;
             case 'pending':
               statusBadge = '<span class="badge bg-warning">Chờ xử lý</span>';
               break;
-            case 'failed':
+            case 'canceled':
               statusBadge = '<span class="badge bg-danger">Đã hủy</span>';
               break;
-            
+            case 'rejected':
+              statusBadge = '<span class="badge bg-secondary">Từ chối</span>';
+              break;
             default:
               statusBadge = `<span class="badge bg-light">${booking.status}</span>`;
           }
@@ -1206,8 +1664,8 @@
                 ${booking.status === 'pending' ? 
                   `<select class="form-select form-select-sm d-inline-block w-auto" onchange="updateBookingStatus(${booking.booking_id}, this.value)">
                     <option value="">Chọn</option>
-                    <option value="paid">Hoàn thành</option>
-                    <option value="failed">Từ chối</option>
+                    <option value="completed">Hoàn thành</option>
+                    <option value="rejected">Từ chối</option>
                   </select>` : ''
                 }
               </td>
