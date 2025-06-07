@@ -8,9 +8,9 @@ const querystring = require("qs");
 const VNP_TMN_CODE = process.env.VNP_TMN_CODE || "2ZKVU3BZ";
 const VNP_HASH_SECRET = process.env.VNP_HASH_SECRET || "AL1FQSVIRA9YRR7IWC6DCGSUJZWU14NY";
 const VNP_URL = process.env.VNP_URL || "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-const BASE_URL = process.env.BASE_URL || "http://sweethome1.id.vn";
+const BASE_URL = process.env.BASE_URL || "https://sweethome1.id.vn";
 
-// ✅ FIXED VNPay URL builder - Remove or extend expire time
+// VNPay URL builder
 const buildVNPayUrl = (params) => {
   const {
     amount,
@@ -23,22 +23,18 @@ const buildVNPayUrl = (params) => {
     orderType = "other"
   } = params;
 
-  // ✅ Validate required parameters
+  // Validate required parameters
   if (!amount || !orderId || !orderInfo || !returnUrl) {
     throw new Error("Missing required VNPay parameters");
   }
 
-  // ✅ Ensure amount is valid
+  // Ensure amount is valid
   const vnpAmount = Math.round(parseFloat(amount)) * 100;
   if (vnpAmount <= 0) {
     throw new Error("Invalid payment amount");
   }
 
   const createDate = moment().format("YYYYMMDDHHmmss");
-  // ✅ OPTION 1: Remove expire date completely (no timeout)
-  // const expireDate = null;
-  
-  // ✅ OPTION 2: Set very long timeout (24 hours)
   const expireDate = moment().add(24, "hours").format("YYYYMMDDHHmmss");
 
   const vnp_Params = {
@@ -54,20 +50,10 @@ const buildVNPayUrl = (params) => {
     vnp_ReturnUrl: returnUrl,
     vnp_IpAddr: ipAddr,
     vnp_CreateDate: createDate,
-    // ✅ Only add expire date if it exists
     ...(expireDate && { vnp_ExpireDate: expireDate })
   };
 
-  console.log("🔧 VNPay Parameters Before Signing:", {
-    vnp_TmnCode: VNP_TMN_CODE,
-    vnp_Amount: vnpAmount,
-    vnp_TxnRef: orderId,
-    vnp_CreateDate: createDate,
-    vnp_ExpireDate: expireDate || "NO_EXPIRE",
-    vnp_ReturnUrl: returnUrl
-  });
-
-  // ✅ Sort parameters alphabetically (critical for VNPay)
+  // Sort parameters alphabetically (critical for VNPay)
   const sortedParams = {};
   Object.keys(vnp_Params)
     .sort()
@@ -77,35 +63,24 @@ const buildVNPayUrl = (params) => {
       }
     });
 
-  // ✅ Create secure hash
+  // Create secure hash
   const signData = querystring.stringify(sortedParams, { encode: false });
-  console.log("🔐 Sign Data:", signData);
-  
   const hmac = crypto.createHmac("sha512", VNP_HASH_SECRET);
   const secureHash = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
 
   sortedParams.vnp_SecureHash = secureHash;
-
   const paymentUrl = VNP_URL + "?" + querystring.stringify(sortedParams, { encode: false });
   
-  console.log("🌐 VNPay Payment URL Generated:", {
-    orderId,
-    amount: vnpAmount / 100,
-    expireTime: expireDate || "NO_EXPIRE",
-    hash: secureHash.substring(0, 10) + "...",
-    url: paymentUrl.substring(0, 150) + "..."
-  });
-
   return paymentUrl;
 };
 
-// ✅ UPDATED: Calculate pricing with adult-only surcharge logic
+// Calculate pricing with adult-only surcharge logic
 const calculateRoomPricing = (room, checkinDate, checkoutDate, adults, children) => {
   const nights = Math.ceil((checkoutDate - checkinDate) / (1000 * 3600 * 24));
   const roomPrice = parseFloat(room.price_per_night || 500000);
   const baseAmount = roomPrice * nights;
   
-  // ✅ NEW LOGIC: Phụ thu chỉ áp dụng cho NGƯỜI LỚN > 5, trẻ em KHÔNG tính phụ thu
+  // Phụ thu chỉ áp dụng cho NGƯỜI LỚN > 5, trẻ em KHÔNG tính phụ thu
   const surchargePerNight = adults > 5 ? (adults - 5) * 100000 : 0;
   const totalSurcharge = surchargePerNight * nights;
   
@@ -119,7 +94,7 @@ const calculateRoomPricing = (room, checkinDate, checkoutDate, adults, children)
     adults,
     children,
     totalGuests,
-    surchargeAdults: adults > 5 ? adults - 5 : 0, // ✅ Số người lớn bị phụ thu
+    surchargeAdults: adults > 5 ? adults - 5 : 0,
     surchargePerNight,
     totalSurcharge,
     totalAmount
@@ -130,7 +105,6 @@ const getPaymentPage = async (req, res) => {
   try {
     const { room_id, checkin, checkout, adults, children } = req.query;
     
-    // ✅ Enhanced validation
     if (!room_id || !checkin || !checkout) {
       return res.status(400).send(`<h3>Thiếu thông tin</h3><p>Vui lòng chọn phòng, ngày nhận và ngày trả phòng.</p>`);
     }
@@ -145,11 +119,9 @@ const getPaymentPage = async (req, res) => {
       };
     }
 
-    // ✅ Get adults and children from URL params (from detail page form)
     const adultsCount = parseInt(adults) || 1;
     const childrenCount = parseInt(children) || 0;
     
-    // ✅ Validate dates
     const checkinDate = new Date(checkin);
     const checkoutDate = new Date(checkout);
     const today = new Date();
@@ -163,7 +135,6 @@ const getPaymentPage = async (req, res) => {
       return res.status(400).send(`<h3>Ngày trả phòng không hợp lệ</h3><p>Ngày trả phòng phải sau ngày nhận phòng.</p>`);
     }
 
-    // ✅ Validate guest count
     const totalGuests = adultsCount + childrenCount;
     if (totalGuests > 15) {
       return res.status(400).send(`<h3>Số khách vượt quá giới hạn</h3><p>Tối đa 15 khách mỗi phòng.</p>`);
@@ -173,17 +144,7 @@ const getPaymentPage = async (req, res) => {
       return res.status(400).send(`<h3>Số khách không hợp lệ</h3><p>Phải có ít nhất 1 người lớn.</p>`);
     }
 
-    // ✅ Calculate pricing details
     const pricing = calculateRoomPricing(room, checkinDate, checkoutDate, adultsCount, childrenCount);
-
-    console.log("🔍 Payment page data:", {
-      room_id, checkin, checkout, 
-      adults: adultsCount, 
-      children: childrenCount,
-      totalGuests,
-      room: room.type_name,
-      pricing
-    });
 
     return res.render("Payment/payment.ejs", {
       room_id,
@@ -192,11 +153,11 @@ const getPaymentPage = async (req, res) => {
       checkout,
       adults: adultsCount,
       children: childrenCount,
-      pricing, // ✅ Pass pricing object to template
+      pricing,
       user: req.session?.user || null
     });
   } catch (err) {
-    console.error("❌ Payment page error:", err);
+    console.error("Payment page error:", err);
     res.status(500).send(`<h3>Lỗi hệ thống</h3><p>${err.message}</p>`);
   }
 };
@@ -204,7 +165,6 @@ const getPaymentPage = async (req, res) => {
 const postCheckout = async (req, res) => {
   let transaction;
   try {
-    // ✅ Start database transaction for data consistency
     transaction = await db.sequelize.transaction();
 
     const {
@@ -215,12 +175,7 @@ const postCheckout = async (req, res) => {
     const adultsCount = parseInt(req.body.adults) || 0;
     const childrenCount = parseInt(req.body.children) || 0;
 
-    console.log("📝 Checkout request received:", {
-      room_id, checkin, checkout, fullname, phone, email, 
-      adults: adultsCount, children: childrenCount, paymentMethod
-    });
-
-    // ✅ Enhanced validation
+    // Enhanced validation - Only allow cash and vnpay
     if (!room_id || !checkin || !checkout || !fullname || !phone || !email) {
       await transaction.rollback();
       return res.status(400).json({ 
@@ -237,25 +192,25 @@ const postCheckout = async (req, res) => {
       });
     }
 
-    const allowedPaymentMethods = ["vnpay", "momo", "cash"];
+    // Only allow VNPay and Cash
+    const allowedPaymentMethods = ["vnpay", "cash"];
     if (!allowedPaymentMethods.includes(paymentMethod)) {
       await transaction.rollback();
-      return res.status(400).json({ success: false, message: "Phương thức thanh toán không hợp lệ" });
+      return res.status(400).json({ 
+        success: false, 
+        message: "Phương thức thanh toán không hợp lệ. Chỉ hỗ trợ VNPay và tiền mặt." 
+      });
     }
 
-    // ✅ Find room with error handling
     const room = await db.RoomType.findByPk(room_id, { transaction });
     if (!room) {
       await transaction.rollback();
       return res.status(404).json({ success: false, message: "Không tìm thấy phòng" });
     }
 
-    console.log("🏠 Room found:", { id: room.room_type_id, name: room.type_name, price: room.price_per_night });
-
     const checkinDate = new Date(checkin);
     const checkoutDate = new Date(checkout);
 
-    // ✅ Validate dates
     if (isNaN(checkinDate.getTime()) || isNaN(checkoutDate.getTime())) {
       await transaction.rollback();
       return res.status(400).json({ success: false, message: "Ngày không hợp lệ" });
@@ -266,16 +221,11 @@ const postCheckout = async (req, res) => {
       return res.status(400).json({ success: false, message: "Ngày checkout phải sau ngày checkin" });
     }
 
-    // ✅ Use updated pricing calculation
     const pricing = calculateRoomPricing(room, checkinDate, checkoutDate, adultsCount, childrenCount);
-    console.log("💰 Pricing calculated:", pricing);
-    
     const orderId = `HOTEL_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
     const userId = req.session?.user?.id || null;
 
-    console.log("👤 User info:", { userId, sessionUser: req.session?.user });
-
-    // ✅ Create booking with explicit field mapping
+    // Create booking
     const bookingData = {
       user_id: userId,
       homestay_id: room.homestay_id || null,
@@ -299,19 +249,9 @@ const postCheckout = async (req, res) => {
       updated_at: new Date()
     };
 
-    console.log("📋 Booking data to save:", bookingData);
-
     const booking = await db.Booking.create(bookingData, { transaction });
-    
-    console.log("✅ Booking created:", { 
-      id: booking.id, 
-      booking_id: booking.booking_id, 
-      order_id: booking.order_id,
-      status: booking.status,
-      payment_method: booking.payment_method
-    });
 
-    // ✅ Create initial payment record
+    // Create payment record
     const paymentData = {
       booking_id: booking.id || booking.booking_id,
       user_id: userId,
@@ -323,21 +263,10 @@ const postCheckout = async (req, res) => {
       updated_at: new Date()
     };
 
-    console.log("💳 Payment data to save:", paymentData);
-
     const payment = await db.Payment.create(paymentData, { transaction });
-    
-    console.log("✅ Payment record created:", { 
-      id: payment.id, 
-      booking_id: payment.booking_id, 
-      amount: payment.amount,
-      status: payment.status 
-    });
-
-    // ✅ Commit transaction before processing payment methods
     await transaction.commit();
-    console.log("✅ Database transaction committed successfully");
 
+    // Handle Cash Payment
     if (paymentMethod === "cash") {
       return res.status(200).json({
         success: true,
@@ -377,6 +306,7 @@ const postCheckout = async (req, res) => {
       });
     }
 
+    // Handle VNPay Payment
     if (paymentMethod === "vnpay") {
       try {
         const returnUrl = `${BASE_URL}/api/vnpay_return`;
@@ -391,8 +321,6 @@ const postCheckout = async (req, res) => {
         const validIp = ipRegex.test(cleanIpAddr) ? cleanIpAddr : "127.0.0.1";
         
         const orderInfo = `Dat phong ${room.type_name.replace(/[^a-zA-Z0-9\s]/g, '')} - ${fullname.replace(/[^a-zA-Z0-9\s]/g, '')} - ${orderId}`;
-        
-        console.log("🏦 Creating VNPay payment URL...");
 
         const paymentUrl = buildVNPayUrl({
           amount: pricing.totalAmount,
@@ -403,7 +331,7 @@ const postCheckout = async (req, res) => {
           locale: "vn"
         });
 
-        // ✅ Update payment record with VNPay URL
+        // Update payment record with VNPay URL
         await db.Payment.update({
           gateway_response: JSON.stringify({
             vnpay_url: paymentUrl,
@@ -417,23 +345,21 @@ const postCheckout = async (req, res) => {
           where: { booking_id: booking.id || booking.booking_id, payment_method: 'vnpay' }
         });
 
-        console.log("✅ VNPay payment URL created and saved");
-
         return res.json({
           success: true,
           payment_method: "vnpay",
           redirect_url: paymentUrl,
           order_id: orderId,
           booking_id: booking.id || booking.booking_id,
-          expires_in: "60 minutes",
+          expires_in: "24 hours",
           amount: pricing.totalAmount,
           message: "Booking được tạo thành công, chuyển hướng tới VNPay"
         });
 
       } catch (vnpayError) {
-        console.error("❌ VNPay setup error:", vnpayError);
+        console.error("VNPay setup error:", vnpayError);
         
-        // ✅ Fallback to cash payment
+        // Fallback to cash payment
         await db.Booking.update(
           { payment_method: 'cash', payment_status: 'pending' },
           { where: { id: booking.id || booking.booking_id } }
@@ -454,35 +380,17 @@ const postCheckout = async (req, res) => {
       }
     }
 
-    if (paymentMethod === "momo") {
-      // ✅ Update payment record for MoMo
-      await db.Payment.update({
-        gateway_response: JSON.stringify({
-          momo_url: "https://test-payment.momo.vn/...",
-          created_at: new Date()
-        })
-      }, {
-        where: { booking_id: booking.id || booking.booking_id, payment_method: 'momo' }
-      });
-
-      return res.json({
-        success: true,
-        payment_method: "momo",
-        redirect_url: "https://test-payment.momo.vn/...",
-        order_id: orderId,
-        booking_id: booking.id || booking.booking_id,
-        message: "Booking được tạo thành công, chuyển hướng tới MoMo"
-      });
-    }
+    return res.status(400).json({
+      success: false,
+      message: "Phương thức thanh toán không được hỗ trợ. Chỉ hỗ trợ VNPay và tiền mặt."
+    });
 
   } catch (error) {
-    // ✅ Rollback transaction on any error
     if (transaction) {
       await transaction.rollback();
     }
     
-    console.error("❌ Checkout error:", error);
-    console.error("❌ Error stack:", error.stack);
+    console.error("Checkout error:", error);
     
     return res.status(500).json({ 
       success: false, 
@@ -495,11 +403,9 @@ const postCheckout = async (req, res) => {
   }
 };
 
-// Rest of the functions remain the same...
-export const handleVNPayReturn = async (req, res) => {
+// VNPay Return Handler
+const handleVNPayReturn = async (req, res) => {
   try {
-    console.log("🔄 VNPay return params:", req.query);
-
     const vnp_Params = { ...req.query };
     const secureHash = vnp_Params["vnp_SecureHash"];
 
@@ -517,23 +423,11 @@ export const handleVNPayReturn = async (req, res) => {
     const hmac = crypto.createHmac("sha512", VNP_HASH_SECRET);
     const calculatedHash = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
 
-    console.log("🔐 Signature verification:", {
-      received: secureHash,
-      calculated: calculatedHash,
-      match: secureHash === calculatedHash
-    });
-
     if (secureHash === calculatedHash) {
       const { vnp_ResponseCode, vnp_TxnRef, vnp_Amount, vnp_BankCode, vnp_PayDate, vnp_TransactionNo } = vnp_Params;
 
       if (vnp_ResponseCode === "00") {
-        console.log("✅ Payment successful:", {
-          orderId: vnp_TxnRef,
-          amount: vnp_Amount / 100,
-          transactionNo: vnp_TransactionNo
-        });
-
-        const updateResult = await db.Booking.update(
+        await db.Booking.update(
           { 
             status: "completed",
             payment_status: "paid", 
@@ -548,29 +442,26 @@ export const handleVNPayReturn = async (req, res) => {
         });
 
         if (booking) {
-          await db.Payment.upsert({
-            booking_id: booking.booking_id,
-            user_id: booking.user_id,
-            amount: vnp_Amount / 100,
-            status: 'completed',
-            transaction_id: vnp_TransactionNo,
-            payment_method: 'vnpay',
-            paid_at: new Date()
-          });
-        }
-
-        if (updateResult[0] === 0) {
-          console.log("⚠️ No booking found to update for order:", vnp_TxnRef);
+          await db.Payment.update(
+            {
+              status: 'completed',
+              transaction_id: vnp_TransactionNo,
+              paid_at: new Date(),
+              gateway_response: JSON.stringify({
+                vnp_ResponseCode,
+                vnp_TransactionNo,
+                vnp_BankCode,
+                vnp_PayDate,
+                vnp_Amount: vnp_Amount / 100
+              })
+            },
+            { where: { booking_id: booking.id || booking.booking_id } }
+          );
         }
 
         return res.redirect(`/payment-success?order_id=${vnp_TxnRef}&transaction_id=${vnp_TransactionNo}&amount=${vnp_Amount / 100}`);
 
       } else {
-        console.log("❌ Payment failed:", {
-          orderId: vnp_TxnRef,
-          responseCode: vnp_ResponseCode
-        });
-
         const errorMessage = getVNPayErrorMessage(vnp_ResponseCode);
         
         await db.Booking.update(
@@ -586,33 +477,37 @@ export const handleVNPayReturn = async (req, res) => {
         });
 
         if (booking) {
-          await db.Payment.upsert({
-            booking_id: booking.booking_id,
-            user_id: booking.user_id,
-            amount: vnp_Amount / 100,
-            status: 'failed',
-            transaction_id: vnp_TxnRef + '_FAILED',
-            payment_method: 'vnpay'
-          });
+          await db.Payment.update(
+            {
+              status: 'failed',
+              transaction_id: vnp_TxnRef + '_FAILED',
+              gateway_response: JSON.stringify({
+                vnp_ResponseCode,
+                error_message: errorMessage,
+                failed_at: new Date()
+              })
+            },
+            { where: { booking_id: booking.id || booking.booking_id } }
+          );
         }
 
         return res.redirect(`/payment-failed?order_id=${vnp_TxnRef}&error=${encodeURIComponent(errorMessage)}`);
       }
     } else {
-      console.log("❌ Invalid signature");
       return res.redirect("/payment-failed?error=invalid_signature");
     }
 
   } catch (error) {
-    console.error("❌ VNPay return error:", error);
+    console.error("VNPay return error:", error);
     return res.redirect("/payment-failed?error=system_error");
   }
 };
 
-// Continue with other existing functions...
-export const handleVNPayIPN = async (req, res) => {
+// VNPay IPN Handler
+const handleVNPayIPN = async (req, res) => {
   try {
-    const vnp_Params = { ...req.query };
+    // IPN có thể nhận data từ query hoặc body
+    const vnp_Params = { ...req.query, ...req.body };
     const secureHash = vnp_Params["vnp_SecureHash"];
 
     delete vnp_Params["vnp_SecureHash"];
@@ -622,7 +517,9 @@ export const handleVNPayIPN = async (req, res) => {
     Object.keys(vnp_Params)
       .sort()
       .forEach((key) => {
-        sortedParams[key] = vnp_Params[key];
+        if (vnp_Params[key] !== null && vnp_Params[key] !== undefined && vnp_Params[key] !== '') {
+          sortedParams[key] = vnp_Params[key];
+        }
       });
 
     const signData = querystring.stringify(sortedParams, { encode: false });
@@ -662,13 +559,13 @@ export const handleVNPayIPN = async (req, res) => {
       return res.json({ RspCode: "97", Message: "Invalid signature" });
     }
   } catch (error) {
-    console.error("❌ VNPay IPN error:", error);
+    console.error("VNPay IPN error:", error);
     return res.json({ RspCode: "99", Message: "System error" });
   }
 };
 
-// Continue with remaining functions unchanged...
-export const getBookingInfo = async (req, res) => {
+// Get Booking Information
+const getBookingInfo = async (req, res) => {
   try {
     const { order_id } = req.params;
     
@@ -687,7 +584,6 @@ export const getBookingInfo = async (req, res) => {
         ]
       });
     } catch (aliasError) {
-      console.log("🔍 Trying alternative association for booking info...");
       booking = await db.Booking.findOne({
         where: { order_id }
       });
@@ -727,7 +623,7 @@ export const getBookingInfo = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("❌ Get booking info error:", error);
+    console.error("Get booking info error:", error);
     return res.status(500).json({
       success: false,
       message: 'Lỗi khi lấy thông tin booking: ' + error.message
@@ -735,7 +631,8 @@ export const getBookingInfo = async (req, res) => {
   }
 };
 
-export const confirmCashPayment = async (req, res) => {
+// Confirm Cash Payment
+const confirmCashPayment = async (req, res) => {
   try {
     const { order_id } = req.params;
     const { staff_id, notes } = req.body;
@@ -789,8 +686,6 @@ export const confirmCashPayment = async (req, res) => {
       { where: { booking_id: booking.booking_id } }
     );
 
-    console.log(`✅ Cash payment confirmed for order: ${order_id} by staff: ${staff_id}`);
-
     return res.json({
       success: true,
       message: 'Xác nhận thanh toán tiền mặt thành công',
@@ -800,7 +695,7 @@ export const confirmCashPayment = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("❌ Confirm cash payment error:", error);
+    console.error("Confirm cash payment error:", error);
     return res.status(500).json({
       success: false,
       message: 'Lỗi khi xác nhận thanh toán: ' + error.message
@@ -808,7 +703,8 @@ export const confirmCashPayment = async (req, res) => {
   }
 };
 
-export const getCashPaymentReport = async (req, res) => {
+// Get Cash Payment Report
+const getCashPaymentReport = async (req, res) => {
   try {
     const { date } = req.query;
     const targetDate = date ? new Date(date) : new Date();
@@ -831,7 +727,6 @@ export const getCashPaymentReport = async (req, res) => {
         order: [['created_at', 'DESC']]
       });
     } catch (associationError) {
-      console.log("🔍 Using simplified query for cash payment report...");
       cashBookings = await db.Booking.findAll({
         where: {
           payment_method: 'cash',
@@ -877,7 +772,7 @@ export const getCashPaymentReport = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("❌ Get cash payment report error:", error);
+    console.error("Get cash payment report error:", error);
     return res.status(500).json({
       success: false,
       message: 'Lỗi khi lấy báo cáo: ' + error.message
@@ -885,7 +780,7 @@ export const getCashPaymentReport = async (req, res) => {
   }
 };
 
-// ✅ ENHANCED VNPay error messages with more specific descriptions
+// VNPay error messages
 const getVNPayErrorMessage = (responseCode) => {
   const errorMessages = {
     "01": "Giao dịch chưa hoàn tất - Vui lòng thử lại",
@@ -910,6 +805,7 @@ const getVNPayErrorMessage = (responseCode) => {
   return errorMessages[responseCode] || `Mã lỗi ${responseCode} - Lỗi không xác định`;
 };
 
+// Export all functions
 module.exports = {
   getPaymentPage,
   postCheckout,

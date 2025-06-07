@@ -168,13 +168,9 @@
       height: 20px;
       margin-right: 8px;
     }
-    .momo-color {
-      color: #d82d8b;
-    }
     .cash-color {
       color: #28a745;
     }
-    /* ✅ NEW: Pricing breakdown styles */
     .pricing-breakdown {
       background-color: #f8f9fa;
       border-radius: 5px;
@@ -207,31 +203,31 @@
       font-size: 13px;
       color: #1976d2;
     }
-    /* Debug styles */
-    .debug-info {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      background: rgba(0,0,0,0.8);
-      color: white;
-      padding: 10px;
-      border-radius: 5px;
-      font-size: 12px;
-      max-width: 300px;
-      z-index: 9999;
-      display: none;
+    .payment-method-header {
+      margin-bottom: 20px;
+      text-align: center;
+      color: #666;
+      font-size: 14px;
     }
-    .debug-info.show {
-      display: block;
+    .form-check.vnpay-option {
+      border-color: #007bff;
+      background: linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%);
+    }
+    .form-check.cash-option {
+      border-color: #28a745;
+      background: linear-gradient(135deg, #f8fff8 0%, #e8f5e8 100%);
+    }
+    .payment-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 500;
+      margin: 2px;
     }
   </style>
 </head>
 <body>
-  <!-- Debug Info Panel -->
-  <div id="debugInfo" class="debug-info">
-    <div id="debugContent"></div>
-  </div>
-
   <div class="container my-5">
     <form id="checkoutForm">
       <!-- Hidden fields from backend -->
@@ -309,7 +305,7 @@
                 </div>
               </div>
 
-              <!-- ✅ Guest Information -->
+              <!-- Guest Information -->
               <div class="guest-info">
                 <div class="d-flex justify-content-between">
                   <span><i class="fas fa-users me-1"></i> Tổng khách:</span>
@@ -337,7 +333,7 @@
                 <% } %>
               </div>
 
-              <!-- ✅ Detailed Pricing Breakdown -->
+              <!-- Detailed Pricing Breakdown -->
               <div class="pricing-breakdown">
                 <div class="breakdown-title">
                   <i class="fas fa-calculator me-1"></i> Chi tiết tính giá
@@ -370,7 +366,7 @@
                 <% } %>
               </div>
 
-              <!-- ✅ Price Summary -->
+              <!-- Price Summary -->
               <div class="price-row">
                 <span>Tạm tính:</span>
                 <span id="subtotalAmount"><%= Number(pricing?.totalAmount || 500000).toLocaleString('vi-VN') %> ₫</span>
@@ -381,12 +377,22 @@
                 <span id="totalAmount"><%= Number(pricing?.totalAmount || 500000).toLocaleString('vi-VN') %> ₫</span>
               </div>
 
+              <!-- Payment Methods - Only VNPay and Cash -->
               <div class="payment-methods">
-                <div class="form-check" data-payment="vnpay">
+                <div class="payment-method-header">
+                  <i class="fas fa-credit-card me-2"></i>
+                  <strong>Chọn phương thức thanh toán</strong>
+                </div>
+
+                <!-- VNPay Payment Option -->
+                <div class="form-check vnpay-option" data-payment="vnpay">
                   <input class="form-check-input" type="radio" name="paymentMethod" id="vnpay" value="vnpay" checked />
                   <label class="form-check-label" for="vnpay">
-                    <i class="fas fa-credit-card text-primary payment-icon"></i>
-                    <strong>Thanh toán online qua VNPay</strong>
+                    <div class="d-flex align-items-center">
+                      <i class="fas fa-credit-card text-primary payment-icon"></i>
+                      <strong>Thanh toán online qua VNPay</strong>
+                      <span class="payment-badge bg-primary text-white ms-auto">Khuyến nghị</span>
+                    </div>
                   </label>
                   <div class="payment-description">
                     <div class="row mt-2">
@@ -404,34 +410,9 @@
                             Ngân hàng Nhà nước
                           </small>
                         </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="form-check" data-payment="momo">
-                  <input class="form-check-input" type="radio" name="paymentMethod" id="momo" value="momo" />
-                  <label class="form-check-label" for="momo">
-                    <i class="fas fa-mobile-alt momo-color payment-icon"></i>
-                    <strong>Thanh toán qua Ví MoMo</strong>
-                  </label>
-                  <div class="payment-description">
-                    <div class="row mt-2">
-                      <div class="col-12">
-                        <small class="text-muted">Thanh toán nhanh chóng và an toàn với MoMo:</small>
-                        <div class="d-flex flex-wrap gap-2 mt-1">
-                          <span class="badge" style="background-color: #d82d8b">Ví MoMo</span>
-                          <span class="badge bg-success">Liên kết ngân hàng</span>
-                          <span class="badge bg-info">Thẻ tín dụng</span>
-                        </div>
-                        <div class="mt-2">
-                          <small class="text-info">
-                            <i class="fas fa-shield-alt me-1"></i> Bảo mật đa lớp | Hoàn tiền 100% nếu có sai sót
-                          </small>
-                        </div>
                         <div class="mt-1">
-                          <small class="text-muted">
-                            <i class="fas fa-gift me-1"></i> Tích điểm MoMo - Nhận ưu đãi hấp dẫn
+                          <small class="text-success">
+                            <i class="fas fa-check-circle me-1"></i> Xác nhận thanh toán tức thời
                           </small>
                         </div>
                       </div>
@@ -439,11 +420,15 @@
                   </div>
                 </div>
 
-                <div class="form-check" data-payment="cash">
+                <!-- Cash Payment Option -->
+                <div class="form-check cash-option" data-payment="cash">
                   <input class="form-check-input" type="radio" name="paymentMethod" id="cash" value="cash" />
                   <label class="form-check-label" for="cash">
-                    <i class="fas fa-money-bill-wave cash-color payment-icon"></i>
-                    <strong>Thanh toán bằng tiền mặt</strong>
+                    <div class="d-flex align-items-center">
+                      <i class="fas fa-money-bill-wave cash-color payment-icon"></i>
+                      <strong>Thanh toán bằng tiền mặt</strong>
+                      <span class="payment-badge bg-success text-white ms-auto">Miễn phí</span>
+                    </div>
                   </label>
                   <div class="payment-description">
                     <div class="row mt-2">
@@ -457,6 +442,11 @@
                         <div class="mt-1">
                           <small class="text-success">
                             <i class="fas fa-check-circle me-1"></i> Không phí giao dịch
+                          </small>
+                        </div>
+                        <div class="mt-1">
+                          <small class="text-success">
+                            <i class="fas fa-check-circle me-1"></i> Linh hoạt, dễ dàng
                           </small>
                         </div>
                         <div class="mt-1">
@@ -483,7 +473,7 @@
     const API_BASE_URL = "/api";
     const CHECKOUT_ENDPOINT = `${API_BASE_URL}/checkout`;
 
-    // ✅ Get pricing data from server
+    // Get pricing data from server
     const PRICING_DATA = {
       roomPrice: <%= room?.price_per_night || 500000 %>,
       nights: <%= pricing?.nights || 1 %>,
@@ -496,44 +486,21 @@
       totalAmount: <%= pricing?.totalAmount || 500000 %>
     };
 
-    // Debug log panel
-    function debugLog(message, data = null) {
-      console.log(`🔍 [Payment Debug] ${message}`, data);
-      const debugInfo = document.getElementById("debugInfo");
-      const debugContent = document.getElementById("debugContent");
-      if (debugInfo && debugContent) {
-        const timestamp = new Date().toLocaleTimeString();
-        const logEntry = document.createElement("div");
-        logEntry.innerHTML = `<strong>${timestamp}</strong>: ${message}`;
-        if (data) logEntry.innerHTML += `<br><pre>${JSON.stringify(data, null, 2)}</pre>`;
-        debugContent.appendChild(logEntry);
-        debugInfo.classList.add("show");
-        setTimeout(() => debugInfo.classList.remove("show"), 10000);
-      }
-    }
-
     async function testAPIConnectivity() {
       try {
-        debugLog("Testing API connectivity...");
         const response = await fetch(`${API_BASE_URL}/health`, { method: "GET", headers: { Accept: "application/json" } });
         if (response.ok) {
           const result = await response.json();
-          debugLog("API connectivity test successful", result);
           return true;
         } else {
-          debugLog("API connectivity test failed", { status: response.status, statusText: response.statusText, url: response.url });
           return false;
         }
       } catch (error) {
-        debugLog("API connectivity test error", error.message);
         return false;
       }
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      debugLog("Page loaded successfully");
-      debugLog("Pricing data from server", PRICING_DATA);
-
       const form = document.getElementById("checkoutForm");
       const bookBtn = document.getElementById("bookBtn");
 
@@ -548,7 +515,6 @@
           if (this.checked) {
             const selectedOption = document.querySelector(`.form-check[data-payment="${this.value}"]`);
             if (selectedOption) selectedOption.classList.add("selected");
-            debugLog("Payment method selected", this.value);
           }
         });
       });
@@ -561,7 +527,6 @@
 
       form.addEventListener("submit", function (e) {
         e.preventDefault();
-        debugLog("Form submitted");
         if (validateForm()) processBooking();
       });
 
@@ -591,9 +556,6 @@
 
         if (!isValid) {
           alert("Vui lòng điền đầy đủ thông tin bắt buộc!");
-          debugLog("Form validation failed");
-        } else {
-          debugLog("Form validation passed");
         }
 
         return isValid;
@@ -610,7 +572,6 @@
       }
 
       function processBooking() {
-        debugLog("Starting booking process");
         const originalText = bookBtn.innerHTML;
         bookBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
         bookBtn.disabled = true;
@@ -620,8 +581,6 @@
         for (let [key, value] of formData.entries()) {
           bookingData[key] = value;
         }
-        debugLog("Booking data prepared from form", bookingData);
-        debugLog("Making request to", CHECKOUT_ENDPOINT);
 
         fetch(CHECKOUT_ENDPOINT, {
           method: "POST",
@@ -632,12 +591,6 @@
           body: JSON.stringify(bookingData),
         })
           .then(async (response) => {
-            debugLog("Response received", {
-              status: response.status,
-              statusText: response.statusText,
-              ok: response.ok,
-            });
-
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -645,14 +598,11 @@
             const contentType = response.headers.get("content-type");
             if (!contentType || !contentType.includes("application/json")) {
               const text = await response.text();
-              debugLog("Non-JSON response received", text.substring(0, 200));
               throw new Error("Server returned non-JSON response: " + text.substring(0, 100));
             }
             return response.json();
           })
           .then((result) => {
-            debugLog("Success response received", result);
-
             if (result.success) {
               handlePaymentSuccess(result);
             } else {
@@ -660,7 +610,6 @@
             }
           })
           .catch((error) => {
-            debugLog("Booking error occurred", { message: error.message, stack: error.stack });
             let errorMessage = "Có lỗi xảy ra khi đặt phòng.";
             if (error.message.includes("HTTP error")) {
               errorMessage = "Lỗi kết nối server. Vui lòng thử lại.";
@@ -676,18 +625,14 @@
           .finally(() => {
             bookBtn.innerHTML = originalText;
             bookBtn.disabled = false;
-            debugLog("Booking process completed");
           });
       }
 
       function handlePaymentSuccess(result) {
         const paymentMethod = result.payment_method;
-        debugLog("Handling payment success", { paymentMethod, hasRedirectUrl: !!result.redirect_url });
 
         if (paymentMethod === "vnpay" && result.redirect_url) {
           showVNPayRedirect(result.redirect_url);
-        } else if (paymentMethod === "momo" && result.redirect_url) {
-          showMoMoRedirect(result.redirect_url);
         } else if (paymentMethod === "cash") {
           showCashPaymentConfirmation(result);
         } else {
@@ -704,18 +649,7 @@
         });
       }
 
-      function showMoMoRedirect(paymentUrl) {
-        showPaymentModal({
-          title: "Chuyển hướng đến MoMo",
-          icon: "fas fa-mobile-alt fa-4x momo-color",
-          description: "Bạn sẽ được chuyển đến ứng dụng MoMo để thanh toán...",
-          paymentUrl,
-        });
-      }
-
       function showCashPaymentConfirmation(result) {
-        debugLog("Showing cash payment confirmation");
-
         const modal = document.createElement("div");
         modal.className = "modal fade show";
         modal.style.display = "block";
@@ -861,11 +795,6 @@
             }, 500);
           }
         }, 200);
-      }
-
-      // Enable debug mode if ?debug=1 in URL
-      if (window.location.search.includes("debug=1")) {
-        document.getElementById("debugInfo").classList.add("show");
       }
     });
   </script>
