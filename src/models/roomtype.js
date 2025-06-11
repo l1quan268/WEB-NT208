@@ -65,6 +65,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
       },
+      slug: {
+        type: DataTypes.STRING(200),
+        allowNull: true,
+        unique: true, // đảm bảo không trùng
+      },
     },
     {
       sequelize,

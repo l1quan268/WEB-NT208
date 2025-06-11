@@ -8,7 +8,7 @@ const {
   handleVNPayIPN,
   getBookingInfo,
   confirmCashPayment,
-  getCashPaymentReport
+  getCashPaymentReport,
 } = require("../controllers/paymentController");
 const adminRoutes = require("./adminRoutes");
 
@@ -26,7 +26,8 @@ let initWebRoutes = (app) => {
   // ✅ Search routes
   router.get("/search", homeController.searchRoom);
   router.get("/search/ajax", homeController.searchRoomAjax);
-  router.get("/room/:id", homeController.getRoomDetail);
+  // router.get("/room/:id", homeController.getRoomDetail);
+  router.get("/room/:slug", homeController.getRoomDetailBySlug);
 
   // ✅ Payment routes
   router.get("/payment", getPaymentPage);
@@ -45,25 +46,25 @@ let initWebRoutes = (app) => {
   // ✅ Payment result pages
   router.get("/payment-success", (req, res) => {
     const { order_id, transaction_id, amount } = req.query;
-    
+
     res.render("Payment/success", {
       title: "Thanh toán thành công",
       order_id,
       transaction_id,
-      amount: amount ? parseFloat(amount).toLocaleString('vi-VN') + ' ₫' : null,
-      user: req.session?.user || null
+      amount: amount ? parseFloat(amount).toLocaleString("vi-VN") + " ₫" : null,
+      user: req.session?.user || null,
     });
   });
 
   router.get("/payment-failed", (req, res) => {
     const { order_id, error, code } = req.query;
-    
+
     res.render("Payment/failed", {
       title: "Thanh toán thất bại",
       order_id,
-      error: error ? decodeURIComponent(error) : 'Giao dịch không thành công',
-      code: code || 'ERR_PAYMENT_FAILED',
-      user: req.session?.user || null
+      error: error ? decodeURIComponent(error) : "Giao dịch không thành công",
+      code: code || "ERR_PAYMENT_FAILED",
+      user: req.session?.user || null,
     });
   });
 
@@ -76,12 +77,12 @@ let initWebRoutes = (app) => {
   router.get("/api/payment-status/:order_id", async (req, res) => {
     try {
       const { order_id } = req.params;
-      
+
       // Basic validation
       if (!order_id) {
         return res.status(400).json({
           success: false,
-          message: 'Thiếu mã đơn hàng'
+          message: "Thiếu mã đơn hàng",
         });
       }
 
@@ -89,26 +90,29 @@ let initWebRoutes = (app) => {
         success: true,
         status: {
           order_id: order_id,
-          booking_status: 'pending',
-          payment_status: 'pending',
-          payment_method: 'vnpay',
-          message: 'API đang được phát triển'
-        }
+          booking_status: "pending",
+          payment_status: "pending",
+          payment_method: "vnpay",
+          message: "API đang được phát triển",
+        },
       });
-
     } catch (error) {
       console.error("Payment status check error:", error);
       return res.status(500).json({
         success: false,
-        message: 'Lỗi hệ thống khi kiểm tra trạng thái thanh toán'
+        message: "Lỗi hệ thống khi kiểm tra trạng thái thanh toán",
       });
     }
   });
 
   // ✅ Google Auth routes
-  router.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+  router.get(
+    "/auth/google",
+    passport.authenticate("google", { scope: ["profile", "email"] })
+  );
 
-  router.get("/auth/google/callback", 
+  router.get(
+    "/auth/google/callback",
     passport.authenticate("google", { failureRedirect: "/login" }),
     (req, res) => {
       if (req.session && req.user) {
@@ -151,11 +155,15 @@ let initWebRoutes = (app) => {
 
   // ✅ Test routes (có thể xóa trong production)
   router.get("/test-payment-success", (req, res) => {
-    res.redirect("/payment-success?order_id=TEST123&transaction_id=VNP123&amount=500000");
+    res.redirect(
+      "/payment-success?order_id=TEST123&transaction_id=VNP123&amount=500000"
+    );
   });
 
   router.get("/test-payment-failed", (req, res) => {
-    res.redirect("/payment-failed?order_id=TEST123&error=invalid_signature&code=97");
+    res.redirect(
+      "/payment-failed?order_id=TEST123&error=invalid_signature&code=97"
+    );
   });
 
   router.get("/test-session", (req, res) => {
@@ -164,7 +172,9 @@ let initWebRoutes = (app) => {
     }
 
     req.session.count = (req.session.count || 0) + 1;
-    res.send(`Session count: ${req.session.count}, Session ID: ${req.sessionID}`);
+    res.send(
+      `Session count: ${req.session.count}, Session ID: ${req.sessionID}`
+    );
   });
 
   // ✅ Health check route
@@ -174,7 +184,7 @@ let initWebRoutes = (app) => {
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       memory: process.memoryUsage(),
-      version: process.version
+      version: process.version,
     });
   });
 
@@ -190,8 +200,8 @@ let initWebRoutes = (app) => {
         "GET|POST /api/vnpay_ipn",
         "GET /health",
         "GET /test-payment-success",
-        "GET /test-payment-failed"
-      ]
+        "GET /test-payment-failed",
+      ],
     });
   });
 

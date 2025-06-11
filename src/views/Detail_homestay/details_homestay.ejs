@@ -361,7 +361,7 @@
               <div class="d-flex gap-4 flex-wrap justify-content-center">
                 <% suggRooms.forEach(function(sroom) { %>
                   <div class="card" style="width: 18rem; cursor: pointer;">
-                    <a href="/room/<%= sroom.room_type_id %>">
+                    <a href="/room/<%= sroom.slug %>">
                       <img src="<%= sroom.thumbnail %>" class="card-img-top" alt="<%= sroom.type_name %>"
                         style="height: 140px; object-fit: cover;" />
                     </a>
