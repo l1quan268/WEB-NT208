@@ -34,6 +34,8 @@ router.get("/health", (req, res) => {
 // ===== Đánh giá phòng =====
 router.post("/review", homeController.postReview);
 
+router.get("/room/:room_id/booked-dates", homeController.getBookedDates);
+
 // ✅ Mount các route con từ paymentRoutes.js
 router.use("/", paymentRoutes);
 

@@ -1281,10 +1281,65 @@ let postChangePassword = async (req, res) => {
     return res.redirect("/account");
   }
 };
-//LSDP
+let getBookedDates = async (req, res) => {
+  try {
+    const { room_id } = req.params;
+    
+    if (!room_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Room ID is required'
+      });
+    }
 
+    // Lấy các booking đã xác nhận cho phòng này
+    const bookings = await db.Booking.findAll({
+      where: {
+        room_type_id: room_id,
+        payment_status: ['paid', 'pending'], // Chỉ lấy booking đã thanh toán hoặc đang chờ
+        status: {
+          [db.Sequelize.Op.notIn]: ['cancelled', 'failed'] // Loại trừ booking đã hủy
+        }
+      },
+      attributes: ['check_in_date', 'check_out_date'],
+      order: [['check_in_date', 'ASC']]
+    });
 
-// Tìm kiếm phòng
+    // Tạo array chứa tất cả ngày đã được đặt
+    let bookedDates = [];
+    
+    bookings.forEach(booking => {
+      const checkinDate = new Date(booking.check_in_date);
+      const checkoutDate = new Date(booking.check_out_date);
+      
+      // Lặp qua tất cả ngày từ check-in đến check-out (không bao gồm check-out)
+      for (let currentDate = new Date(checkinDate); currentDate < checkoutDate; currentDate.setDate(currentDate.getDate() + 1)) {
+        const dateString = currentDate.toISOString().split('T')[0];
+        if (!bookedDates.includes(dateString)) {
+          bookedDates.push(dateString);
+        }
+      }
+    });
+
+    // Sắp xếp ngày tăng dần
+    bookedDates.sort();
+
+    return res.json({
+      success: true,
+      bookedDates: bookedDates,
+      totalBookings: bookings.length
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching booked dates:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+// Cập nhật module.exports - THÊM getBookedDates vào cuối
 module.exports = {
   getHomePage: getHomePage,
   getSignUp: getSignUp,
@@ -1303,6 +1358,6 @@ module.exports = {
   postChangePassword: postChangePassword,
   postUpdateUserInfo: postUpdateUserInfo,
   getUserInfoPage: getUserInfoPage,
-  cancelBooking : cancelBooking,
-  // deleteReview: deleteReview,
+  cancelBooking: cancelBooking,
+  getBookedDates: getBookedDates // 🔥 CHỈ THÊM DÒNG NÀY
 };
