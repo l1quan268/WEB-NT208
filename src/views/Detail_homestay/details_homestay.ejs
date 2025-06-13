@@ -511,131 +511,998 @@
       });
   }
 
-  // 🔥 SETUP DATE VALIDATION VÀ DISABLE DATES
-  function setupDateValidation() {
+  //--------------------------------
+  // BOOKING CONFLICT PREVENTION SYSTEM
+// Thay thế toàn bộ script date validation bằng code này
+
+document.addEventListener('DOMContentLoaded', function() {
+  let confirmedBookings = []; // Các booking đã thanh toán
+  const roomId = '<%= room.room_type_id %>';
+  
+  // Load confirmed bookings khi trang tải
+  loadConfirmedBookings();
+  
+  function loadConfirmedBookings() {
+    // API call để lấy các booking đã confirm/thanh toán cho phòng này
+    fetch(`/api/room/${roomId}/confirmed-bookings`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          confirmedBookings = data.bookings || [];
+        } else {
+          // Fallback data để test (giả sử có người đặt từ 14-18/06)
+          confirmedBookings = [
+            {
+              id: 1,
+              checkin: '2025-06-14',
+              checkout: '2025-06-18',
+              guest_name: 'Nguyen Van A',
+              status: 'confirmed'
+            },
+            {
+              id: 2, 
+              checkin: '2025-06-20',
+              checkout: '2025-06-23',
+              guest_name: 'Tran Thi B',
+              status: 'confirmed'
+            },
+            {
+              id: 3,
+              checkin: '2025-06-25',
+              checkout: '2025-06-28',
+              guest_name: 'Le Van C', 
+              status: 'confirmed'
+            }
+          ];
+        }
+        console.log('📅 Loaded confirmed bookings:', confirmedBookings);
+        setupConflictPrevention();
+        displayBookingCalendar();
+      })
+      .catch(error => {
+        console.warn('Error loading bookings:', error);
+        // Fallback data để test
+        confirmedBookings = [
+          {
+            id: 1,
+            checkin: '2025-06-14',
+            checkout: '2025-06-18',
+            guest_name: 'Khách hàng A',
+            status: 'confirmed'
+          }
+        ];
+        setupConflictPrevention();
+        displayBookingCalendar();
+      });
+  }
+  
+  function setupConflictPrevention() {
     const checkinInput = document.getElementById("checkin");
     const checkoutInput = document.getElementById("checkout");
-
+    
     // Set minimum date to today
     const today = new Date().toISOString().split('T')[0];
     checkinInput.min = today;
-
-    // 🔥 STYLE CHO NGÀY BỊ DISABLE
+    checkoutInput.min = today;
+    
+    // Add custom CSS
+    addConflictPreventionStyles();
+    
+    // Setup event listeners
+    checkinInput.addEventListener('change', handleCheckinSelection);
+    checkoutInput.addEventListener('change', handleCheckoutSelection);
+    
+    // Add visual indicators
+    setupVisualIndicators();
+  }
+  
+  function addConflictPreventionStyles() {
     const style = document.createElement('style');
     style.textContent = `
-      input[type="date"]::-webkit-calendar-picker-indicator {
-        background: transparent;
-        bottom: 0;
-        color: transparent;
-        cursor: pointer;
-        height: auto;
-        left: 0;
-        position: absolute;
-        right: 0;
-        top: 0;
-        width: auto;
+      .conflict-warning {
+        background-color: #fff3cd;
+        border: 2px solid #ffc107;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 10px 0;
+        animation: conflictPulse 0.5s ease-in-out;
       }
       
-      /* Tạo overlay để hiển thị ngày disabled */
-      .date-input-container {
+      .conflict-error {
+        background-color: #f8d7da;
+        border: 2px solid #dc3545;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 10px 0;
+        animation: conflictShake 0.5s ease-in-out;
+      }
+      
+      .booking-timeline {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 10px 0;
+        border-left: 4px solid #007bff;
+      }
+      
+      .booked-period {
+        background: linear-gradient(90deg, #dc3545 0%, #dc3545 100%);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        margin: 3px;
+        display: inline-block;
         position: relative;
       }
       
-      .disabled-dates-info {
-        font-size: 0.8em;
-        color: #dc3545;
-        margin-top: 5px;
+      .available-period {
+        background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        margin: 3px;
+        display: inline-block;
+      }
+      
+      .date-input-conflict {
+        border: 2px solid #dc3545 !important;
+        box-shadow: 0 0 10px rgba(220,53,69,0.4) !important;
+        animation: conflictBorder 0.5s ease-in-out infinite alternate;
+      }
+      
+      .date-input-success {
+        border: 2px solid #28a745 !important;
+        box-shadow: 0 0 10px rgba(40,167,69,0.3) !important;
+      }
+      
+      @keyframes conflictPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); }
+      }
+      
+      @keyframes conflictShake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+      }
+      
+      @keyframes conflictBorder {
+        0% { border-color: #dc3545; }
+        100% { border-color: #ff6b7a; }
+      }
+      
+      .suggestion-box {
+        background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+        border: 1px solid #bbdefb;
+        border-radius: 10px;
+        padding: 15px;
+        margin: 10px 0;
+      }
+      
+      .suggested-date {
+        background: #4caf50;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 20px;
+        margin: 5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-block;
+        font-weight: 500;
+      }
+      
+      .suggested-date:hover {
+        background: #45a049;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
       }
     `;
     document.head.appendChild(style);
-
-    // 🔥 THÊM THÔNG BÁO NGÀY BỊ DISABLE
-    const checkinContainer = checkinInput.parentNode;
-    const checkoutContainer = checkoutInput.parentNode;
+  }
+  
+  function handleCheckinSelection() {
+    const checkinInput = document.getElementById("checkin");
+    const checkoutInput = document.getElementById("checkout");
+    const selectedDate = checkinInput.value;
     
-    checkinContainer.classList.add('date-input-container');
-    checkoutContainer.classList.add('date-input-container');
-
-    const disabledInfo = document.createElement('div');
-    disabledInfo.className = 'disabled-dates-info';
-    disabledInfo.innerHTML = `
-      <i class="fas fa-info-circle"></i> 
-      Một số ngày đã được đặt và không thể chọn
+    // Reset styling
+    checkinInput.classList.remove('date-input-conflict', 'date-input-success');
+    clearConflictMessages();
+    
+    if (!selectedDate) return;
+    
+    // Kiểm tra xem ngày checkin có bị conflict không
+    const conflictBooking = findConflictingBooking(selectedDate, selectedDate);
+    
+    if (conflictBooking) {
+      // Ngày checkin bị trùng với booking đã có
+      checkinInput.classList.add('date-input-conflict');
+      showConflictError(conflictBooking, 'checkin');
+      checkinInput.value = ''; // Clear invalid date
+      return;
+    }
+    
+    // Ngày checkin OK, check available checkout range
+    checkinInput.classList.add('date-input-success');
+    
+    // Update checkout minimum
+    const nextDay = new Date(selectedDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    checkoutInput.min = nextDay.toISOString().split('T')[0];
+    
+    // Clear checkout if it's invalid
+    if (checkoutInput.value && checkoutInput.value <= selectedDate) {
+      checkoutInput.value = '';
+    }
+    
+    // Show available checkout suggestions
+    showCheckoutSuggestions(selectedDate);
+  }
+  
+  function handleCheckoutSelection() {
+    const checkinInput = document.getElementById("checkin");
+    const checkoutInput = document.getElementById("checkout");
+    const checkinDate = checkinInput.value;
+    const checkoutDate = checkoutInput.value;
+    
+    // Reset styling
+    checkoutInput.classList.remove('date-input-conflict', 'date-input-success');
+    clearConflictMessages();
+    
+    if (!checkoutDate) return;
+    
+    if (!checkinDate) {
+      showError('Vui lòng chọn ngày nhận phòng trước!');
+      checkoutInput.value = '';
+      return;
+    }
+    
+    if (checkoutDate <= checkinDate) {
+      showError('Ngày trả phòng phải sau ngày nhận phòng!');
+      checkoutInput.value = '';
+      return;
+    }
+    
+    // Kiểm tra toàn bộ range có conflict không
+    const conflictBooking = findConflictingBooking(checkinDate, checkoutDate);
+    
+    if (conflictBooking) {
+      checkoutInput.classList.add('date-input-conflict');
+      showConflictError(conflictBooking, 'range', checkinDate, checkoutDate);
+      checkoutInput.value = '';
+      return;
+    }
+    
+    // Range OK
+    checkoutInput.classList.add('date-input-success');
+    showSuccessMessage(checkinDate, checkoutDate);
+  }
+  
+  function findConflictingBooking(startDate, endDate) {
+    for (let booking of confirmedBookings) {
+      // Kiểm tra overlap: 
+      // Booking mới: [startDate, endDate)
+      // Booking cũ: [booking.checkin, booking.checkout)
+      
+      if (startDate < booking.checkout && endDate > booking.checkin) {
+        return booking;
+      }
+    }
+    return null;
+  }
+  
+  function showConflictError(conflictBooking, type, userCheckin = null, userCheckout = null) {
+    const container = document.querySelector('.booking-form');
+    
+    let message = '';
+    let suggestionHtml = '';
+    
+    if (type === 'checkin') {
+      message = `
+        <div class="conflict-error">
+          <h6><i class="fas fa-exclamation-triangle me-2"></i>Ngày không khả dụng!</h6>
+          <p><strong>Ngày ${formatDate(conflictBooking.checkin)}</strong> đã được đặt trong khoảng:</p>
+          <div class="booked-period">
+            📅 ${formatDate(conflictBooking.checkin)} → ${formatDate(conflictBooking.checkout)}
+          </div>
+          <p style="margin-top: 10px; color: #721c24;">
+            <i class="fas fa-info-circle me-1"></i>
+            Vui lòng chọn ngày khác để tránh trùng lặp với khách hàng đã đặt.
+          </p>
+        </div>
+      `;
+      
+      suggestionHtml = generateCheckinSuggestions();
+      
+    } else if (type === 'range') {
+      const conflictStart = new Date(Math.max(new Date(userCheckin), new Date(conflictBooking.checkin)));
+      const conflictEnd = new Date(Math.min(new Date(userCheckout), new Date(conflictBooking.checkout)));
+      
+      message = `
+        <div class="conflict-error">
+          <h6><i class="fas fa-exclamation-triangle me-2"></i>Khoảng thời gian bị trùng!</h6>
+          <p>Thời gian bạn chọn <strong>${formatDate(userCheckin)} → ${formatDate(userCheckout)}</strong></p>
+          <p>Bị trùng với booking đã có: <strong>${formatDate(conflictBooking.checkin)} → ${formatDate(conflictBooking.checkout)}</strong></p>
+          
+          <div style="margin: 10px 0; padding: 10px; background: #fff; border-radius: 5px;">
+            <div style="color: #dc3545; font-weight: bold;">❌ Thời gian trùng: ${formatDate(conflictStart.toISOString().split('T')[0])} → ${formatDate(conflictEnd.toISOString().split('T')[0])}</div>
+          </div>
+          
+          <p style="color: #721c24;">
+            <i class="fas fa-lightbulb me-1"></i>
+            Vui lòng chọn thời gian khác để tránh xung đột.
+          </p>
+        </div>
+      `;
+      
+      suggestionHtml = generateRangeSuggestions(userCheckin);
+    }
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'conflict-alert';
+    alertDiv.innerHTML = message + suggestionHtml;
+    
+    container.appendChild(alertDiv);
+    
+    // Auto scroll to conflict message
+    alertDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  
+  function generateCheckinSuggestions() {
+    const availableDates = findNextAvailableDates(5);
+    
+    if (availableDates.length === 0) {
+      return `
+        <div class="suggestion-box">
+          <h6><i class="fas fa-calendar-alt me-2"></i>Không có ngày trống gần đây</h6>
+          <p>Vui lòng liên hệ để được tư vấn thêm về lịch trống.</p>
+        </div>
+      `;
+    }
+    
+    let html = `
+      <div class="suggestion-box">
+        <h6><i class="fas fa-magic me-2"></i>Gợi ý ngày nhận phòng khả dụng:</h6>
+        <div style="margin-top: 10px;">
     `;
-    checkoutContainer.appendChild(disabledInfo);
-
-    // 🔥 VALIDATION CHO CHECKIN
-    checkinInput.addEventListener('change', function () {
-      const selectedDate = this.value;
-      
-      // Kiểm tra nếu ngày được chọn nằm trong danh sách đã đặt
-      if (bookedDates.includes(selectedDate)) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Ngày không khả dụng',
-          text: 'Ngày này đã được đặt. Vui lòng chọn ngày khác.',
-          timer: 3000,
-          showConfirmButton: false
-        });
-        this.value = ''; // Clear giá trị
-        return;
-      }
-
-      const checkinDate = new Date(selectedDate);
-      const minCheckout = new Date(checkinDate);
-      minCheckout.setDate(minCheckout.getDate() + 1);
-      checkoutInput.min = minCheckout.toISOString().split('T')[0];
-
-      // Auto-update checkout if it's invalid
-      if (checkoutInput.value && checkoutInput.value <= selectedDate) {
-        checkoutInput.value = minCheckout.toISOString().split('T')[0];
-      }
+    
+    availableDates.forEach(date => {
+      html += `
+        <span class="suggested-date" onclick="selectSuggestedDate('${date}', 'checkin')">
+          ${formatDate(date)}
+        </span>
+      `;
     });
-
-    // 🔥 VALIDATION CHO CHECKOUT
-    checkoutInput.addEventListener('change', function () {
-      const checkinDate = checkinInput.value;
-      const checkoutDate = this.value;
+    
+    html += `
+        </div>
+        <small style="color: #6c757d; margin-top: 10px; display: block;">
+          <i class="fas fa-click me-1"></i>Click vào ngày để chọn nhanh
+        </small>
+      </div>
+    `;
+    
+    return html;
+  }
+  
+  function generateRangeSuggestions(originalCheckin) {
+    const suggestions = [];
+    
+    // Suggestion 1: Checkout trước conflict
+    const nearestConflict = findNearestConflictAfter(originalCheckin);
+    if (nearestConflict) {
+      suggestions.push({
+        checkin: originalCheckin,
+        checkout: nearestConflict.checkin,
+        reason: 'Kết thúc trước booking đã có'
+      });
+    }
+    
+    // Suggestion 2: Start after conflict ends  
+    if (nearestConflict) {
+      const nextAvailable = findNextAvailableAfter(nearestConflict.checkout);
+      if (nextAvailable) {
+        suggestions.push({
+          checkin: nearestConflict.checkout,
+          checkout: nextAvailable,
+          reason: 'Bắt đầu sau booking đã có'
+        });
+      }
+    }
+    
+    // Suggestion 3: Completely different dates
+    const alternateDates = findAlternateDateRanges(3);
+    suggestions.push(...alternateDates);
+    
+    let html = `
+      <div class="suggestion-box">
+        <h6><i class="fas fa-lightbulb me-2"></i>Đề xuất thời gian thay thế:</h6>
+    `;
+    
+    suggestions.slice(0, 3).forEach((suggestion, index) => {
+      const nights = Math.ceil((new Date(suggestion.checkout) - new Date(suggestion.checkin)) / (1000 * 60 * 60 * 24));
+      html += `
+        <div style="margin: 8px 0; padding: 8px; background: white; border-radius: 5px; border: 1px solid #e0e0e0;">
+          <div style="font-weight: bold; color: #2196f3;">Lựa chọn ${index + 1}: ${suggestion.reason}</div>
+          <div style="margin: 5px 0;">
+            <span class="suggested-date" onclick="selectSuggestedRange('${suggestion.checkin}', '${suggestion.checkout}')">
+              ${formatDate(suggestion.checkin)} → ${formatDate(suggestion.checkout)} (${nights} đêm)
+            </span>
+          </div>
+        </div>
+      `;
+    });
+    
+    html += `</div>`;
+    return html;
+  }
+  
+  function findNextAvailableDates(count) {
+    const available = [];
+    const today = new Date();
+    
+    for (let i = 0; i < 60 && available.length < count; i++) {
+      const checkDate = new Date(today);
+      checkDate.setDate(today.getDate() + i);
+      const dateStr = checkDate.toISOString().split('T')[0];
       
-      if (!checkinDate) {
-        Swal.fire({
-          icon: 'info',
-          title: 'Chọn ngày nhận trước',
-          text: 'Vui lòng chọn ngày nhận phòng trước.',
-          timer: 2000,
-          showConfirmButton: false
-        });
-        this.value = '';
-        return;
+      if (!findConflictingBooking(dateStr, dateStr)) {
+        available.push(dateStr);
       }
-
-      // 🔥 KIỂM TRA RANGE CÓ CHỨA NGÀY ĐÃ ĐẶT KHÔNG
-      if (hasBookedDatesInRange(checkinDate, checkoutDate)) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Khoảng thời gian không hợp lệ',
-          text: 'Khoảng thời gian bạn chọn có chứa ngày đã được đặt. Vui lòng chọn lại.',
-          timer: 4000,
-          showConfirmButton: false
-        });
-        this.value = '';
-        return;
+    }
+    
+    return available;
+  }
+  
+  function findNearestConflictAfter(date) {
+    return confirmedBookings
+      .filter(booking => booking.checkin > date)
+      .sort((a, b) => new Date(a.checkin) - new Date(b.checkin))[0];
+  }
+  
+  function findNextAvailableAfter(date) {
+    const checkDate = new Date(date);
+    checkDate.setDate(checkDate.getDate() + 1);
+    
+    for (let i = 0; i < 30; i++) {
+      const testDate = new Date(checkDate);
+      testDate.setDate(checkDate.getDate() + i);
+      const dateStr = testDate.toISOString().split('T')[0];
+      
+      if (!findConflictingBooking(dateStr, dateStr)) {
+        const endDate = new Date(testDate);
+        endDate.setDate(testDate.getDate() + 2); // 2 nights minimum
+        return endDate.toISOString().split('T')[0];
       }
-
-      // Kiểm tra checkout sau checkin
-      if (checkoutDate <= checkinDate) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Ngày không hợp lệ',
-          text: 'Ngày trả phòng phải sau ngày nhận phòng.',
-          timer: 2000,
-          showConfirmButton: false
+    }
+    return null;
+  }
+  
+  function findAlternateDateRanges(count) {
+    const ranges = [];
+    const today = new Date();
+    
+    for (let i = 1; i < 60 && ranges.length < count; i += 7) {
+      const startDate = new Date(today);
+      startDate.setDate(today.getDate() + i);
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 3); // 3 nights
+      
+      const startStr = startDate.toISOString().split('T')[0];
+      const endStr = endDate.toISOString().split('T')[0];
+      
+      if (!findConflictingBooking(startStr, endStr)) {
+        ranges.push({
+          checkin: startStr,
+          checkout: endStr,
+          reason: `Tuần ${Math.floor(i/7) + 1} tới`
         });
-        this.value = '';
-        return;
       }
+    }
+    
+    return ranges;
+  }
+  
+  function showCheckoutSuggestions(checkinDate) {
+    const container = document.querySelector('.booking-form');
+    const maxStay = findMaximumStayDuration(checkinDate);
+    
+    const suggestionsHtml = `
+      <div class="booking-timeline">
+        <h6><i class="fas fa-calendar-check me-2"></i>Thời gian ở tối đa từ ngày này:</h6>
+        <p>Từ <strong>${formatDate(checkinDate)}</strong>, bạn có thể ở tối đa <strong>${maxStay} đêm</strong></p>
+        
+        <div style="margin-top: 10px;">
+          <span class="available-period">✅ Có thể đặt đến ${formatDate(getDateAfter(checkinDate, maxStay))}</span>
+        </div>
+        
+        ${generateQuickCheckoutOptions(checkinDate, maxStay)}
+      </div>
+    `;
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'conflict-alert';
+    alertDiv.innerHTML = suggestionsHtml;
+    container.appendChild(alertDiv);
+  }
+  
+  function generateQuickCheckoutOptions(checkinDate, maxStay) {
+    const options = [1, 2, 3, 7].filter(nights => nights <= maxStay);
+    
+    let html = `
+      <div style="margin-top: 15px;">
+        <small style="color: #6c757d;">Chọn nhanh số đêm:</small><br>
+    `;
+    
+    options.forEach(nights => {
+      const checkoutDate = getDateAfter(checkinDate, nights);
+      html += `
+        <span class="suggested-date" onclick="selectSuggestedRange('${checkinDate}', '${checkoutDate}')">
+          ${nights} đêm → ${formatDate(checkoutDate)}
+        </span>
+      `;
+    });
+    
+    html += `</div>`;
+    return html;
+  }
+  
+  function findMaximumStayDuration(checkinDate) {
+    const nextConflict = findNearestConflictAfter(checkinDate);
+    
+    if (!nextConflict) {
+      return 30; // Maximum 30 nights if no conflicts
+    }
+    
+    const daysDiff = Math.ceil((new Date(nextConflict.checkin) - new Date(checkinDate)) / (1000 * 60 * 60 * 24));
+    return Math.max(1, daysDiff);
+  }
+  
+  function showSuccessMessage(checkinDate, checkoutDate) {
+    const container = document.querySelector('.booking-form');
+    const nights = Math.ceil((new Date(checkoutDate) - new Date(checkinDate)) / (1000 * 60 * 60 * 24));
+    
+    const successHtml = `
+      <div style="background: #d4edda; border: 2px solid #28a745; border-radius: 8px; padding: 15px; margin: 10px 0;">
+        <h6 style="color: #155724; margin-bottom: 10px;">
+          <i class="fas fa-check-circle me-2"></i>Tuyệt vời! Thời gian này có sẵn
+        </h6>
+        <div style="color: #155724;">
+          <strong>📅 ${formatDate(checkinDate)} → ${formatDate(checkoutDate)}</strong> (${nights} đêm)
+        </div>
+        <div style="margin-top: 10px; color: #0f5132;">
+          <i class="fas fa-info-circle me-1"></i>
+          Bạn có thể tiếp tục đặt phòng với thời gian này.
+        </div>
+      </div>
+    `;
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'conflict-alert';
+    alertDiv.innerHTML = successHtml;
+    container.appendChild(alertDiv);
+  }
+  
+  function showError(message) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Lỗi nhập liệu',
+      text: message,
+      timer: 2500,
+      showConfirmButton: false
     });
   }
+  
+  function clearConflictMessages() {
+    const alerts = document.querySelectorAll('.conflict-alert');
+    alerts.forEach(alert => alert.remove());
+  }
+  
+  function displayBookingCalendar() {
+    const priceTable = document.querySelector('.price-table');
+    if (!priceTable) return;
+    
+    let calendarHtml = `
+      <div class="booking-timeline mt-3">
+        <h6><i class="fas fa-calendar-alt me-2"></i>Lịch đặt phòng hiện tại</h6>
+    `;
+    
+    if (confirmedBookings.length === 0) {
+      calendarHtml += `
+        <div class="available-period" style="width: 100%; text-align: center; padding: 15px;">
+          🎉 Phòng hiện tại hoàn toàn trống! Bạn có thể đặt bất kỳ ngày nào.
+        </div>
+      `;
+    } else {
+      confirmedBookings
+        .filter(booking => new Date(booking.checkout) >= new Date())
+        .sort((a, b) => new Date(a.checkin) - new Date(b.checkin))
+        .forEach(booking => {
+          const nights = Math.ceil((new Date(booking.checkout) - new Date(booking.checkin)) / (1000 * 60 * 60 * 24));
+          calendarHtml += `
+            <div style="margin: 8px 0;">
+              <div class="booked-period">
+                🔒 ${formatDate(booking.checkin)} → ${formatDate(booking.checkout)} (${nights} đêm)
+              </div>
+            </div>
+          `;
+        });
+      
+      calendarHtml += `
+        <small style="color: #6c757d; margin-top: 10px; display: block;">
+          <i class="fas fa-info-circle me-1"></i>
+          Những ngày tô đỏ đã có khách đặt và thanh toán
+        </small>
+      `;
+    }
+    
+    calendarHtml += `</div>`;
+    
+    const calendarDiv = document.createElement('div');
+    calendarDiv.innerHTML = calendarHtml;
+    priceTable.appendChild(calendarDiv);
+  }
+  
+  // Helper functions
+  function formatDate(dateStr) {
+    return new Date(dateStr).toLocaleDateString('vi-VN');
+  }
+  
+  function getDateAfter(dateStr, days) {
+    const date = new Date(dateStr);
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+  }
+  
+  // Global functions for onclick handlers
+  window.selectSuggestedDate = function(date, type) {
+    const input = document.getElementById(type);
+    input.value = date;
+    input.dispatchEvent(new Event('change'));
+    clearConflictMessages();
+  }
+  
+  window.selectSuggestedRange = function(checkin, checkout) {
+    document.getElementById('checkin').value = checkin;
+    document.getElementById('checkout').value = checkout;
+    clearConflictMessages();
+    showSuccessMessage(checkin, checkout);
+  }
+});
+
+// Thêm vào cuối script booking conflict prevention 
+// Enhanced booking form validation với API integration
+
+// Enhance booking form submission với real-time validation
+document.addEventListener('DOMContentLoaded', function() {
+  const bookingForm = document.getElementById('bookingForm');
+  
+  // Override form submission
+  bookingForm.addEventListener('submit', async function(e) {
+    e.preventDefault(); // Always prevent default để kiểm tra trước
+    
+    // Get form data
+    const checkin = document.getElementById('checkin').value;
+    const checkout = document.getElementById('checkout').value;
+    const adults = parseInt(document.getElementById('adults').value) || 1;
+    const children = parseInt(document.getElementById('children').value) || 0;
+    const roomId = '<%= room.room_type_id %>';
+    
+    // Basic validation
+    if (!checkin || !checkout) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Thiếu thông tin',
+        text: 'Vui lòng chọn đầy đủ ngày nhận và ngày trả phòng.',
+        timer: 3000,
+        showConfirmButton: false
+      });
+      return;
+    }
+    
+    // Guest count validation
+    const maxAdults = <%= room.max_adults %>;
+    const maxChildren = <%= room.max_children %>;
+    const maxGuests = <%= room.max_guests %>;
+    
+    if (adults > maxAdults || children > maxChildren || (adults + children) > maxGuests) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Số lượng khách không hợp lệ',
+        text: `Vượt quá sức chứa phòng (tối đa ${maxGuests} người: ${maxAdults} người lớn, ${maxChildren} trẻ em).`,
+        timer: 4000,
+        showConfirmButton: false
+      });
+      return;
+    }
+    
+    // Login check
+    if (!isLoggedIn) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Bạn cần đăng nhập',
+        text: 'Vui lòng đăng nhập để tiếp tục đặt phòng!',
+        confirmButtonText: 'Đăng nhập',
+        showCancelButton: true,
+        cancelButtonText: 'Hủy'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = '/login';
+        }
+      });
+      return;
+    }
+    
+    // Show loading
+    Swal.fire({
+      title: 'Đang kiểm tra tình trạng phòng...',
+      text: 'Vui lòng đợi trong giây lát',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+    
+    try {
+      // Final availability check via API
+      const availabilityResponse = await fetch(`/api/room/${roomId}/check-availability`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          checkin: checkin,
+          checkout: checkout
+        })
+      });
+      
+      const availabilityData = await availabilityResponse.json();
+      
+      if (!availabilityData.success || !availabilityData.available) {
+        // Room not available
+        Swal.close();
+        
+        let conflictMessage = 'Phòng không khả dụng trong thời gian bạn chọn.';
+        
+        if (availabilityData.conflicts && availabilityData.conflicts.length > 0) {
+          const conflict = availabilityData.conflicts[0];
+          conflictMessage = `
+            Thời gian bạn chọn (${formatDate(checkin)} - ${formatDate(checkout)}) 
+            bị trùng với booking đã có (${formatDate(conflict.checkin)} - ${formatDate(conflict.checkout)}).
+            
+            Vui lòng chọn ngày khác.
+          `;
+        }
+        
+        await Swal.fire({
+          icon: 'error',
+          title: 'Phòng không khả dụng',
+          text: conflictMessage,
+          confirmButtonText: 'Chọn ngày khác',
+          timer: 5000
+        });
+        
+        // Refresh booking data and show suggestions
+        await loadConfirmedBookings();
+        showAlternativeSuggestions(checkin, checkout);
+        return;
+      }
+      
+      // Room is available - proceed with booking
+      Swal.close();
+      
+      await Swal.fire({
+        icon: 'success',
+        title: 'Phòng có sẵn!',
+        text: 'Đang chuyển đến trang thanh toán...',
+        timer: 1500,
+        showConfirmButton: false
+      });
+      
+      // Set hidden form values and submit
+      document.getElementById('hiddenCheckin').value = checkin;
+      document.getElementById('hiddenCheckout').value = checkout;
+      document.getElementById('hiddenAdults').value = adults;
+      document.getElementById('hiddenChildren').value = children;
+      
+      // Submit form programmatically
+      bookingForm.submit();
+      
+    } catch (error) {
+      console.error('Error checking availability:', error);
+      
+      Swal.close();
+      
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi hệ thống',
+        text: 'Có lỗi xảy ra khi kiểm tra tình trạng phòng. Vui lòng thử lại.',
+        confirmButtonText: 'Thử lại',
+        timer: 4000
+      });
+    }
+  });
+  
+  // Function to show alternative suggestions when booking fails
+  async function showAlternativeSuggestions(originalCheckin, originalCheckout) {
+    try {
+      const response = await fetch(`/api/room/${roomId}/suggested-dates?from_date=${originalCheckin}`);
+      const data = await response.json();
+      
+      if (data.success && data.suggestions.length > 0) {
+        const suggestions = data.suggestions.slice(0, 3);
+        
+        let suggestionsHtml = `
+          <div class="conflict-error">
+            <h6><i class="fas fa-lightbulb me-2"></i>Đề xuất thời gian thay thế:</h6>
+            <p style="margin-bottom: 15px;">Dựa trên lịch đặt hiện tại, chúng tôi đề xuất:</p>
+        `;
+        
+        suggestions.forEach((suggestion, index) => {
+          suggestionsHtml += `
+            <div style="margin: 10px 0; padding: 10px; background: white; border-radius: 5px; border: 1px solid #28a745;">
+              <div style="font-weight: bold; color: #28a745;">
+                Lựa chọn ${index + 1}: ${formatDate(suggestion.checkin)} → ${formatDate(suggestion.checkout)}
+              </div>
+              <div style="color: #6c757d; font-size: 0.9rem;">
+                ${suggestion.nights} đêm | ${suggestion.type === 'before_booking' ? 'Trước booking khác' : 'Sau các booking hiện tại'}
+              </div>
+              <button type="button" 
+                      class="btn btn-success btn-sm mt-2" 
+                      onclick="applySuggestion('${suggestion.checkin}', '${suggestion.checkout}')">
+                Chọn thời gian này
+              </button>
+            </div>
+          `;
+        });
+        
+        suggestionsHtml += `
+          </div>
+          <div style="text-align: center; margin-top: 15px;">
+            <button type="button" class="btn btn-outline-primary" onclick="refreshBookingCalendar()">
+              <i class="fas fa-refresh me-1"></i>Làm mới lịch đặt
+            </button>
+          </div>
+        `;
+        
+        const container = document.querySelector('.booking-form');
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'conflict-alert';
+        alertDiv.innerHTML = suggestionsHtml;
+        container.appendChild(alertDiv);
+        
+        // Scroll to suggestions
+        alertDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      
+    } catch (error) {
+      console.error('Error getting suggestions:', error);
+    }
+  }
+  
+  // Global functions for suggestion interactions
+  window.applySuggestion = function(checkin, checkout) {
+    document.getElementById('checkin').value = checkin;
+    document.getElementById('checkout').value = checkout;
+    
+    // Clear existing alerts
+    clearConflictMessages();
+    
+    // Show success message
+    const nights = Math.ceil((new Date(checkout) - new Date(checkin)) / (1000 * 60 * 60 * 24));
+    
+    Swal.fire({
+      icon: 'success',
+      title: 'Đã cập nhật thời gian!',
+      text: `Thời gian mới: ${formatDate(checkin)} → ${formatDate(checkout)} (${nights} đêm)`,
+      timer: 2000,
+      showConfirmButton: false
+    });
+    
+    // Trigger validation
+    document.getElementById('checkin').dispatchEvent(new Event('change'));
+    document.getElementById('checkout').dispatchEvent(new Event('change'));
+  }
+  
+  window.refreshBookingCalendar = async function() {
+    Swal.fire({
+      title: 'Đang làm mới...',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+    
+    try {
+      await loadConfirmedBookings();
+      
+      // Clear old calendar and regenerate
+      const existingCalendar = document.querySelector('.booking-timeline');
+      if (existingCalendar) {
+        existingCalendar.remove();
+      }
+      
+      displayBookingCalendar();
+      clearConflictMessages();
+      
+      Swal.close();
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'Đã cập nhật!',
+        text: 'Lịch đặt phòng đã được làm mới.',
+        timer: 1500,
+        showConfirmButton: false
+      });
+      
+    } catch (error) {
+      console.error('Error refreshing calendar:', error);
+      
+      Swal.close();
+      
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi',
+        text: 'Không thể làm mới lịch. Vui lòng thử lại.',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    }
+  }
+  
+  // Auto-refresh booking data every 5 minutes
+  setInterval(async function() {
+    try {
+      await loadConfirmedBookings();
+      console.log('📅 Auto-refreshed booking data');
+    } catch (error) {
+      console.warn('Auto-refresh failed:', error);
+    }
+  }, 5 * 60 * 1000); // 5 minutes
+  
+  // Helper function for date formatting
+  function formatDate(dateStr) {
+    return new Date(dateStr).toLocaleDateString('vi-VN', {
+      weekday: 'short',
+      year: 'numeric', 
+      month: 'short',
+      day: 'numeric'
+    });
+  }
+});
+
+// Enhanced error handling for edge cases
+window.addEventListener('beforeunload', function(e) {
+  // Clear any pending API requests when user leaves page
+  if (window.pendingBookingCheck) {
+    window.pendingBookingCheck.abort();
+  }
+});
+
+// Show booking tips on page load
+setTimeout(function() {
+  if (!localStorage.getItem('booking_tips_shown')) {
+    Swal.fire({
+      icon: 'info',
+      title: 'Mẹo đặt phòng',
+      html: `
+        <div style="text-align: left;">
+          <p><i class="fas fa-calendar-check text-primary me-2"></i><strong>Lịch đỏ:</strong> Ngày đã có khách đặt</p>
+          <p><i class="fas fa-calendar-plus text-success me-2"></i><strong>Lịch xanh:</strong> Ngày có thể đặt</p>
+          <p><i class="fas fa-lightbulb text-warning me-2"></i><strong>Gợi ý:</strong> Hệ thống sẽ đề xuất ngày phù hợp</p>
+        </div>
+      `,
+      confirmButtonText: 'Đã hiểu',
+      timer: 8000
+    });
+    
+    localStorage.setItem('booking_tips_shown', 'true');
+  }
+}, 2000);
+//--------------------------------
 
   // 🔥 FUNCTION KIỂM TRA RANGE CÓ CHỨA NGÀY ĐÃ ĐẶT
   function hasBookedDatesInRange(checkinDate, checkoutDate) {
