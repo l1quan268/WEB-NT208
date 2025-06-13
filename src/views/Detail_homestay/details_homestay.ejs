@@ -119,7 +119,7 @@
             <a class="nav-link" href="#LH" style="font-weight: bold">LIÊN HỆ</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/#DG" style="font-weight: bold">ĐÁNH GIÁ</a>
+            <a class="nav-link" href="/danh-gia" style="font-weight: bold">ĐÁNH GIÁ</a>
           </li>
         </ul>
       </div>
@@ -303,11 +303,11 @@
           <div class="booking-form mt-3">
             <div class="form-group mb-2">
               <label for="adults">Số người lớn:</label>
-              <input type="number" id="adults" class="form-control" value="1" min="1" max="10" />
+              <input type="number" id="adults" class="form-control" name="adults" value="1" min="1" max="<%= room.max_adults %>" required />
             </div>
             <div class="form-group mb-2">
               <label for="children">Số trẻ em:</label>
-              <input type="number" id="children" class="form-control" value="0" min="0" max="5" />
+              <input type="number" id="children" class="form-control" name="children" value="0" min="0" max="<%= room.max_children %>" />
             </div>
             <div class="form-group mb-2">
               <label for="checkin">Ngày nhận:</label>
@@ -379,8 +379,6 @@
             </div>
 
           </div>
-
-
 
       </div>
 
@@ -947,6 +945,192 @@
     }
     return stars;
   }
+</script>
+
+
+<script>
+// Thay thế script validation hiện tại bằng code này
+document.addEventListener('DOMContentLoaded', function() {
+  const maxAdults = <%= room.max_adults %>;
+  const maxChildren = <%= room.max_children %>;
+  const maxGuests = <%= room.max_guests %>;
+  
+  const adultsInput = document.getElementById('adults');
+  const childrenInput = document.getElementById('children');
+  const checkinInput = document.getElementById('checkin');
+  const checkoutInput = document.getElementById('checkout');
+  
+  // Tạo element hiển thị thông báo lỗi
+  function createErrorMessage(inputElement, message) {
+    // Xóa thông báo lỗi cũ nếu có
+    const existingError = inputElement.parentNode.querySelector('.error-message');
+    if (existingError) {
+      existingError.remove();
+    }
+    
+    // Tạo thông báo lỗi mới
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.style.cssText = `
+      color: #dc3545;
+      font-size: 0.875rem;
+      margin-top: 5px;
+      padding: 5px;
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+    `;
+    errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i>${message}`;
+    
+    inputElement.parentNode.appendChild(errorDiv);
+    
+    // Disable các input khác
+    disableOtherInputs();
+    
+    // Auto remove sau 5 giây
+    setTimeout(() => {
+      if (errorDiv && errorDiv.parentNode) {
+        errorDiv.remove();
+        checkAllValidation();
+      }
+    }, 5000);
+  }
+  
+  // Xóa thông báo lỗi
+  function removeErrorMessage(inputElement) {
+    const errorDiv = inputElement.parentNode.querySelector('.error-message');
+    if (errorDiv) {
+      errorDiv.remove();
+    }
+  }
+  
+  // Disable/Enable các input khác
+  function disableOtherInputs() {
+    const hasError = document.querySelectorAll('.error-message').length > 0;
+    checkinInput.disabled = hasError;
+    checkoutInput.disabled = hasError;
+    
+    if (hasError) {
+      checkinInput.style.backgroundColor = '#f8f9fa';
+      checkoutInput.style.backgroundColor = '#f8f9fa';
+    } else {
+      checkinInput.style.backgroundColor = '';
+      checkoutInput.style.backgroundColor = '';
+    }
+  }
+  
+  // Kiểm tra tất cả validation
+  function checkAllValidation() {
+    const adults = parseInt(adultsInput.value) || 0;
+    const children = parseInt(childrenInput.value) || 0;
+    
+    // Reset tất cả error messages
+    removeErrorMessage(adultsInput);
+    removeErrorMessage(childrenInput);
+    
+    let hasError = false;
+    
+    // Validate adults
+    if (adults > maxAdults) {
+      createErrorMessage(adultsInput, `Số người lớn tối đa là ${maxAdults} người. Vui lòng nhập lại!`);
+      adultsInput.focus();
+      hasError = true;
+    } else if (adults < 1) {
+      createErrorMessage(adultsInput, 'Cần ít nhất 1 người lớn!');
+      adultsInput.focus();
+      hasError = true;
+    }
+    
+    // Validate children
+    if (children > maxChildren) {
+      createErrorMessage(childrenInput, `Số trẻ em tối đa là ${maxChildren} em. Vui lòng nhập lại!`);
+      if (!hasError) childrenInput.focus();
+      hasError = true;
+    }
+    
+    // Validate total guests
+    if (!hasError && (adults + children) > maxGuests) {
+      createErrorMessage(childrenInput, `Tổng số khách tối đa là ${maxGuests} người (${adults + children} > ${maxGuests}). Vui lòng giảm số lượng!`);
+      childrenInput.focus();
+      hasError = true;
+    }
+    
+    disableOtherInputs();
+    
+    return !hasError;
+  }
+  
+  // Event listeners cho real-time validation
+  adultsInput.addEventListener('input', function() {
+    // Delay validation một chút để user có thể gõ số
+    setTimeout(checkAllValidation, 300);
+  });
+  
+  adultsInput.addEventListener('blur', function() {
+    checkAllValidation();
+  });
+  
+  childrenInput.addEventListener('input', function() {
+    setTimeout(checkAllValidation, 300);
+  });
+  
+  childrenInput.addEventListener('blur', function() {
+    checkAllValidation();
+  });
+  
+  // Validation khi submit form
+  const bookingForm = document.getElementById('bookingForm');
+  bookingForm.addEventListener('submit', function(e) {
+    if (!checkAllValidation()) {
+      e.preventDefault();
+      Swal.fire({
+        icon: 'error',
+        title: 'Thông tin không hợp lệ',
+        text: 'Vui lòng kiểm tra lại số lượng khách trước khi đặt phòng.',
+        timer: 3000,
+        showConfirmButton: false
+      });
+      return false;
+    }
+    
+    const checkin = checkinInput.value;
+    const checkout = checkoutInput.value;
+    
+    if (!checkin || !checkout) {
+      e.preventDefault();
+      Swal.fire({
+        icon: 'warning',
+        title: 'Thiếu thông tin',
+        text: 'Vui lòng chọn ngày nhận và ngày đi.',
+        timer: 2500,
+        showConfirmButton: false
+      });
+      return false;
+    }
+    
+    // Gán giá trị vào hidden inputs
+    const adults = parseInt(adultsInput.value) || 1;
+    const children = parseInt(childrenInput.value) || 0;
+    
+    document.getElementById('hiddenAdults').value = adults;
+    document.getElementById('hiddenChildren').value = children;
+    document.getElementById('hiddenCheckin').value = checkin;
+    document.getElementById('hiddenCheckout').value = checkout;
+    
+    console.log("Booking data:", {
+      room_id: '<%= room.room_type_id %>',
+      adults: adults,
+      children: children,
+      checkin: checkin,
+      checkout: checkout
+    });
+  });
+  
+  // Initial validation khi trang load
+  setTimeout(checkAllValidation, 500);
+});
 </script>
 
   <!-- ----------------------------------- -->

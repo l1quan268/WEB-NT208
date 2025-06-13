@@ -2,7 +2,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("Bookings", {
+    await queryInterface.createTable("bookings", {
       booking_id: {
         type: Sequelize.BIGINT,
         allowNull: false,
@@ -86,13 +86,13 @@ module.exports = {
       },
     });
 
-    await queryInterface.addIndex("Bookings", ["user_id"]);
-    await queryInterface.addIndex("Bookings", ["homestay_id"]);
-    await queryInterface.addIndex("Bookings", ["room_type_id"]);
-    await queryInterface.addIndex("Bookings", ["status"]);
+    await queryInterface.addIndex("bookings", ["user_id"]);
+    await queryInterface.addIndex("bookings", ["homestay_id"]);
+    await queryInterface.addIndex("bookings", ["room_type_id"]);
+    await queryInterface.addIndex("bookings", ["status"]);
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("Bookings");
+    await queryInterface.dropTable("bookings");
   },
 };

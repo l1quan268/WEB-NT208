@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Đánh giá</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+    <link rel="stylesheet" href="/details_homestay.css" />
+    <script
+      src="https://kit.fontawesome.com/a076d05399.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <style>
+      .review-section {
+        background-color: #e9d5c1;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      body {
+        padding-top: 100px;
+      }
+
+      .form-section {
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      }
+
+      .map iframe {
+        width: 100%;
+        height: 200px;
+        border: none;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <script>
+      const isLoggedIn = <%= user ? 'true' : 'false' %>;
+    </script>
+    <nav
+      class="navbar navbar-expand-lg navbar-light bg-light"
+      style="
+        width: 100%;
+        opacity: 80%;
+        position: fixed;
+        z-index: 1000;
+        top: 0;
+        left: 0;
+      "
+    >
+      <!-- Logo bên trái -->
+      <a class="navbar-brand" href="/">
+        <img
+          src="/image/image/logo/logo.jpg"
+          alt="Logo"
+          style="
+            margin: 0px;
+            padding: 0px;
+            width: 100px;
+            height: 100px;
+            position: absolute;
+            margin-top: -50px;
+            margin-left: 70px;
+          "
+          class="logo"
+        />
+      </a>
+      <div class="container kt">
+        <!-- Nút Toggle khi màn hình nhỏ -->
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Danh mục menu (Căn giữa) -->
+        <div
+          class="collapse navbar-collapse justify-content-center"
+          id="navbarNav"
+          style="margin-left: 50px"
+        >
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" href="/" style="font-weight: bold"
+                >TRANG CHỦ</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/#intro" style="font-weight: bold"
+                >GIỚI THIỆU</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/#CH" style="font-weight: bold"
+                >CĂN HỘ</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#LH" style="font-weight: bold"
+                >LIÊN HỆ</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/danh-gia" style="font-weight: bold"
+                >ĐÁNH GIÁ</a
+              >
+            </li>
+          </ul>
+        </div>
+
+        <!-- Nút Đăng nhập/Đăng xuất (Bên phải) -->
+        <% if (user) { %>
+        <div class="dropdown">
+          <button
+            class="btn p-0 border-0 bg-transparent"
+            type="button"
+            id="userDropdown"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <img
+              src="https://i.postimg.cc/rF3Fh10Y/avatar-trang-4.jpg"
+              alt="Avatar"
+              class="rounded-circle"
+              width="40"
+              height="40"
+            />
+          </button>
+          <ul
+            class="dropdown-menu dropdown-menu-end shadow"
+            aria-labelledby="userDropdown"
+          >
+            <li>
+              <span class="dropdown-item text-primary fw-bold">
+                <%= user.email %>
+              </span>
+            </li>
+            <li>
+              <a class="dropdown-item" href="/account">Thông tin tài khoản</a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="/bookings">Lịch sử đặt phòng</a>
+            </li>
+            <li>
+              <hr class="dropdown-divider" />
+            </li>
+            <li>
+              <a class="dropdown-item text-danger" href="/logout">Đăng xuất</a>
+            </li>
+          </ul>
+        </div>
+        <% } else { %>
+        <button
+          class="btn btn-primary"
+          onclick="window.location.href='/login'"
+          style="background-color: white"
+        >
+          ĐĂNG NHẬP
+        </button>
+        <% } %>
+      </div>
+    </nav>
+    <!-- RIGHT: FORM -->
+    <!-- Đánh giá khách hàng -->
+    <div class="text-center my-5" id="DG">
+      <hr class="w-25 mx-auto border-2 border-secondary opacity-50 mb-2" />
+      <h5 class="fw-bold text-uppercase">Đánh Giá Của Khách Hàng</h5>
+      <hr class="w-25 mx-auto border-2 border-secondary opacity-50 mt-2" />
+    </div>
+
+    <div class="col-md-7 mx-auto">
+      <div class="review-section">
+        <h5 class="text-center fw-bold" style="margin-bottom: 30px">
+          ĐỂ LẠI LỜI NHẬN XÉT CHO CHÚNG TÔI
+        </h5>
+        <form>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <input type="text" class="form-control" placeholder="Họ và tên" />
+            </div>
+            <div class="col-md-6">
+              <input type="email" class="form-control" placeholder="Email" />
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Số điện thoại"
+              />
+            </div>
+            <div class="col-md-6 d-flex align-items-center">
+              <div class="star-rating">
+                <i class="fas fa-star" data-value="1"></i>
+                <i class="fas fa-star" data-value="2"></i>
+                <i class="fas fa-star" data-value="3"></i>
+                <i class="fas fa-star" data-value="4"></i>
+                <i class="fas fa-star" data-value="5"></i>
+              </div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <textarea
+              class="form-control"
+              rows="4"
+              placeholder="Nhận xét"
+            ></textarea>
+          </div>
+          <div class="text-center">
+            <button type="reset" class="btn btn-light me-2">Xóa</button>
+            <button
+              type="submit"
+              class="btn btn-warning"
+              style="
+                --bs-btn-bg: #a48464a3;
+                --bs-btn-border-color: none;
+                --bs-btn-hover-bg: #a48464;
+                opacity: 80%;
+                border-color: none;
+              "
+            >
+              Gửi
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-light py-4 mt-5" id="LH">
+      <div class="container">
+        <div class="row">
+          <!-- Cột Liên Hệ -->
+          <div class="col-md-4">
+            <h5 class="fw-bold">LIÊN HỆ CHÚNG TÔI</h5>
+            <p>
+              <i class="fas fa-envelope" style="color: #9d972d"></i> Email:
+              23521265@gm.uit.edu.vn
+            </p>
+            <p>
+              <i class="fas fa-phone" style="color: #28a745"></i> Số điện thoại:
+              080-678-963-210
+            </p>
+            <p>
+              <i class="fas fa-map-marker-alt" style="color: #dc3545"></i> Địa
+              chỉ: 183B/19, quận Cam, thành phố Sài Gòn
+            </p>
+          </div>
+
+          <!-- Cột Mạng Xã Hội -->
+          <div class="col-md-4 text-left">
+            <h5 class="fw-bold">MẠNG XÃ HỘI</h5>
+            <a
+              href="https://www.instagram.com"
+              target="_blank"
+              class="d-block text-decoration-none text-dark mb-2"
+            >
+              <i
+                class="fab fa-instagram"
+                style="
+                  background: linear-gradient(
+                    to right,
+                    #f09433,
+                    #e6683c,
+                    #dc2743,
+                    #cc2366,
+                    #bc1888
+                  );
+                  -webkit-background-clip: text;
+                  -webkit-text-fill-color: transparent;
+                "
+              ></i>
+              Instagram
+            </a>
+            <a
+              href="https://www.facebook.com"
+              target="_blank"
+              class="d-block text-decoration-none text-dark mb-2"
+            >
+              <i class="fab fa-facebook" style="color: #1877f2"></i> Facebook
+            </a>
+            <a
+              href="https://www.youtube.com"
+              target="_blank"
+              class="d-block text-decoration-none text-dark mb-2"
+            >
+              <i class="fab fa-youtube" style="color: #ff0000"></i> Youtube
+            </a>
+            <a
+              href="https://www.twitter.com"
+              target="_blank"
+              class="d-block text-decoration-none text-dark mb-2"
+            >
+              <i class="fab fa-twitter" style="color: #000000"></i> Twitter
+            </a>
+          </div>
+
+          <!-- Cột Bản Đồ -->
+          <div class="col-md-4">
+            <h5 class="fw-bold">MAPS</h5>
+            <iframe
+              src="https://www.google.com/maps?q=Vũng+Tàu&output=embed"
+              width="100%"
+              height="150"
+              style="border: 0"
+              allowfullscreen=""
+              loading="lazy"
+            >
+            </iframe>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <div class="text-center mt-2 text-muted">© 2025 - All Rights Reserved</div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script
+      src="https://kit.fontawesome.com/a076d05399.js"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>

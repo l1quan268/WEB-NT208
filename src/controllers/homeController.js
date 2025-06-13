@@ -460,13 +460,14 @@ let searchRoom = async (req, res) => {
     let rooms = await db.RoomType.findAll({
       where: roomWhere,
       include: [
+        /*        
         {
           model: db.Booking,
           required: false,
           where: {
-            status: { [Op.ne]: "canceled" }, // Chỉ tính booking chưa bị hủy
+            status: { [Op.ne]: "canceled" },  Chỉ tính booking chưa bị hủy
             [Op.and]: [
-              // Kiểm tra nếu có ngày checkin và checkout thì mới áp dụng điều kiện
+               Kiểm tra nếu có ngày checkin và checkout thì mới áp dụng điều kiện
               checkin && checkout
                 ? {
                     [Op.or]: [
@@ -494,6 +495,7 @@ let searchRoom = async (req, res) => {
             ],
           },
         },
+        */
         {
           model: db.Homestay,
           required: true,
@@ -1386,6 +1388,36 @@ let getBookedDates = async (req, res) => {
   }
 };
 
+let getReviewPage = async (req, res) => {
+  try {
+    res.render("Home/Review", {
+      title: "Đánh giá khách hàng",
+      user: req.user || null,
+    });
+  } catch (err) {
+    console.error("❌ Lỗi hiển thị trang đánh giá:", err);
+    res.status(500).send("Lỗi server");
+  }
+};
+
+let postReviewForm = async (req, res) => {
+  const { name, email, phone, message } = req.body;
+
+  try {
+    if (!name || !email || !message) {
+      return res.status(400).send("Thiếu thông tin bắt buộc");
+    }
+
+    // TODO: bạn có thể lưu vào DB, gửi email, v.v.
+    console.log("📨 Đánh giá mới:", { name, email, phone, message });
+
+    res.redirect("/danh-gia?success=1");
+  } catch (err) {
+    console.error("❌ Lỗi gửi form đánh giá:", err);
+    res.status(500).send("Lỗi server khi gửi đánh giá");
+  }
+};
+
 // Cập nhật module.exports - THÊM getBookedDates vào cuối
 module.exports = {
   getHomePage: getHomePage,
@@ -1408,4 +1440,6 @@ module.exports = {
   cancelBooking: cancelBooking,
   getBookedDates: getBookedDates, // 🔥 CHỈ THÊM DÒNG NÀY
   getRoomDetailBySlug: getRoomDetailBySlug,
+  getReviewPage: getReviewPage,
+  postReviewForm: postReviewForm,
 };
