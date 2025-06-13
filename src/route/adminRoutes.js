@@ -14,6 +14,7 @@ router.get("/users", adminController.getUsersAdmin);
 router.delete("/users/:userId", adminController.deleteUser);
 router.get("/users/:userId", adminController.getUserInfoById);
 router.put("/users/:userId", adminController.updateUserInfo);
+router.post("/users", adminController.createUser);
 
 // Homestay management
 router.get("/homestays", adminController.getHomestaysAdmin);
@@ -23,7 +24,12 @@ router.get("/rooms", adminController.getRoomsAdmin);
 
 // Booking management
 router.get("/bookings", adminController.getBookingsAdmin);
+router.post("/bookings", adminController.createBooking); 
+router.get("/bookings/users", adminController.getUsersForBooking);
+router.get("/bookings/homestays", adminController.getHomestaysForBooking);
 router.put("/bookings/:bookingId/status", adminController.updateBookingStatus);
+router.put("/bookings/:bookingId", adminController.updateBooking);        
+router.get("/bookings/:bookingId/edit", adminController.getBookingForEdit); 
 router.get('/bookings/:id', adminController.getBookingById);
 
 // Review management

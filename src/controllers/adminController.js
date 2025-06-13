@@ -1,5 +1,6 @@
 const db = require("../models/index");
 const { Op } = require("sequelize");
+const bcrypt = require("bcryptjs");
 
 // Middleware kiểm tra quyền admin
 const checkAdminRole = async (req, res, next) => {
@@ -607,6 +608,448 @@ let getBookingById = async (req, res) => {
     return res.json({ success: false, message: "Lỗi khi lấy hóa đơn" });
   }
 };
+let createUser = async (req, res) => {
+  try {
+    const { name, email, password, phone, gender, dob, role } = req.body;
+
+    // Validation
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Tên, email và mật khẩu là bắt buộc"
+      });
+    }
+
+    // Kiểm tra email đã tồn tại
+    const existingUser = await db.User.findOne({
+      where: { email: email }
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "Email đã được sử dụng"
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Email không hợp lệ"
+      });
+    }
+
+    // Validate password length
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Mật khẩu phải có ít nhất 6 ký tự"
+      });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Tạo user mới
+    const newUser = await db.User.create({
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+      password_hash: hashedPassword,
+      phone: phone || null,
+      gender: gender || null,
+      dob: dob || null,
+      role: role === 'admin' ? 'admin' : 'user'
+    });
+
+    return res.json({
+      success: true,
+      message: "Tạo tài khoản thành công",
+      user: {
+        user_id: newUser.user_id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+        phone: newUser.phone,
+        gender: newUser.gender,
+        dob: newUser.dob,
+        created_at: newUser.created_at
+      }
+    });
+  } catch (error) {
+    console.error("❌ Lỗi tạo user:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi hệ thống: " + error.message
+    });
+  }
+};
+let createBooking = async (req, res) => {
+  try {
+    const { 
+      user_id, 
+      homestay_id, 
+      name, 
+      booking_date, 
+      check_in_date, 
+      check_out_date, 
+      adults, 
+      children, 
+      total_price,
+      guest_email,
+      guest_phone,
+      guest_address,
+      payment_method,
+      payment_status
+    } = req.body;
+
+    // Validation (bỏ room_type_id vì đặt cả homestay)
+    if (!user_id || !homestay_id || !name || !booking_date || 
+        !check_in_date || !check_out_date || !adults || !total_price) {
+      return res.status(400).json({
+        success: false,
+        message: "Các trường bắt buộc không được để trống"
+      });
+    }
+
+    // Kiểm tra user tồn tại
+    const userExists = await db.User.findByPk(user_id);
+    if (!userExists) {
+      return res.status(400).json({
+        success: false,
+        message: "Người dùng không tồn tại"
+      });
+    }
+
+    // Kiểm tra homestay tồn tại
+    const homestayExists = await db.Homestay.findByPk(homestay_id, {
+      include: [{ model: db.RoomType }]
+    });
+    if (!homestayExists) {
+      return res.status(400).json({
+        success: false,
+        message: "Homestay không tồn tại"
+      });
+    }
+
+    // Validate ngày
+    const checkinDate = new Date(check_in_date);
+    const checkoutDate = new Date(check_out_date);
+    const today = new Date();
+    
+    if (checkinDate >= checkoutDate) {
+      return res.status(400).json({
+        success: false,
+        message: "Ngày check-out phải sau ngày check-in"
+      });
+    }
+
+    if (checkinDate < today.setHours(0,0,0,0)) {
+      return res.status(400).json({
+        success: false,
+        message: "Ngày check-in không thể là ngày trong quá khứ"
+      });
+    }
+
+    // Kiểm tra tất cả phòng trong homestay có trống không
+    const roomIds = homestayExists.RoomTypes.map(room => room.room_type_id);
+    
+    const conflictBooking = await db.Booking.findOne({
+      where: {
+        room_type_id: { [db.Sequelize.Op.in]: roomIds },
+        payment_status: { [db.Sequelize.Op.in]: ['paid', 'pending'] },
+        [db.Sequelize.Op.or]: [
+          {
+            check_in_date: {
+              [db.Sequelize.Op.between]: [check_in_date, check_out_date]
+            }
+          },
+          {
+            check_out_date: {
+              [db.Sequelize.Op.between]: [check_in_date, check_out_date]  
+            }
+          },
+          {
+            check_in_date: { [db.Sequelize.Op.lte]: check_in_date },
+            check_out_date: { [db.Sequelize.Op.gte]: check_out_date }
+          }
+        ]
+      }
+    });
+
+    if (conflictBooking) {
+      return res.status(400).json({
+        success: false,
+        message: "Homestay đã có phòng được đặt trong thời gian này"
+      });
+    }
+
+    // Tạo order_id
+    const order_id = `HOTEL_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+
+    // ✅ TẠO BOOKING CHO TỪNG PHÒNG TRONG HOMESTAY
+    const bookings = [];
+    const payments = [];
+
+    for (const roomType of homestayExists.RoomTypes) {
+      const booking = await db.Booking.create({
+        user_id,
+        homestay_id,
+        room_type_id: roomType.room_type_id,
+        name,
+        booking_date: booking_date || new Date(),
+        check_in_date,
+        check_out_date,
+        adults: parseInt(adults),
+        children: parseInt(children) || 0,
+        total_price: parseFloat(total_price), // Tổng tiền cho cả homestay
+        order_id: `${order_id}_ROOM_${roomType.room_type_id}`, // Unique order_id cho mỗi phòng
+        guest_email: guest_email || null,
+        guest_phone: guest_phone || null,
+        guest_address: guest_address || null,
+        payment_method: payment_method || 'cash',
+        payment_status: payment_status || 'pending'
+      });
+
+      bookings.push(booking);
+
+      // Tạo payment record cho từng booking
+      const payment = await db.Payment.create({
+        booking_id: booking.booking_id,
+        user_id,
+        amount: parseFloat(total_price),
+        status: payment_status || 'pending', 
+        transaction_id: `CASH_${order_id}_ROOM_${roomType.room_type_id}`,
+        payment_method: payment_method || 'cash',
+        processed_at: payment_status === 'paid' ? new Date() : null,
+        paid_at: payment_status === 'paid' ? new Date() : null
+      });
+
+      payments.push(payment);
+    }
+
+    return res.json({
+      success: true,
+      message: `Tạo hóa đơn thành công cho homestay ${homestayExists.name} (${bookings.length} phòng)`,
+      bookings: bookings,
+      payments: payments
+    });
+
+  } catch (error) {
+    console.error("❌ Lỗi tạo booking:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi hệ thống: " + error.message
+    });
+  }
+};
+
+// Function để lấy danh sách users (cho dropdown)
+let getUsersForBooking = async (req, res) => {
+  try {
+    const users = await db.User.findAll({
+      where: { role: 'user' }, // ✅ CHỈ LẤY USER CÓ ROLE 'user'
+      attributes: ['user_id', 'name', 'email'],
+      order: [['name', 'ASC']]
+    });
+
+    return res.json({
+      success: true,
+      users: users
+    });
+  } catch (error) {
+    console.error("❌ Lỗi lấy users:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi lấy danh sách users"
+    });
+  }
+};
+
+const getHomestaysForBooking = async (req, res) => {
+  try {
+    const homestays = await db.Homestay.findAll({
+      include: [{ model: db.RoomType }],
+      order: [['name', 'ASC']]
+    });
+
+    // Map lại thông tin cần thiết cho frontend
+    const data = homestays.map(h => ({
+      homestay_id: h.homestay_id,
+      name: h.name,
+      address: h.address,
+      room_count: h.RoomTypes.length,
+      // lấy giá đêm trung bình từ room types
+      total_price_per_night: h.RoomTypes.length
+        ? Math.min(...h.RoomTypes.map(r => r.price_per_night))
+        : 0
+    }));
+
+    return res.json({ success: true, homestays: data });
+  } catch (error) {
+    console.error("Error loading homestays for booking:", error);
+    return res.status(500).json({ success: false, message: "Lỗi hệ thống" });
+  }
+};
+let updateBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const { 
+      user_id, 
+      homestay_id, 
+      name, 
+      booking_date, 
+      check_in_date, 
+      check_out_date, 
+      adults, 
+      children, 
+      total_price,
+      guest_email,
+      guest_phone,
+      guest_address,
+      payment_method,
+      payment_status
+    } = req.body;
+
+    // Kiểm tra booking tồn tại
+    const existingBooking = await db.Booking.findByPk(bookingId);
+    if (!existingBooking) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy hóa đơn"
+      });
+    }
+
+    // Validation
+    if (!user_id || !homestay_id || !name || !booking_date || 
+        !check_in_date || !check_out_date || !adults || !total_price) {
+      return res.status(400).json({
+        success: false,
+        message: "Các trường bắt buộc không được để trống"
+      });
+    }
+
+    // Kiểm tra user tồn tại
+    const userExists = await db.User.findByPk(user_id);
+    if (!userExists) {
+      return res.status(400).json({
+        success: false,
+        message: "Người dùng không tồn tại"
+      });
+    }
+
+    // Kiểm tra homestay tồn tại
+    const homestayExists = await db.Homestay.findByPk(homestay_id);
+    if (!homestayExists) {
+      return res.status(400).json({
+        success: false,
+        message: "Homestay không tồn tại"
+      });
+    }
+
+    // Validate ngày
+    const checkinDate = new Date(check_in_date);
+    const checkoutDate = new Date(check_out_date);
+    
+    if (checkinDate >= checkoutDate) {
+      return res.status(400).json({
+        success: false,
+        message: "Ngày check-out phải sau ngày check-in"
+      });
+    }
+
+    // Cập nhật booking
+    await existingBooking.update({
+      user_id,
+      homestay_id,
+      name,
+      booking_date,
+      check_in_date,
+      check_out_date,
+      adults: parseInt(adults),
+      children: parseInt(children) || 0,
+      total_price: parseFloat(total_price),
+      guest_email: guest_email || null,
+      guest_phone: guest_phone || null,
+      guest_address: guest_address || null,
+      payment_method: payment_method || 'cash',
+      payment_status: payment_status || 'pending'
+    });
+
+    // Cập nhật payment record tương ứng
+    const payment = await db.Payment.findOne({
+      where: { booking_id: bookingId }
+    });
+
+    if (payment) {
+      await payment.update({
+        user_id,
+        amount: parseFloat(total_price),
+        status: payment_status || 'pending',
+        payment_method: payment_method || 'cash',
+        processed_at: payment_status === 'paid' ? new Date() : null,
+        paid_at: payment_status === 'paid' ? new Date() : null
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "Cập nhật hóa đơn thành công",
+      booking: existingBooking
+    });
+
+  } catch (error) {
+    console.error("❌ Lỗi cập nhật booking:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi hệ thống: " + error.message
+    });
+  }
+};
+
+// THÊM function lấy chi tiết booking để edit
+let getBookingForEdit = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    const booking = await db.Booking.findByPk(bookingId, {
+      include: [
+        {
+          model: db.User,
+          attributes: ['user_id', 'name', 'email']
+        },
+        {
+          model: db.Homestay,
+          attributes: ['homestay_id', 'name', 'address']
+        },
+        {
+          model: db.RoomType,
+          attributes: ['room_type_id', 'type_name']
+        }
+      ]
+    });
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy hóa đơn"
+      });
+    }
+
+    return res.json({
+      success: true,
+      booking: booking
+    });
+
+  } catch (error) {
+    console.error("❌ Lỗi lấy booking:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi hệ thống: " + error.message
+    });
+  }
+};
 module.exports = {
   checkAdminRole,
   getAdminDashboard,
@@ -624,5 +1067,11 @@ module.exports = {
   deleteService,
   getUserInfoById,
   updateUserInfo,
-  getBookingById
+  getBookingById,
+  createUser,
+  createBooking,        
+  getUsersForBooking,   
+  getHomestaysForBooking,
+  updateBooking,        
+  getBookingForEdit,    
 };

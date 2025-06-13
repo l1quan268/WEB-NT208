@@ -300,6 +300,27 @@
 
     /* ============ MOBILE PHONES (320px - 767px) ============ */
     @media (max-width: 767px) {
+
+      .table th,
+      .table td {
+        padding: 6px 3px;
+        font-size: 0.7rem;
+        white-space: nowrap;
+      }
+
+      /* Ẩn một số cột trên mobile để tiết kiệm không gian */
+      .table th:nth-child(4),
+      /* Cột Phòng */
+      .table td:nth-child(4) {
+        display: none;
+      }
+
+      .table th:nth-child(5),
+      /* Cột Ngày đặt */
+      .table td:nth-child(5) {
+        display: none;
+      }
+
       .sidebar {
         width: 100%;
         transform: translateX(-100%);
@@ -484,6 +505,14 @@
 
     /* ============ SMALL MOBILE (320px - 480px) ============ */
     @media (max-width: 480px) {
+
+      /* Trên mobile nhỏ, chỉ hiển thị các cột quan trọng nhất */
+      .table th:nth-child(3),
+      /* Cột Khách hàng */
+      .table td:nth-child(3) {
+        display: none;
+      }
+
       .top-navbar .navbar-brand {
         font-size: 1rem;
       }
@@ -1017,7 +1046,7 @@
                 </thead>
                 <tbody>
                   <% if (recentBookings && recentBookings.length> 0) { %>
-                    <% recentBookings.forEach(booking=> { %>
+                    <% recentBookings.forEach((booking)=> { %>
                       <tr>
                         <td>
                           <%= booking.booking_id %>
@@ -1052,7 +1081,7 @@
                       <% }); %>
                         <% } else { %>
                           <tr>
-                            <td colspan="7" class="text-center">Chưa có đặt phòng nào</td>
+                            <td colspan="8" class="text-center">Chưa có đặt phòng nào</td>
                           </tr>
                           <% } %>
                 </tbody>
@@ -1076,9 +1105,14 @@
           <div class="table-container">
             <div class="table-header d-flex justify-content-between align-items-center">
               <h4>Danh sách tài khoản</h4>
-              <button class="btn btn-light btn-sm" onclick="refreshUsers()">
-                <i class="fas fa-refresh"></i> Tải lại
-              </button>
+              <div>
+                <button class="btn btn-success btn-sm me-2" onclick="showCreateUserModal()">
+                  <i class="fas fa-plus"></i> Tạo tài khoản
+                </button>
+                <button class="btn btn-light btn-sm" onclick="refreshUsers()">
+                  <i class="fas fa-refresh"></i> Tải lại
+                </button>
+              </div>
             </div>
             <div id="users-content">
               <div class="loading">
@@ -1163,8 +1197,10 @@
                   <option value="pending">Chờ xử lý</option>
                   <option value="paid">Hoàn thành</option>
                   <option value="failed">Đã hủy</option>
-
                 </select>
+                <button class="btn btn-success btn-sm me-2" onclick="showCreateBookingModal()">
+                  <i class="fas fa-plus"></i> Tạo hóa đơn
+                </button>
                 <button class="btn btn-light btn-sm" onclick="refreshBookings()">
                   <i class="fas fa-refresh"></i> Tải lại
                 </button>
@@ -1230,6 +1266,447 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create User Modal -->
+  <div class="modal fade" id="createUserModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fas fa-user-plus me-2"></i>Tạo tài khoản mới
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="createUserForm">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="createUserName" class="form-label">
+                    Họ tên <span class="text-danger">*</span>
+                  </label>
+                  <input type="text" class="form-control" id="createUserName" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="createUserEmail" class="form-label">
+                    Email <span class="text-danger">*</span>
+                  </label>
+                  <input type="email" class="form-control" id="createUserEmail" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="createUserPassword" class="form-label">
+                    Mật khẩu <span class="text-danger">*</span>
+                  </label>
+                  <input type="password" class="form-control" id="createUserPassword" required minlength="6">
+                  <div class="form-text">Tối thiểu 6 ký tự</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="createUserPhone" class="form-label">Số điện thoại</label>
+                  <input type="text" class="form-control" id="createUserPhone">
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="createUserGender" class="form-label">Giới tính</label>
+                  <select class="form-select" id="createUserGender">
+                    <option value="">-- Chọn giới tính --</option>
+                    <option value="male">Nam</option>
+                    <option value="female">Nữ</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="createUserDob" class="form-label">Ngày sinh</label>
+                  <input type="date" class="form-control" id="createUserDob">
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="createUserRole" class="form-label">
+                Vai trò <span class="text-danger">*</span>
+              </label>
+              <select class="form-select" id="createUserRole" required>
+                <option value="">-- Chọn vai trò --</option>
+                <option value="user">Người dùng</option>
+                <option value="admin">Quản trị viên</option>
+              </select>
+            </div>
+
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              <strong>Lưu ý:</strong> Tài khoản mới sẽ được tạo với mật khẩu mà bạn đã nhập.
+              Người dùng có thể đổi mật khẩu sau khi đăng nhập.
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-2"></i>Hủy
+          </button>
+          <button type="button" class="btn btn-success" onclick="createUser()">
+            <i class="fas fa-plus me-2"></i>Tạo tài khoản
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Booking Modal -->
+  <div class="modal fade" id="createBookingModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fas fa-calendar-plus me-2"></i>Tạo hóa đơn mới
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="createBookingForm">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="createBookingUser" class="form-label">
+                    Người dùng <span class="text-danger">*</span>
+                  </label>
+                  <select class="form-select" id="createBookingUser" required>
+                    <option value="">-- Chọn người dùng --</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="createBookingHomestay" class="form-label">
+                    Homestay <span class="text-danger">*</span>
+                  </label>
+                  <select class="form-select" id="createBookingHomestay" required onchange="updateHomestayPrice()">
+                    <option value="">-- Chọn homestay --</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="createBookingName" class="form-label">
+                    Tên người đặt <span class="text-danger">*</span>
+                  </label>
+                  <input type="text" class="form-control" id="createBookingName" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="createBookingDate" class="form-label">
+                    Ngày đặt <span class="text-danger">*</span>
+                  </label>
+                  <input type="date" class="form-control" id="createBookingDate" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="createBookingCheckin" class="form-label">
+                    Ngày nhận phòng <span class="text-danger">*</span>
+                  </label>
+                  <input type="date" class="form-control" id="createBookingCheckin" required
+                    onchange="calculateTotal()">
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="createBookingCheckout" class="form-label">
+                    Ngày trả phòng <span class="text-danger">*</span>
+                  </label>
+                  <input type="date" class="form-control" id="createBookingCheckout" required
+                    onchange="calculateTotal()">
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-3">
+                <div class="mb-3">
+                  <label for="createBookingAdults" class="form-label">
+                    Người lớn <span class="text-danger">*</span>
+                  </label>
+                  <input type="number" class="form-control" id="createBookingAdults" min="1" required>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="mb-3">
+                  <label for="createBookingChildren" class="form-label">Trẻ em</label>
+                  <input type="number" class="form-control" id="createBookingChildren" min="0" value="0">
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="createBookingPrice" class="form-label">
+                    Tổng tiền <span class="text-danger">*</span>
+                  </label>
+                  <div class="input-group">
+                    <input type="number" class="form-control" id="createBookingPrice" required readonly>
+                    <span class="input-group-text">VND</span>
+                  </div>
+                  <div class="form-text">Giá cho toàn bộ homestay sẽ được tính tự động</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label for="createBookingEmail" class="form-label">Email khách</label>
+                  <input type="email" class="form-control" id="createBookingEmail">
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label for="createBookingPhone" class="form-label">Số điện thoại</label>
+                  <input type="text" class="form-control" id="createBookingPhone">
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label for="createBookingAddress" class="form-label">Địa chỉ</label>
+                  <input type="text" class="form-control" id="createBookingAddress">
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="createBookingPaymentMethod" class="form-label">
+                    Phương thức thanh toán <span class="text-danger">*</span>
+                  </label>
+                  <select class="form-select" id="createBookingPaymentMethod" required>
+                    <option value="cash">Tiền mặt</option>
+                    <option value="vnpay">VNPay</option>
+                    <option value="momo">MoMo</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="createBookingPaymentStatus" class="form-label">
+                    Trạng thái thanh toán <span class="text-danger">*</span>
+                  </label>
+                  <select class="form-select" id="createBookingPaymentStatus" required>
+                    <option value="pending">Chờ xử lý</option>
+                    <option value="paid">Hoàn thành</option>
+                    <option value="failed">Hủy đơn</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              <strong>Lưu ý:</strong> Hệ thống sẽ tự động kiểm tra tình trạng phòng trống trước khi tạo hóa đơn.
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-2"></i>Hủy
+          </button>
+          <button type="button" class="btn btn-success" onclick="createBooking()">
+            <i class="fas fa-plus me-2"></i>Tạo hóa đơn
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Booking Modal -->
+  <div class="modal fade" id="editBookingModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fas fa-edit me-2"></i>Sửa hóa đơn
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="editBookingForm">
+            <input type="hidden" id="editBookingId">
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="editBookingUser" class="form-label">
+                    Người dùng <span class="text-danger">*</span>
+                  </label>
+                  <select class="form-select" id="editBookingUser" required>
+                    <option value="">-- Chọn người dùng --</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="editBookingHomestay" class="form-label">
+                    Homestay <span class="text-danger">*</span>
+                  </label>
+                  <select class="form-select" id="editBookingHomestay" required onchange="updateEditHomestayPrice()">
+                    <option value="">-- Chọn homestay --</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="editBookingName" class="form-label">
+                    Tên người đặt <span class="text-danger">*</span>
+                  </label>
+                  <input type="text" class="form-control" id="editBookingName" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="editBookingDate" class="form-label">
+                    Ngày đặt <span class="text-danger">*</span>
+                  </label>
+                  <input type="date" class="form-control" id="editBookingDate" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="editBookingCheckin" class="form-label">
+                    Ngày nhận phòng <span class="text-danger">*</span>
+                  </label>
+                  <input type="date" class="form-control" id="editBookingCheckin" required
+                    onchange="calculateEditTotal()">
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="editBookingCheckout" class="form-label">
+                    Ngày trả phòng <span class="text-danger">*</span>
+                  </label>
+                  <input type="date" class="form-control" id="editBookingCheckout" required
+                    onchange="calculateEditTotal()">
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-3">
+                <div class="mb-3">
+                  <label for="editBookingAdults" class="form-label">
+                    Người lớn <span class="text-danger">*</span>
+                  </label>
+                  <input type="number" class="form-control" id="editBookingAdults" min="1" required>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="mb-3">
+                  <label for="editBookingChildren" class="form-label">Trẻ em</label>
+                  <input type="number" class="form-control" id="editBookingChildren" min="0" value="0">
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="editBookingPrice" class="form-label">
+                    Tổng tiền <span class="text-danger">*</span>
+                  </label>
+                  <div class="input-group">
+                    <input type="number" class="form-control" id="editBookingPrice" required>
+                    <span class="input-group-text">VND</span>
+                  </div>
+                  <div class="form-text">Có thể chỉnh sửa thủ công</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label for="editBookingEmail" class="form-label">Email khách</label>
+                  <input type="email" class="form-control" id="editBookingEmail">
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label for="editBookingPhone" class="form-label">Số điện thoại</label>
+                  <input type="text" class="form-control" id="editBookingPhone">
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label for="editBookingAddress" class="form-label">Địa chỉ</label>
+                  <input type="text" class="form-control" id="editBookingAddress">
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="editBookingPaymentMethod" class="form-label">
+                    Phương thức thanh toán <span class="text-danger">*</span>
+                  </label>
+                  <select class="form-select" id="editBookingPaymentMethod" required>
+                    <option value="cash">Tiền mặt</option>
+                    <option value="vnpay">VNPay</option>
+                    <option value="momo">MoMo</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="editBookingPaymentStatus" class="form-label">
+                    Trạng thái thanh toán <span class="text-danger">*</span>
+                  </label>
+                  <select class="form-select" id="editBookingPaymentStatus" required>
+                    <option value="pending">Chờ thanh toán</option>
+                    <option value="paid">Đã thanh toán</option>
+                    <option value="failed">Thất bại</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="alert alert-warning">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              <strong>Lưu ý:</strong> Việc sửa hóa đơn có thể ảnh hưởng đến dữ liệu thanh toán. Hãy cẩn thận khi thay
+              đổi.
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-2"></i>Hủy
+          </button>
+          <button type="button" class="btn btn-primary" onclick="updateBooking()">
+            <i class="fas fa-save me-2"></i>Cập nhật
+          </button>
         </div>
       </div>
     </div>
@@ -1441,57 +1918,91 @@
       }
     }
 
-    function renderUsersTable(data) {
-      const content = document.getElementById('users-content');
+    function renderBookingsTable(data) {
+      const content = document.getElementById('bookings-content');
       let html = `
-      <div class="table-responsive">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Tên</th>
-              <th>Email</th>
-              <th>Vai trò</th>
-              <th>Điện thoại</th>
-              <th>Ngày tạo</th>
-              <th>Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-    `;
-
-      if (data.users && data.users.length > 0) {
-        data.users.forEach(user => {
-          const isAdmin = user.role === 'admin';
-          html += `
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
           <tr>
-            <td>${user.user_id}</td>
-            <td>${user.name}</td>
-            <td>${user.email}</td>
-            <td>
-              ${isAdmin ?
-              '<span class="badge bg-danger">Admin</span>' :
-              '<span class="badge bg-primary">User</span>'
-            }
-            </td>
-            <td>${user.phone || 'N/A'}</td>
-            <td>${new Date(user.created_at).toLocaleDateString('vi-VN')}</td>
-            <td>
-              <button class="btn-action btn-view" onclick="viewUser(${user.user_id})">Xem</button>
-              ${isAdmin ? '' : `<button class="btn-action btn-edit" onclick="editUser(${user.user_id})">Sửa</button>`}
-              ${isAdmin ? '<span class="text-muted">Không thể xóa</span>' : `<button class="btn-action btn-delete" onclick="deleteUser(${user.user_id})">Xóa</button>`}
-            </td>
+            <th>STT</th>
+            <th>ID</th>
+            <th>Khách hàng</th>
+            <th>Phòng</th>
+            <th>Ngày đặt</th>
+            <th>Tổng tiền</th>
+            <th>Phương thức</th>
+            <th>Trạng thái</th>
+            <th>Hành động</th>
           </tr>
-        `;
+        </thead>
+        <tbody>
+  `;
+
+      if (data.bookings && data.bookings.length > 0) {
+        data.bookings.forEach((booking, index) => {
+          let statusBadge = '';
+          switch (booking.payment_status) {
+            case 'paid':
+              statusBadge = '<span class="badge bg-success">Hoàn thành</span>';
+              break;
+            case 'pending':
+              statusBadge = '<span class="badge bg-warning">Chờ xử lý</span>';
+              break;
+            case 'failed':
+              statusBadge = '<span class="badge bg-danger">Đã hủy</span>';
+              break;
+            default:
+              statusBadge = `<span class="badge bg-light">${booking.payment_status}</span>`;
+          }
+
+          // ✅ THÊM logic hiển thị phương thức thanh toán
+          let paymentMethodBadge = '';
+          switch (booking.payment_method) {
+            case 'vnpay':
+              paymentMethodBadge = '<span class="badge bg-info">VNPay</span>';
+              break;
+            case 'momo':
+              paymentMethodBadge = '<span class="badge bg-primary">MoMo</span>';
+              break;
+            case 'cash':
+              paymentMethodBadge = '<span class="badge bg-secondary">Tiền mặt</span>';
+              break;
+            default:
+              paymentMethodBadge = `<span class="badge bg-light">${booking.payment_method || 'N/A'}</span>`;
+          }
+
+          html += `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${booking.booking_id}</td>
+          <td>${booking.User ? booking.User.name : booking.name}</td>
+          <td>${booking.RoomType ? booking.RoomType.type_name : 'N/A'}</td>
+          <td>${new Date(booking.booking_date).toLocaleDateString('vi-VN')}</td>
+          <td>${new Intl.NumberFormat('vi-VN').format(booking.total_price)} VND</td>
+          <td>${paymentMethodBadge}</td>
+          <td>${statusBadge}</td>
+          <td>
+            <button class="btn-action btn-view" onclick="viewBooking(${booking.booking_id})">Xem</button>
+            <button class="btn-action btn-edit" onclick="editBooking(${booking.booking_id})">Sửa</button>
+            <select class="form-select form-select-sm d-inline-block w-auto" onchange="updateBookingStatus(${booking.booking_id}, this.value)">
+              <option value="">Chọn</option>
+              <option value="pending" ${booking.payment_status === 'pending' ? 'selected' : ''}>Chờ xử lý</option>
+              <option value="paid" ${booking.payment_status === 'paid' ? 'selected' : ''}>Hoàn thành</option>
+              <option value="failed" ${booking.payment_status === 'failed' ? 'selected' : ''}>Từ chối</option>
+            </select>
+          </td>
+        </tr>
+      `;
         });
       } else {
-        html += '<tr><td colspan="7" class="text-center">Không có dữ liệu</td></tr>';
+        html += '<tr><td colspan="9" class="text-center">Không có dữ liệu</td></tr>'; // ✅ SỬA colspan từ 8 thành 9
       }
 
       html += '</tbody></table></div>';
 
       if (data.pagination && data.pagination.totalPages > 1) {
-        html += renderPagination(data.pagination, 'refreshUsers');
+        html += renderPagination(data.pagination, 'refreshBookings');
       }
 
       content.innerHTML = html;
@@ -1680,6 +2191,7 @@
           <table class="table">
             <thead>
               <tr>
+                <th>STT</th>
                 <th>ID</th>
                 <th>Tên</th>
                 <th>Địa chỉ</th>
@@ -1692,9 +2204,10 @@
       `;
 
       if (data.homestays && data.homestays.length > 0) {
-        data.homestays.forEach(homestay => {
+        data.homestays.forEach((homestay, index) => {
           html += `
             <tr>
+              <td>${index + 1}</td>
               <td>${homestay.homestay_id}</td>
               <td>${homestay.name}</td>
               <td>${homestay.address}</td>
@@ -1740,6 +2253,7 @@
           <table class="table">
             <thead>
               <tr>
+                <th>STT</th>
                 <th>ID</th>
                 <th>Tên phòng</th>
                 <th>Homestay</th>
@@ -1752,9 +2266,10 @@
       `;
 
       if (data.rooms && data.rooms.length > 0) {
-        data.rooms.forEach(room => {
+        data.rooms.forEach((room, index) => {
           html += `
             <tr>
+              <td>${index + 1}</td>
               <td>${room.room_type_id}</td>
               <td>${room.type_name}</td>
               <td>${room.Homestay ? room.Homestay.name : 'N/A'}</td>
@@ -1794,27 +2309,30 @@
       }
     }
 
+    // SỬA function renderBookingsTable - thêm nút Sửa
     function renderBookingsTable(data) {
       const content = document.getElementById('bookings-content');
       let html = `
-        <div class="table-responsive">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Khách hàng</th>
-                <th>Phòng</th>
-                <th>Ngày đặt</th>
-                <th>Tổng tiền</th>
-                <th>Trạng thái</th>
-                <th>Hành động</th>
-              </tr>
-            </thead>
-            <tbody>
-      `;
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>ID</th>
+            <th>Khách hàng</th>
+            <th>Phòng</th>
+            <th>Ngày đặt</th>
+            <th>Tổng tiền</th>
+            <th>Phương thức</th>
+            <th>Trạng thái</th>
+            <th>Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
 
       if (data.bookings && data.bookings.length > 0) {
-        data.bookings.forEach(booking => {
+        data.bookings.forEach((booking, index) => {
           let statusBadge = '';
           switch (booking.payment_status) {
             case 'paid':
@@ -1830,29 +2348,47 @@
               statusBadge = `<span class="badge bg-light">${booking.payment_status}</span>`;
           }
 
+          // ✅ THÊM logic hiển thị phương thức thanh toán
+          let paymentMethodBadge = '';
+          switch (booking.payment_method) {
+            case 'vnpay':
+              paymentMethodBadge = '<span class="badge bg-info">VNPay</span>';
+              break;
+            case 'momo':
+              paymentMethodBadge = '<span class="badge bg-primary">MoMo</span>';
+              break;
+            case 'cash':
+              paymentMethodBadge = '<span class="badge bg-secondary">Tiền mặt</span>';
+              break;
+            default:
+              paymentMethodBadge = `<span class="badge bg-light">${booking.payment_method || 'N/A'}</span>`;
+          }
+
           html += `
-            <tr>
-              <td>${booking.booking_id}</td>
-              <td>${booking.User ? booking.User.name : booking.name}</td>
-              <td>${booking.RoomType ? booking.RoomType.type_name : 'N/A'}</td>
-              <td>${new Date(booking.booking_date).toLocaleDateString('vi-VN')}</td>
-              <td>${new Intl.NumberFormat('vi-VN').format(booking.total_price)} VND</td>
-              <td>${statusBadge}</td>
-              <td>
-                <button class="btn-action btn-view" onclick="viewBooking(${booking.booking_id})">Xem</button>
-                <select class="form-select form-select-sm d-inline-block w-auto" onchange="updateBookingStatus(${booking.booking_id}, this.value)">
-  <option value="">Chọn</option>
-  <option value="pending" ${booking.payment_status === 'pending' ? 'selected' : ''}>Chờ xử lý</option>
-  <option value="paid" ${booking.payment_status === 'paid' ? 'selected' : ''}>Hoàn thành</option>
-  <option value="failed" ${booking.payment_status === 'failed' ? 'selected' : ''}>Từ chối</option>
-</select>
-            
-              </td>
-            </tr>
-          `;
+        <tr>
+          <td>${index + 1}</td>
+          <td>${booking.booking_id}</td>
+          <td>${booking.User ? booking.User.name : booking.name}</td>
+          <td>${booking.RoomType ? booking.RoomType.type_name : 'N/A'}</td>
+          <td>${new Date(booking.booking_date).toLocaleDateString('vi-VN')}</td>
+          <td>${new Intl.NumberFormat('vi-VN').format(booking.total_price)} VND</td>
+          <td>${paymentMethodBadge}</td>
+          <td>${statusBadge}</td>
+          <td>
+            <button class="btn-action btn-view" onclick="viewBooking(${booking.booking_id})">Xem</button>
+            <button class="btn-action btn-edit" onclick="editBooking(${booking.booking_id})">Sửa</button>
+            <select class="form-select form-select-sm d-inline-block w-auto" onchange="updateBookingStatus(${booking.booking_id}, this.value)">
+              <option value="">Chọn</option>
+              <option value="pending" ${booking.payment_status === 'pending' ? 'selected' : ''}>Chờ xử lý</option>
+              <option value="paid" ${booking.payment_status === 'paid' ? 'selected' : ''}>Hoàn thành</option>
+              <option value="failed" ${booking.payment_status === 'failed' ? 'selected' : ''}>Từ chối</option>
+            </select>
+          </td>
+        </tr>
+      `;
         });
       } else {
-        html += '<tr><td colspan="7" class="text-center">Không có dữ liệu</td></tr>';
+        html += '<tr><td colspan="9" class="text-center">Không có dữ liệu</td></tr>'; // ✅ SỬA colspan từ 8 thành 9
       }
 
       html += '</tbody></table></div>';
@@ -1921,6 +2457,7 @@
           <table class="table">
             <thead>
               <tr>
+                <th>STT</th>
                 <th>ID</th>
                 <th>Khách hàng</th>
                 <th>Phòng</th>
@@ -1934,11 +2471,12 @@
       `;
 
       if (data.reviews && data.reviews.length > 0) {
-        data.reviews.forEach(review => {
+        data.reviews.forEach((review, index) => {
           const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
 
           html += `
             <tr>
+              <td>${index + 1}</td>
               <td>${review.review_id}</td>
               <td>${review.User ? review.User.name : 'Ẩn danh'}</td>
               <td>${review.RoomType ? review.RoomType.type_name : 'N/A'}</td>
@@ -1953,7 +2491,7 @@
           `;
         });
       } else {
-        html += '<tr><td colspan="7" class="text-center">Không có dữ liệu</td></tr>';
+        html += '<tr><td colspan="8" class="text-center">Không có dữ liệu</td></tr>';
       }
 
       html += '</tbody></table></div>';
@@ -1997,6 +2535,7 @@
           <table class="table">
             <thead>
               <tr>
+                <th>STT</th>
                 <th>ID</th>
                 <th>Tên dịch vụ</th>
                 <th>Hành động</th>
@@ -2006,9 +2545,10 @@
       `;
 
       if (data.services && data.services.length > 0) {
-        data.services.forEach(service => {
+        data.services.forEach((service, index) => {
           html += `
             <tr>
+              <td>${index + 1}</td>
               <td>${service.service_id}</td>
               <td>${service.service_name}</td>
               <td>
@@ -2154,6 +2694,22 @@
 
         const b = res.booking;
 
+        // ✅ THÊM hiển thị phương thức thanh toán
+        let paymentMethodText = '';
+        switch (b.payment_method) {
+          case 'vnpay':
+            paymentMethodText = 'VNPay';
+            break;
+          case 'momo':
+            paymentMethodText = 'MoMo';
+            break;
+          case 'cash':
+            paymentMethodText = 'Tiền mặt';
+            break;
+          default:
+            paymentMethodText = b.payment_method || 'Không xác định';
+        }
+
         const info = `
       <strong>ID Hóa đơn:</strong> ${b.booking_id}<br>
       <strong>ID Tài khoản:</strong> ${b.user_id}<br>
@@ -2164,6 +2720,7 @@
       <strong>Ngày đi:</strong> ${new Date(b.check_out_date).toLocaleDateString('vi-VN')}<br>
       <strong>Người lớn:</strong> ${b.adults} - <strong>Trẻ em:</strong> ${b.children}<br>
       <strong>Tổng tiền:</strong> ${new Intl.NumberFormat('vi-VN').format(b.total_price)} VND<br>
+      <strong>Phương thức thanh toán:</strong> ${paymentMethodText}<br>
       <strong>Trạng thái:</strong> ${b.payment_status === 'paid' ? 'Đã thanh toán' : b.payment_status === 'pending' ? 'Chờ thanh toán' : 'Thất bại'}
     `;
 
@@ -2187,6 +2744,486 @@
       alert(`Xem đánh giá ID: ${id} - Chức năng này sẽ được phát triển`);
     }
 
+    function showCreateUserModal() {
+      // Reset form
+      document.getElementById('createUserForm').reset();
+      new bootstrap.Modal(document.getElementById('createUserModal')).show();
+    }
+
+    async function createUser() {
+      try {
+        const name = document.getElementById('createUserName').value.trim();
+        const email = document.getElementById('createUserEmail').value.trim();
+        const password = document.getElementById('createUserPassword').value;
+        const phone = document.getElementById('createUserPhone').value.trim();
+        const gender = document.getElementById('createUserGender').value;
+        const dob = document.getElementById('createUserDob').value;
+        const role = document.getElementById('createUserRole').value;
+
+        // Validation
+        if (!name || !email || !password || !role) {
+          return Swal.fire({
+            icon: 'error',
+            title: 'Thiếu thông tin',
+            text: 'Vui lòng điền đầy đủ các trường bắt buộc!'
+          });
+        }
+
+        if (password.length < 6) {
+          return Swal.fire({
+            icon: 'error',
+            title: 'Mật khẩu không hợp lệ',
+            text: 'Mật khẩu phải có ít nhất 6 ký tự!'
+          });
+        }
+
+        // Call API
+        const userData = {
+          name,
+          email,
+          password,
+          phone: phone || null,
+          gender: gender || null,
+          dob: dob || null,
+          role
+        };
+
+        const response = await apiCall('/admin/users', {
+          method: 'POST',
+          body: JSON.stringify(userData)
+        });
+
+        if (response.success) {
+          // Đóng modal
+          bootstrap.Modal.getInstance(document.getElementById('createUserModal')).hide();
+
+          // Hiển thị thông báo thành công
+          await Swal.fire({
+            icon: 'success',
+            title: 'Thành công!',
+            text: response.message || 'Tạo tài khoản thành công!',
+            timer: 2000,
+            showConfirmButton: false
+          });
+
+          // Refresh danh sách users
+          refreshUsers();
+        } else {
+          await Swal.fire({
+            icon: 'error',
+            title: 'Thất bại',
+            text: response.message || 'Không thể tạo tài khoản!'
+          });
+        }
+      } catch (error) {
+        console.error('❌ Create user error:', error);
+        await Swal.fire({
+          icon: 'error',
+          title: 'Lỗi hệ thống',
+          text: 'Không thể kết nối tới máy chủ!'
+        });
+      }
+    }
+
+    // ✅ THÊM FUNCTIONS CHO BOOKING
+    function showCreateBookingModal() {
+      // Reset form
+      document.getElementById('createBookingForm').reset();
+
+      // Set ngày mặc định
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('createBookingDate').value = today;
+
+      // Load users và homestays
+      loadUsersForBooking();
+      loadHomestaysForBooking();
+
+      new bootstrap.Modal(document.getElementById('createBookingModal')).show();
+    }
+
+    async function loadUsersForBooking() {
+      try {
+        const response = await apiCall('/admin/bookings/users');
+        const userSelect = document.getElementById('createBookingUser');
+
+        if (response.success) {
+          userSelect.innerHTML = '<option value="">-- Chọn người dùng --</option>';
+          response.users.forEach(user => {
+            userSelect.innerHTML += `<option value="${user.user_id}">${user.name} (${user.email})</option>`;
+          });
+        }
+      } catch (error) {
+        console.error('❌ Lỗi load users:', error);
+      }
+    }
+
+    async function loadHomestaysForBooking() {
+      try {
+        console.log("🔄 Loading homestays..."); // ✅ THÊM LOG DEBUG
+
+        const response = await apiCall('/admin/bookings/homestays');
+        console.log("📥 API Response:", response); // ✅ THÊM LOG DEBUG
+
+        const homestaySelect = document.getElementById('createBookingHomestay');
+
+        if (response.success && response.homestays) {
+          homestaySelect.innerHTML = '<option value="">-- Chọn homestay --</option>';
+
+          if (response.homestays.length === 0) {
+            homestaySelect.innerHTML += '<option value="" disabled>Không có homestay nào</option>';
+            console.log("⚠️ Không có homestay nào trong database");
+            return;
+          }
+
+          response.homestays.forEach(homestay => {
+            const priceText = homestay.total_price_per_night > 0
+              ? `${new Intl.NumberFormat('vi-VN').format(homestay.total_price_per_night)} VND/đêm`
+              : 'Chưa có giá';
+
+            homestaySelect.innerHTML += `<option value="${homestay.homestay_id}" data-price="${homestay.total_price_per_night}" data-rooms="${homestay.room_count}">${homestay.name} - ${homestay.address} (${homestay.room_count} phòng, ${priceText})</option>`;
+          });
+
+          console.log("✅ Loaded", response.homestays.length, "homestays");
+        } else {
+          homestaySelect.innerHTML = '<option value="" disabled>Lỗi tải dữ liệu</option>';
+          console.error("❌ API không trả về homestays:", response);
+        }
+      } catch (error) {
+        console.error('❌ Lỗi load homestays:', error);
+        const homestaySelect = document.getElementById('createBookingHomestay');
+        homestaySelect.innerHTML = '<option value="" disabled>Lỗi kết nối</option>';
+      }
+    }
+
+    function updateHomestayPrice() {
+      calculateTotal();
+    }
+
+    function calculateTotal() {
+      const homestaySelect = document.getElementById('createBookingHomestay');
+      const checkinDate = document.getElementById('createBookingCheckin').value;
+      const checkoutDate = document.getElementById('createBookingCheckout').value;
+      const priceInput = document.getElementById('createBookingPrice');
+
+      if (homestaySelect.value && checkinDate && checkoutDate) {
+        const selectedOption = homestaySelect.options[homestaySelect.selectedIndex];
+        const pricePerNight = parseFloat(selectedOption.dataset.price);
+
+        const checkin = new Date(checkinDate);
+        const checkout = new Date(checkoutDate);
+        const nights = Math.ceil((checkout - checkin) / (1000 * 60 * 60 * 24));
+
+        if (nights > 0) {
+          const totalPrice = pricePerNight * nights;
+          priceInput.value = totalPrice;
+        }
+      }
+    }
+
+    async function createBooking() {
+      try {
+        const user_id = document.getElementById('createBookingUser').value;
+        const homestay_id = document.getElementById('createBookingHomestay').value;
+        const name = document.getElementById('createBookingName').value.trim();
+        const booking_date = document.getElementById('createBookingDate').value;
+        const check_in_date = document.getElementById('createBookingCheckin').value;
+        const check_out_date = document.getElementById('createBookingCheckout').value;
+        const adults = document.getElementById('createBookingAdults').value;
+        const children = document.getElementById('createBookingChildren').value;
+        const total_price = document.getElementById('createBookingPrice').value;
+        const guest_email = document.getElementById('createBookingEmail').value.trim();
+        const guest_phone = document.getElementById('createBookingPhone').value.trim();
+        const guest_address = document.getElementById('createBookingAddress').value.trim();
+        const payment_method = document.getElementById('createBookingPaymentMethod').value;
+        const payment_status = document.getElementById('createBookingPaymentStatus').value;
+
+        // Validation
+        if (!user_id || !homestay_id || !name || !booking_date || !check_in_date ||
+          !check_out_date || !adults || !total_price) {
+          return Swal.fire({
+            icon: 'error',
+            title: 'Thiếu thông tin',
+            text: 'Vui lòng điền đầy đủ các trường bắt buộc!'
+          });
+        }
+
+        // Validation ngày
+        const checkinDate = new Date(check_in_date);
+        const checkoutDate = new Date(check_out_date);
+
+        if (checkinDate >= checkoutDate) {
+          return Swal.fire({
+            icon: 'error',
+            title: 'Ngày không hợp lệ',
+            text: 'Ngày trả phòng phải sau ngày nhận phòng!'
+          });
+        }
+
+        // ✅ XÓA phần lấy homestay_id từ room (vì không còn chọn room)
+        // ✅ homestay_id đã được lấy từ select homestay ở trên
+
+        // Call API - ✅ XÓA room_type_id
+        const bookingData = {
+          user_id: parseInt(user_id),
+          homestay_id: parseInt(homestay_id), // ✅ Sử dụng homestay_id từ form
+          // ✅ XÓA room_type_id: parseInt(room_type_id),
+          name,
+          booking_date,
+          check_in_date,
+          check_out_date,
+          adults: parseInt(adults),
+          children: parseInt(children),
+          total_price: parseFloat(total_price),
+          guest_email: guest_email || null,
+          guest_phone: guest_phone || null,
+          guest_address: guest_address || null,
+          payment_method,
+          payment_status
+        };
+
+        const response = await apiCall('/admin/bookings', {
+          method: 'POST',
+          body: JSON.stringify(bookingData)
+        });
+
+        if (response.success) {
+          // Đóng modal
+          bootstrap.Modal.getInstance(document.getElementById('createBookingModal')).hide();
+
+          // Hiển thị thông báo thành công
+          await Swal.fire({
+            icon: 'success',
+            title: 'Thành công!',
+            text: response.message || 'Tạo hóa đơn thành công!',
+            timer: 2000,
+            showConfirmButton: false
+          });
+
+          // Refresh danh sách bookings
+          refreshBookings();
+        } else {
+          await Swal.fire({
+            icon: 'error',
+            title: 'Thất bại',
+            text: response.message || 'Không thể tạo hóa đơn!'
+          });
+        }
+      } catch (error) {
+        console.error('❌ Create booking error:', error);
+        await Swal.fire({
+          icon: 'error',
+          title: 'Lỗi hệ thống',
+          text: 'Không thể kết nối tới máy chủ!'
+        });
+      }
+    }
+
+    // ✅ THÊM FUNCTIONS CHO EDIT BOOKING
+    async function editBooking(bookingId) {
+      try {
+        // Load data cho dropdowns
+        await loadUsersForEdit();
+        await loadHomestaysForEdit();
+
+        // Load thông tin booking
+        const response = await apiCall(`/admin/bookings/${bookingId}/edit`);
+
+        if (response.success && response.booking) {
+          const booking = response.booking;
+
+          // Set booking ID
+          document.getElementById('editBookingId').value = booking.booking_id;
+
+          // Set form values
+          document.getElementById('editBookingUser').value = booking.user_id;
+          document.getElementById('editBookingHomestay').value = booking.homestay_id;
+          document.getElementById('editBookingName').value = booking.name;
+          document.getElementById('editBookingDate').value = booking.booking_date.split('T')[0];
+          document.getElementById('editBookingCheckin').value = booking.check_in_date.split('T')[0];
+          document.getElementById('editBookingCheckout').value = booking.check_out_date.split('T')[0];
+          document.getElementById('editBookingAdults').value = booking.adults;
+          document.getElementById('editBookingChildren').value = booking.children;
+          document.getElementById('editBookingPrice').value = booking.total_price;
+          document.getElementById('editBookingEmail').value = booking.guest_email || '';
+          document.getElementById('editBookingPhone').value = booking.guest_phone || '';
+          document.getElementById('editBookingAddress').value = booking.guest_address || '';
+          document.getElementById('editBookingPaymentMethod').value = booking.payment_method;
+          document.getElementById('editBookingPaymentStatus').value = booking.payment_status;
+
+          // Show modal
+          new bootstrap.Modal(document.getElementById('editBookingModal')).show();
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Lỗi',
+            text: 'Không thể tải thông tin hóa đơn!'
+          });
+        }
+      } catch (error) {
+        console.error('❌ Edit booking error:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Lỗi hệ thống',
+          text: 'Không thể kết nối tới máy chủ!'
+        });
+      }
+    }
+
+    async function loadUsersForEdit() {
+      try {
+        const response = await apiCall('/admin/bookings/users');
+        const userSelect = document.getElementById('editBookingUser');
+
+        if (response.success) {
+          userSelect.innerHTML = '<option value="">-- Chọn người dùng --</option>';
+          response.users.forEach(user => {
+            userSelect.innerHTML += `<option value="${user.user_id}">${user.name} (${user.email})</option>`;
+          });
+        }
+      } catch (error) {
+        console.error('❌ Lỗi load users for edit:', error);
+      }
+    }
+
+    async function loadHomestaysForEdit() {
+      try {
+        const response = await apiCall('/admin/bookings/homestays');
+        const homestaySelect = document.getElementById('editBookingHomestay');
+
+        if (response.success) {
+          homestaySelect.innerHTML = '<option value="">-- Chọn homestay --</option>';
+          response.homestays.forEach(homestay => {
+            const priceText = homestay.total_price_per_night > 0
+              ? `${new Intl.NumberFormat('vi-VN').format(homestay.total_price_per_night)} VND/đêm`
+              : 'Chưa có giá';
+
+            homestaySelect.innerHTML += `<option value="${homestay.homestay_id}" data-price="${homestay.total_price_per_night}" data-rooms="${homestay.room_count}">${homestay.name} - ${homestay.address} (${homestay.room_count} phòng, ${priceText})</option>`;
+          });
+        }
+      } catch (error) {
+        console.error('❌ Lỗi load homestays for edit:', error);
+      }
+    }
+
+    function updateEditHomestayPrice() {
+      calculateEditTotal();
+    }
+
+    function calculateEditTotal() {
+      const homestaySelect = document.getElementById('editBookingHomestay');
+      const checkinDate = document.getElementById('editBookingCheckin').value;
+      const checkoutDate = document.getElementById('editBookingCheckout').value;
+      const priceInput = document.getElementById('editBookingPrice');
+
+      if (homestaySelect.value && checkinDate && checkoutDate) {
+        const selectedOption = homestaySelect.options[homestaySelect.selectedIndex];
+        const pricePerNight = parseFloat(selectedOption.dataset.price);
+
+        const checkin = new Date(checkinDate);
+        const checkout = new Date(checkoutDate);
+        const nights = Math.ceil((checkout - checkin) / (1000 * 60 * 60 * 24));
+
+        if (nights > 0) {
+          const totalPrice = pricePerNight * nights;
+          priceInput.value = totalPrice;
+        }
+      }
+    }
+
+    async function updateBooking() {
+      try {
+        const bookingId = document.getElementById('editBookingId').value;
+        const user_id = document.getElementById('editBookingUser').value;
+        const homestay_id = document.getElementById('editBookingHomestay').value;
+        const name = document.getElementById('editBookingName').value.trim();
+        const booking_date = document.getElementById('editBookingDate').value;
+        const check_in_date = document.getElementById('editBookingCheckin').value;
+        const check_out_date = document.getElementById('editBookingCheckout').value;
+        const adults = document.getElementById('editBookingAdults').value;
+        const children = document.getElementById('editBookingChildren').value;
+        const total_price = document.getElementById('editBookingPrice').value;
+        const guest_email = document.getElementById('editBookingEmail').value.trim();
+        const guest_phone = document.getElementById('editBookingPhone').value.trim();
+        const guest_address = document.getElementById('editBookingAddress').value.trim();
+        const payment_method = document.getElementById('editBookingPaymentMethod').value;
+        const payment_status = document.getElementById('editBookingPaymentStatus').value;
+
+        // Validation
+        if (!user_id || !homestay_id || !name || !booking_date || !check_in_date ||
+          !check_out_date || !adults || !total_price) {
+          return Swal.fire({
+            icon: 'error',
+            title: 'Thiếu thông tin',
+            text: 'Vui lòng điền đầy đủ các trường bắt buộc!'
+          });
+        }
+
+        // Validation ngày
+        const checkinDate = new Date(check_in_date);
+        const checkoutDate = new Date(check_out_date);
+
+        if (checkinDate >= checkoutDate) {
+          return Swal.fire({
+            icon: 'error',
+            title: 'Ngày không hợp lệ',
+            text: 'Ngày trả phòng phải sau ngày nhận phòng!'
+          });
+        }
+
+        // Call API
+        const bookingData = {
+          user_id: parseInt(user_id),
+          homestay_id: parseInt(homestay_id),
+          name,
+          booking_date,
+          check_in_date,
+          check_out_date,
+          adults: parseInt(adults),
+          children: parseInt(children),
+          total_price: parseFloat(total_price),
+          guest_email: guest_email || null,
+          guest_phone: guest_phone || null,
+          guest_address: guest_address || null,
+          payment_method,
+          payment_status
+        };
+
+        const response = await apiCall(`/admin/bookings/${bookingId}`, {
+          method: 'PUT',
+          body: JSON.stringify(bookingData)
+        });
+
+        if (response.success) {
+          // Đóng modal
+          bootstrap.Modal.getInstance(document.getElementById('editBookingModal')).hide();
+
+          // Hiển thị thông báo thành công
+          await Swal.fire({
+            icon: 'success',
+            title: 'Thành công!',
+            text: response.message || 'Cập nhật hóa đơn thành công!',
+            timer: 2000,
+            showConfirmButton: false
+          });
+
+          // Refresh danh sách bookings
+          refreshBookings();
+        } else {
+          await Swal.fire({
+            icon: 'error',
+            title: 'Thất bại',
+            text: response.message || 'Không thể cập nhật hóa đơn!'
+          });
+        }
+      } catch (error) {
+        console.error('❌ Update booking error:', error);
+        await Swal.fire({
+          icon: 'error',
+          title: 'Lỗi hệ thống',
+          text: 'Không thể kết nối tới máy chủ!'
+        });
+      }
+    }
   </script>
 </body>
 
