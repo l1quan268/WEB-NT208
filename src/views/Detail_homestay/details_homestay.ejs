@@ -469,7 +469,15 @@
 
   <!-- ----------------------------------- -->
   <!-- script cho đánh giá  -->
+   
 <script>
+  function formatDateVN(dateStr) {
+  const d = new Date(dateStr);
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  return `${dd}-${mm}-${yyyy}`;
+}
   // 🔥 THÊM BIẾN GLOBAL CHO CALENDAR
   let bookedDates = [];
   const roomId = '<%= room.room_type_id %>';
@@ -558,10 +566,7 @@
 
     const disabledInfo = document.createElement('div');
     disabledInfo.className = 'disabled-dates-info';
-    disabledInfo.innerHTML = `
-      <i class="fas fa-info-circle"></i> 
-      Một số ngày đã được đặt và không thể chọn
-    `;
+
     checkoutContainer.appendChild(disabledInfo);
 
     // 🔥 VALIDATION CHO CHECKIN
@@ -570,16 +575,56 @@
       
       // Kiểm tra nếu ngày được chọn nằm trong danh sách đã đặt
       if (bookedDates.includes(selectedDate)) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Ngày không khả dụng',
-          text: 'Ngày này đã được đặt. Vui lòng chọn ngày khác.',
-          timer: 3000,
-          showConfirmButton: false
-        });
-        this.value = ''; // Clear giá trị
-        return;
-      }
+  // 🔥 Tìm khoảng bắt đầu - kết thúc chứa selectedDate
+  let conflictStart = selectedDate;
+  let conflictEnd = selectedDate;
+
+  const sorted = [...bookedDates].sort();
+  const index = sorted.indexOf(selectedDate);
+
+  // Lùi về trước nếu các ngày liên tiếp
+  for (let i = index - 1; i >= 0; i--) {
+    const prev = new Date(sorted[i]);
+    const curr = new Date(conflictStart);
+    prev.setDate(prev.getDate() + 1);
+    if (prev.toISOString().split('T')[0] === curr.toISOString().split('T')[0]) {
+      conflictStart = sorted[i];
+    } else break;
+  }
+
+  // Tiến về sau nếu các ngày liên tiếp
+  for (let i = index + 1; i < sorted.length; i++) {
+    const next = new Date(sorted[i]);
+    const curr = new Date(conflictEnd);
+    curr.setDate(curr.getDate() + 1);
+    if (next.toISOString().split('T')[0] === curr.toISOString().split('T')[0]) {
+      conflictEnd = sorted[i];
+    } else break;
+  }
+
+  function formatDateVN(dateStr) {
+  const d = new Date(dateStr);
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  return `${dd}-${mm}-${yyyy}`;
+}
+
+Swal.fire({
+  icon: 'warning',
+  title: 'Ngày không khả dụng',
+  html: `
+    Ngày này đã được đặt từ <strong>${formatDateVN(conflictStart)}</strong> đến <strong>${formatDateVN(conflictEnd)}</strong>.<br>
+    Vui lòng chọn khoảng thời gian khác.
+  `,
+  timer: 5000,
+  showConfirmButton: false
+});
+
+  this.value = ''; // Clear
+  return;
+}
+
 
       const checkinDate = new Date(selectedDate);
       const minCheckout = new Date(checkinDate);
@@ -680,6 +725,21 @@ setTimeout(function() {
     }
     return false;
   }
+  // 🔥 FUNCTION LẤY DANH SÁCH CÁC NGÀY TRÙNG
+function getConflictedDatesInRange(checkinDate, checkoutDate) {
+  const startDate = new Date(checkinDate);
+  const endDate = new Date(checkoutDate);
+  const conflicts = [];
+
+  for (let d = new Date(startDate); d < endDate; d.setDate(d.getDate() + 1)) {
+    const dateStr = d.toISOString().split('T')[0];
+    if (bookedDates.includes(dateStr)) {
+      conflicts.push(dateStr);
+    }
+  }
+
+  return conflicts;
+}
 
   // 🔥 SETUP FORM HANDLERS (CODE CŨ)
   function setupFormHandlers() {
@@ -732,17 +792,26 @@ setTimeout(function() {
       }
 
       // 🔥 KIỂM TRA LẠI RANGE TRƯỚC KHI SUBMIT
-      if (hasBookedDatesInRange(checkinInput.value, checkoutInput.value)) {
-        e.preventDefault();
-        Swal.fire({
-          icon: 'error',
-          title: 'Không thể đặt phòng',
-          text: 'Khoảng thời gian bạn chọn có ngày đã được đặt. Vui lòng chọn lại.',
-          timer: 4000,
-          showConfirmButton: false
-        });
-        return;
-      }
+      const conflicts = getConflictedDatesInRange(checkinInput.value, checkoutInput.value);
+if (conflicts.length > 0) {
+  e.preventDefault();
+
+  const from = conflicts[0];
+  const to = conflicts[conflicts.length - 1];
+
+  Swal.fire({
+    icon: 'error',
+    title: 'Khoảng thời gian đã được đặt',
+    html: `
+      <p>Phòng đã có người đặt từ <strong>${from}</strong> đến <strong>${to}</strong>.</p>
+      <p>Vui lòng chọn thời gian khác!</p>
+    `,
+    confirmButtonText: 'OK'
+  });
+
+  return;
+}
+
 
       // Set hidden values
       document.getElementById("hiddenCheckin").value = checkinInput.value;
