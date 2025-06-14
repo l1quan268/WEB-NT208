@@ -1137,9 +1137,14 @@
           <div class="table-container">
             <div class="table-header d-flex justify-content-between align-items-center">
               <h4>Danh sách Homestay</h4>
-              <button class="btn btn-light btn-sm" onclick="refreshHomestays()">
-                <i class="fas fa-refresh"></i> Tải lại
-              </button>
+              <div>
+                <button class="btn btn-success btn-sm me-2" onclick="showCreateHomestayModal()">
+                  <i class="fas fa-plus"></i> Thêm homestay
+                </button>
+                <button class="btn btn-light btn-sm" onclick="refreshHomestays()">
+                  <i class="fas fa-refresh"></i> Tải lại
+                </button>
+              </div>
             </div>
             <div id="homestays-content">
               <div class="loading">
@@ -1164,9 +1169,14 @@
           <div class="table-container">
             <div class="table-header d-flex justify-content-between align-items-center">
               <h4>Danh sách phòng</h4>
-              <button class="btn btn-light btn-sm" onclick="refreshRooms()">
-                <i class="fas fa-refresh"></i> Tải lại
-              </button>
+              <div>
+                <button class="btn btn-success btn-sm me-2" onclick="showCreateRoomModal()">
+                  <i class="fas fa-plus"></i> Thêm phòng
+                </button>
+                <button class="btn btn-light btn-sm" onclick="refreshRooms()">
+                  <i class="fas fa-refresh"></i> Tải lại
+                </button>
+              </div>
             </div>
             <div id="rooms-content">
               <div class="loading">
@@ -1369,6 +1379,65 @@
     </div>
   </div>
 
+  <!-- Create Homestay Modal -->
+  <div class="modal fade" id="createHomestayModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fas fa-home me-2"></i>Thêm homestay mới
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="createHomestayForm">
+            <div class="mb-3">
+              <label for="createHomestayName" class="form-label">
+                Tên homestay <span class="text-danger">*</span>
+              </label>
+              <input type="text" class="form-control" id="createHomestayName" required placeholder="Nhập tên homestay">
+            </div>
+
+            <div class="mb-3">
+              <label for="createHomestayDescription" class="form-label">
+                Mô tả <span class="text-danger">*</span>
+              </label>
+              <textarea class="form-control" id="createHomestayDescription" rows="4" required
+                placeholder="Mô tả chi tiết về homestay"></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label for="createHomestayAddress" class="form-label">
+                Địa chỉ <span class="text-danger">*</span>
+              </label>
+              <input type="text" class="form-control" id="createHomestayAddress" required placeholder="Địa chỉ đầy đủ">
+            </div>
+
+            <div class="mb-3">
+              <label for="createHomestayThumbnail" class="form-label">URL ảnh đại diện</label>
+              <input type="url" class="form-control" id="createHomestayThumbnail"
+                placeholder="https://example.com/image.jpg">
+              <div class="form-text">Để trống nếu chưa có ảnh</div>
+            </div>
+
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              <strong>Lưu ý:</strong> Sau khi tạo homestay, bạn có thể thêm các loại phòng trong phần "Quản lý phòng".
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-2"></i>Hủy
+          </button>
+          <button type="button" class="btn btn-success" onclick="createHomestay()">
+            <i class="fas fa-plus me-2"></i>Tạo homestay
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Create Booking Modal -->
   <div class="modal fade" id="createBookingModal" tabindex="-1">
     <div class="modal-dialog modal-xl">
@@ -1397,9 +1466,24 @@
                   <label for="createBookingHomestay" class="form-label">
                     Homestay <span class="text-danger">*</span>
                   </label>
-                  <select class="form-select" id="createBookingHomestay" required onchange="updateHomestayPrice()">
+                  <select class="form-select" id="createBookingHomestay" required onchange="loadRoomsForHomestay()">
                     <option value="">-- Chọn homestay --</option>
                   </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- ✅ THÊM LẠI ROW CHỌN PHÒNG -->
+            <div class="row">
+              <div class="col-md-12">
+                <div class="mb-3">
+                  <label for="createBookingRoom" class="form-label">
+                    Loại phòng <span class="text-danger">*</span>
+                  </label>
+                  <select class="form-select" id="createBookingRoom" required onchange="updateRoomInfo()" disabled>
+                    <option value="">-- Chọn homestay trước --</option>
+                  </select>
+                  <div class="form-text" id="roomInfoText"></div>
                 </div>
               </div>
             </div>
@@ -1450,13 +1534,17 @@
                   <label for="createBookingAdults" class="form-label">
                     Người lớn <span class="text-danger">*</span>
                   </label>
-                  <input type="number" class="form-control" id="createBookingAdults" min="1" required>
+                  <input type="number" class="form-control" id="createBookingAdults" min="1" required
+                    onchange="validateGuestsAndCalculate()">
+                  <div class="form-text" id="adultsLimitText"></div>
                 </div>
               </div>
               <div class="col-md-3">
                 <div class="mb-3">
                   <label for="createBookingChildren" class="form-label">Trẻ em</label>
-                  <input type="number" class="form-control" id="createBookingChildren" min="0" value="0">
+                  <input type="number" class="form-control" id="createBookingChildren" min="0" value="0"
+                    onchange="validateGuestsAndCalculate()">
+                  <div class="form-text" id="childrenLimitText"></div>
                 </div>
               </div>
               <div class="col-md-6">
@@ -1468,7 +1556,7 @@
                     <input type="number" class="form-control" id="createBookingPrice" required readonly>
                     <span class="input-group-text">VND</span>
                   </div>
-                  <div class="form-text">Giá cho toàn bộ homestay sẽ được tính tự động</div>
+                  <div class="form-text" id="priceBreakdown"></div>
                 </div>
               </div>
             </div>
@@ -1539,6 +1627,179 @@
     </div>
   </div>
 
+
+  <!-- Create Room Modal -->
+  <div class="modal fade" id="createRoomModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fas fa-bed me-2"></i>Thêm phòng mới
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="createRoomForm">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="createRoomHomestay" class="form-label">
+                    Homestay <span class="text-danger">*</span>
+                  </label>
+                  <select class="form-select" id="createRoomHomestay" required>
+                    <option value="">-- Chọn homestay --</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="createRoomName" class="form-label">
+                    Tên phòng <span class="text-danger">*</span>
+                  </label>
+                  <input type="text" class="form-control" id="createRoomName" required placeholder="Tên loại phòng">
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="createRoomDescription" class="form-label">
+                Mô tả <span class="text-danger">*</span>
+              </label>
+              <textarea class="form-control" id="createRoomDescription" rows="3" required
+                placeholder="Mô tả chi tiết về phòng"></textarea>
+            </div>
+
+            <div class="row">
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label for="createRoomBedroom" class="form-label">Số phòng ngủ</label>
+                  <input type="number" class="form-control" id="createRoomBedroom" min="1" value="1">
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label for="createRoomToilet" class="form-label">Số phòng tắm</label>
+                  <input type="number" class="form-control" id="createRoomToilet" min="1" value="1">
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label for="createRoomPrice" class="form-label">
+                    Giá/đêm (VND) <span class="text-danger">*</span>
+                  </label>
+                  <input type="number" class="form-control" id="createRoomPrice" min="0" required placeholder="500000">
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-3">
+                <div class="mb-3">
+                  <label for="createRoomMinAdults" class="form-label">Tối thiểu người lớn</label>
+                  <input type="number" class="form-control" id="createRoomMinAdults" min="1" value="1">
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="mb-3">
+                  <label for="createRoomMaxAdults" class="form-label">Tối đa người lớn</label>
+                  <input type="number" class="form-control" id="createRoomMaxAdults" min="1" value="2">
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="mb-3">
+                  <label for="createRoomMaxChildren" class="form-label">Tối đa trẻ em</label>
+                  <input type="number" class="form-control" id="createRoomMaxChildren" min="0" value="2">
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="mb-3">
+                  <label for="createRoomMaxGuests" class="form-label">Tối đa tổng người</label>
+                  <input type="number" class="form-control" id="createRoomMaxGuests" min="1" value="4">
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="createRoomSlug" class="form-label">Slug (URL thân thiện)</label>
+              <input type="text" class="form-control" id="createRoomSlug" placeholder="vd: deluxe-room-sea-view">
+              <div class="form-text">Để trống để tự động tạo từ tên phòng</div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="button" class="btn btn-success" onclick="createRoom()">Tạo phòng</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manage Room Images Modal -->
+  <div class="modal fade" id="manageImagesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fas fa-images me-2"></i>Quản lý ảnh phòng
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="currentRoomId">
+
+          <!-- Add new image -->
+          <div class="border rounded p-3 mb-3">
+            <h6>Thêm ảnh mới</h6>
+            <div class="row">
+              <div class="col-md-8">
+                <input type="url" class="form-control" id="newImageUrl" placeholder="https://example.com/image.jpg">
+              </div>
+              <div class="col-md-4">
+                <button class="btn btn-primary" onclick="addRoomImage()">
+                  <i class="fas fa-plus"></i> Thêm ảnh
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Images list -->
+          <div id="roomImagesContainer">
+            <div class="text-center py-4">
+              <i class="fas fa-spinner fa-spin"></i> Đang tải...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manage Room Services Modal -->
+  <div class="modal fade" id="manageServicesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fas fa-concierge-bell me-2"></i>Quản lý dịch vụ phòng
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="currentRoomIdServices">
+
+          <div id="roomServicesContainer">
+            <div class="text-center py-4">
+              <i class="fas fa-spinner fa-spin"></i> Đang tải...
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+          <button type="button" class="btn btn-primary" onclick="saveRoomServices()">Lưu thay đổi</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Edit Booking Modal -->
   <div class="modal fade" id="editBookingModal" tabindex="-1">
     <div class="modal-dialog modal-xl">
@@ -1569,13 +1830,25 @@
                   <label for="editBookingHomestay" class="form-label">
                     Homestay <span class="text-danger">*</span>
                   </label>
-                  <select class="form-select" id="editBookingHomestay" required onchange="updateEditHomestayPrice()">
+                  <select class="form-select" id="editBookingHomestay" required onchange="loadRoomsForEditHomestay()">
                     <option value="">-- Chọn homestay --</option>
                   </select>
                 </div>
               </div>
             </div>
-
+            <div class="row">
+              <div class="col-md-12">
+                <div class="mb-3">
+                  <label for="editBookingRoom" class="form-label">
+                    Loại phòng <span class="text-danger">*</span>
+                  </label>
+                  <select class="form-select" id="editBookingRoom" required onchange="updateEditRoomInfo()" disabled>
+                    <option value="">-- Chọn homestay trước --</option>
+                  </select>
+                  <div class="form-text" id="editRoomInfoText"></div>
+                </div>
+              </div>
+            </div>
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
@@ -1622,13 +1895,17 @@
                   <label for="editBookingAdults" class="form-label">
                     Người lớn <span class="text-danger">*</span>
                   </label>
-                  <input type="number" class="form-control" id="editBookingAdults" min="1" required>
+                  <input type="number" class="form-control" id="editBookingAdults" min="1" required
+                    onchange="validateEditGuestsAndCalculate()">
+                  <div class="form-text" id="editAdultsLimitText"></div>
                 </div>
               </div>
               <div class="col-md-3">
                 <div class="mb-3">
                   <label for="editBookingChildren" class="form-label">Trẻ em</label>
-                  <input type="number" class="form-control" id="editBookingChildren" min="0" value="0">
+                  <input type="number" class="form-control" id="editBookingChildren" min="0" value="0"
+                    onchange="validateEditGuestsAndCalculate()">
+                  <div class="form-text" id="editChildrenLimitText"></div>
                 </div>
               </div>
               <div class="col-md-6">
@@ -1637,10 +1914,10 @@
                     Tổng tiền <span class="text-danger">*</span>
                   </label>
                   <div class="input-group">
-                    <input type="number" class="form-control" id="editBookingPrice" required>
+                    <input type="number" class="form-control" id="editBookingPrice" required readonly>
                     <span class="input-group-text">VND</span>
                   </div>
-                  <div class="form-text">Có thể chỉnh sửa thủ công</div>
+                  <div class="form-text" id="editPriceBreakdown"></div>
                 </div>
               </div>
             </div>
@@ -1767,7 +2044,12 @@
     document.addEventListener('DOMContentLoaded', function () {
       const menuLinks = document.querySelectorAll('.menu-link');
       const contentSections = document.querySelectorAll('.content-section');
-
+      // Event listeners cho ngày check-in/check-out
+      document.addEventListener('change', function (e) {
+        if (e.target.id === 'createBookingCheckin' || e.target.id === 'createBookingCheckout') {
+          validateGuestsAndCalculate();
+        }
+      });
       menuLinks.forEach(link => {
         link.addEventListener('click', function (e) {
           const href = this.getAttribute('href');
@@ -1885,24 +2167,23 @@
 
     // API calls
     async function apiCall(url, options = {}) {
-      try {
-        const response = await fetch(url, {
-          headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-          },
-          ...options
-        });
+      const merged = {
+        credentials: 'same-origin',  // để gửi cookie phiên đăng nhập
+        headers: {                   // gộp headers mặc định & tuỳ chọn
+          'Content-Type': 'application/json',
+          ...(options.headers || {})
+        },
+        ...options
+      };
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+      const res = await fetch(url, merged);
 
-        return await response.json();
-      } catch (error) {
-        console.error('API call failed:', error);
-        throw error;
+      // Trả lại JSON hoặc quăng lỗi chi tiết
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.message || `HTTP ${res.status}`);
       }
+      return data;
     }
 
     // Users functions
@@ -2003,6 +2284,66 @@
 
       if (data.pagination && data.pagination.totalPages > 1) {
         html += renderPagination(data.pagination, 'refreshBookings');
+      }
+
+      content.innerHTML = html;
+    }
+    function renderUsersTable(data) {
+      const content = document.getElementById('users-content');
+      let html = `
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>ID</th>
+            <th>Họ tên</th>
+            <th>Email</th>
+            <th>Vai trò</th>
+            <th>Điện thoại</th>
+            <th>Ngày tạo</th>
+            <th>Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+      if (data.users && data.users.length) {
+        data.users.forEach((u, idx) => {
+          // Nếu là admin thì không cho thao tác
+          const isAdmin = u.role === 'admin';
+          html += `
+        <tr>
+          <td>${idx + 1}</td>
+          <td>${u.user_id}</td>
+          <td>${u.name}</td>
+          <td>${u.email}</td>
+          <td>${isAdmin
+              ? `<span class="badge bg-danger">Admin</span>`
+              : `<span class="badge bg-primary">User</span>`}
+          </td>
+          <td>${u.phone || ''}</td>
+          <td>${new Date(u.created_at).toLocaleDateString('vi-VN')}</td>
+          <td>
+      `;
+          if (isAdmin) {
+            html += `<span class="text-muted">Không thể thao tác</span>`;
+          } else {
+            html += `
+          <button class="btn-action btn-view" onclick="viewUser(${u.user_id})">Xem</button>
+          <button class="btn-action btn-edit" onclick="editUser(${u.user_id})">Sửa</button>
+          <button class="btn-action btn-delete" onclick="deleteUser(${u.user_id})">Xóa</button>
+        `;
+          }
+          html += `</td></tr>`;
+        });
+      } else {
+        html += `<tr><td colspan="8" class="text-center">Không có dữ liệu</td></tr>`;
+      }
+      html += `</tbody></table></div>`;
+
+      // Pagination (nếu có)
+      if (data.pagination && data.pagination.totalPages > 1) {
+        html += renderPagination(data.pagination, 'refreshUsers');
       }
 
       content.innerHTML = html;
@@ -2214,8 +2555,9 @@
               <td>${homestay.RoomTypes ? homestay.RoomTypes.length : 0}</td>
               <td>${new Date(homestay.created_at).toLocaleDateString('vi-VN')}</td>
               <td>
-                <button class="btn-action btn-view" onclick="viewHomestay(${homestay.homestay_id})">Xem</button>
-                <button class="btn-action btn-edit" onclick="editHomestay(${homestay.homestay_id})">Sửa</button>
+                  <button class="btn-action btn-view" onclick="viewHomestay(${homestay.homestay_id})">Xem</button>
+                  <button class="btn-action btn-edit" onclick="editHomestay(${homestay.homestay_id})">Sửa</button>
+                  <button class="btn-action btn-delete" onclick="deleteHomestay(${homestay.homestay_id})">Xóa</button>
               </td>
             </tr>
           `;
@@ -2276,8 +2618,12 @@
               <td>${new Intl.NumberFormat('vi-VN').format(room.price_per_night)} VND</td>
               <td>${room.max_guests} người</td>
               <td>
-                <button class="btn-action btn-view" onclick="viewRoom(${room.room_type_id})">Xem</button>
-                <button class="btn-action btn-edit" onclick="editRoom(${room.room_type_id})">Sửa</button>
+              <td>
+                  <button class="btn-action btn-view" onclick="viewRoom(${room.room_type_id})">Xem</button>
+                  <button class="btn-action btn-edit" onclick="editRoom(${room.room_type_id})">Sửa</button>
+                  <button class="btn-action" style="background: #17a2b8; color: white;" onclick="manageRoomImages(${room.room_type_id})">Ảnh</button>
+                  <button class="btn-action" style="background: #6f42c1; color: white;" onclick="manageRoomServices(${room.room_type_id})">Dịch vụ</button>
+                  <button class="btn-action btn-delete" onclick="deleteRoom(${room.room_type_id})">Xóa</button>
               </td>
             </tr>
           `;
@@ -2665,20 +3011,324 @@
     }
 
     // Placeholder functions for view/edit actions
-    function viewHomestay(id) {
-      alert(`Xem homestay ID: ${id} - Chức năng này sẽ được phát triển`);
+    async function viewHomestay(id) {
+      try {
+        const res = await apiCall(`/admin/homestays/${id}`);
+        if (!res.success || !res.homestay) {
+          return Swal.fire({
+            icon: 'error',
+            title: 'Lỗi',
+            text: res.message || 'Không tìm thấy homestay!'
+          });
+        }
+
+        const homestay = res.homestay;
+        const roomCount = res.roomCount || 0;
+        const totalBookings = res.totalBookings || 0;
+
+        const info = `
+      <strong>ID:</strong> ${homestay.homestay_id}<br>
+      <strong>Tên:</strong> ${homestay.name}<br>
+      <strong>Mô tả:</strong> ${homestay.description}<br>
+      <strong>Địa chỉ:</strong> ${homestay.address}<br>
+      <strong>Số phòng:</strong> ${roomCount} phòng<br>
+      <strong>Tổng lượt đặt:</strong> ${totalBookings} lần<br>
+      <strong>Ngày tạo:</strong> ${new Date(homestay.created_at).toLocaleDateString('vi-VN')}
+    `;
+
+        Swal.fire({
+          title: 'Thông tin Homestay',
+          html: info,
+          icon: 'info',
+          confirmButtonText: 'Đóng',
+          width: '600px'
+        });
+      } catch (error) {
+        console.error("❌ Lỗi khi xem homestay:", error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Lỗi hệ thống',
+          text: 'Không thể lấy thông tin homestay!'
+        });
+      }
     }
 
-    function editHomestay(id) {
-      alert(`Sửa homestay ID: ${id} - Chức năng này sẽ được phát triển`);
+    async function editHomestay(id) {
+      try {
+        const res = await apiCall(`/admin/homestays/${id}`);
+        if (!res.success || !res.homestay) {
+          return Swal.fire({
+            icon: 'error',
+            title: 'Lỗi',
+            text: res.message || 'Không tìm thấy homestay!'
+          });
+        }
+
+        const homestay = res.homestay;
+
+        const { value: formValues } = await Swal.fire({
+          title: 'Chỉnh sửa thông tin Homestay',
+          html: `
+        <div class="text-start">
+          <div class="mb-3">
+            <label class="form-label"><strong>Tên Homestay:</strong></label>
+            <input id="swal-name" class="form-control" value="${homestay.name || ''}" placeholder="Tên homestay">
+          </div>
+          <div class="mb-3">
+            <label class="form-label"><strong>Mô tả:</strong></label>
+            <textarea id="swal-description" class="form-control" rows="3" placeholder="Mô tả homestay">${homestay.description || ''}</textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label"><strong>Địa chỉ:</strong></label>
+            <input id="swal-address" class="form-control" value="${homestay.address || ''}" placeholder="Địa chỉ">
+          </div>
+          <div class="mb-3">
+            <label class="form-label"><strong>URL ảnh đại diện:</strong></label>
+            <input id="swal-thumbnail" class="form-control" value="${homestay.thumbnail_url || ''}" placeholder="https://example.com/image.jpg">
+          </div>
+        </div>
+      `,
+          focusConfirm: false,
+          showCancelButton: true,
+          confirmButtonText: 'Lưu thay đổi',
+          cancelButtonText: 'Hủy',
+          width: '600px',
+          preConfirm: () => {
+            const name = document.getElementById('swal-name').value.trim();
+            const description = document.getElementById('swal-description').value.trim();
+            const address = document.getElementById('swal-address').value.trim();
+            const thumbnail_url = document.getElementById('swal-thumbnail').value.trim();
+
+            if (!name || !address) {
+              Swal.showValidationMessage('Tên và địa chỉ không được để trống');
+              return false;
+            }
+
+            return { name, description, address, thumbnail_url };
+          }
+        });
+
+        if (!formValues) return;
+
+        const updateRes = await apiCall(`/admin/homestays/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify(formValues)
+        });
+
+        if (updateRes.success) {
+          await Swal.fire({
+            icon: 'success',
+            title: 'Cập nhật thành công',
+            text: updateRes.message || 'Thông tin homestay đã được cập nhật!'
+          });
+          refreshHomestays();
+        } else {
+          await Swal.fire({
+            icon: 'error',
+            title: 'Thất bại',
+            text: updateRes.message || 'Không thể cập nhật homestay.'
+          });
+        }
+
+      } catch (error) {
+        console.error("❌ Edit homestay error:", error);
+        await Swal.fire({
+          icon: 'error',
+          title: 'Lỗi hệ thống',
+          text: 'Không thể kết nối tới máy chủ!'
+        });
+      }
     }
 
-    function viewRoom(id) {
-      alert(`Xem phòng ID: ${id} - Chức năng này sẽ được phát triển`);
+    // ===== ROOM TYPES FUNCTIONS =====
+    async function viewRoom(id) {
+      try {
+        const res = await apiCall(`/admin/rooms/${id}`);
+        if (!res.success || !res.room) {
+          return Swal.fire({
+            icon: 'error',
+            title: 'Lỗi',
+            text: res.message || 'Không tìm thấy phòng!'
+          });
+        }
+
+        const room = res.room;
+        const bookingCount = res.bookingCount || 0;
+        const averageRating = res.averageRating || 0;
+
+        // Format services
+        const services = room.Services && room.Services.length > 0
+          ? room.Services.map(s => s.service_name).join(', ')
+          : 'Không có dịch vụ';
+
+        const info = `
+      <strong>ID:</strong> ${room.room_type_id}<br>
+      <strong>Tên phòng:</strong> ${room.type_name}<br>
+      <strong>Homestay:</strong> ${room.Homestay ? room.Homestay.name : 'N/A'}<br>
+      <strong>Mô tả:</strong> ${room.description}<br>
+      <strong>Số phòng ngủ:</strong> ${room.bedroom_count}<br>
+      <strong>Số phòng tắm:</strong> ${room.toilet_count}<br>
+      <strong>Sức chứa:</strong> ${room.max_guests} người (${room.max_adults} người lớn, ${room.max_children} trẻ em)<br>
+      <strong>Giá/đêm:</strong> ${new Intl.NumberFormat('vi-VN').format(room.price_per_night)} VND<br>
+      <strong>Dịch vụ:</strong> ${services}<br>
+      <strong>Lượt đặt:</strong> ${bookingCount} lần<br>
+      <strong>Đánh giá TB:</strong> ${averageRating > 0 ? averageRating.toFixed(1) + '/5' : 'Chưa có'}<br>
+      <strong>Ngày tạo:</strong> ${new Date(room.created_at).toLocaleDateString('vi-VN')}
+    `;
+
+        Swal.fire({
+          title: 'Thông tin phòng',
+          html: info,
+          icon: 'info',
+          confirmButtonText: 'Đóng',
+          width: '700px'
+        });
+      } catch (error) {
+        console.error("❌ Lỗi khi xem phòng:", error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Lỗi hệ thống',
+          text: 'Không thể lấy thông tin phòng!'
+        });
+      }
     }
 
-    function editRoom(id) {
-      alert(`Sửa phòng ID: ${id} - Chức năng này sẽ được phát triển`);
+    async function editRoom(id) {
+      try {
+        const res = await apiCall(`/admin/rooms/${id}`);
+        if (!res.success || !res.room) {
+          return Swal.fire({
+            icon: 'error',
+            title: 'Lỗi',
+            text: res.message || 'Không tìm thấy phòng!'
+          });
+        }
+
+        const room = res.room;
+
+        const { value: formValues } = await Swal.fire({
+          title: 'Chỉnh sửa thông tin phòng',
+          html: `
+        <div class="text-start">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label"><strong>Tên phòng:</strong></label>
+              <input id="swal-name" class="form-control" value="${room.type_name || ''}" placeholder="Tên phòng">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label"><strong>Giá/đêm (VND):</strong></label>
+              <input id="swal-price" type="number" class="form-control" value="${room.price_per_night || ''}" min="0">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label"><strong>Mô tả:</strong></label>
+            <textarea id="swal-description" class="form-control" rows="3" placeholder="Mô tả phòng">${room.description || ''}</textarea>
+          </div>
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="form-label"><strong>Số phòng ngủ:</strong></label>
+              <input id="swal-bedroom" type="number" class="form-control" value="${room.bedroom_count || 1}" min="1">
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label"><strong>Số phòng tắm:</strong></label>
+              <input id="swal-toilet" type="number" class="form-control" value="${room.toilet_count || 1}" min="1">
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label"><strong>Tối thiểu người lớn:</strong></label>
+              <input id="swal-min-adults" type="number" class="form-control" value="${room.min_adults || 1}" min="1">
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="form-label"><strong>Tối đa người lớn:</strong></label>
+              <input id="swal-max-adults" type="number" class="form-control" value="${room.max_adults || 2}" min="1">
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label"><strong>Tối đa trẻ em:</strong></label>
+              <input id="swal-max-children" type="number" class="form-control" value="${room.max_children || 2}" min="0">
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label"><strong>Tối đa tổng số người:</strong></label>
+              <input id="swal-max-guests" type="number" class="form-control" value="${room.max_guests || 4}" min="1">
+            </div>
+          </div>
+        </div>
+      `,
+          focusConfirm: false,
+          showCancelButton: true,
+          confirmButtonText: 'Lưu thay đổi',
+          cancelButtonText: 'Hủy',
+          width: '800px',
+          preConfirm: () => {
+            const type_name = document.getElementById('swal-name').value.trim();
+            const description = document.getElementById('swal-description').value.trim();
+            const price_per_night = parseFloat(document.getElementById('swal-price').value);
+            const bedroom_count = parseInt(document.getElementById('swal-bedroom').value);
+            const toilet_count = parseInt(document.getElementById('swal-toilet').value);
+            const min_adults = parseInt(document.getElementById('swal-min-adults').value);
+            const max_adults = parseInt(document.getElementById('swal-max-adults').value);
+            const max_children = parseInt(document.getElementById('swal-max-children').value);
+            const max_guests = parseInt(document.getElementById('swal-max-guests').value);
+
+            if (!type_name || !price_per_night || price_per_night <= 0) {
+              Swal.showValidationMessage('Tên phòng và giá hợp lệ không được để trống');
+              return false;
+            }
+
+            if (max_adults < min_adults) {
+              Swal.showValidationMessage('Số người lớn tối đa phải >= số người lớn tối thiểu');
+              return false;
+            }
+
+            if (max_guests < (max_adults + max_children)) {
+              Swal.showValidationMessage('Tổng số người tối đa phải >= (người lớn + trẻ em)');
+              return false;
+            }
+
+            return {
+              type_name,
+              description,
+              price_per_night,
+              bedroom_count,
+              toilet_count,
+              min_adults,
+              max_adults,
+              max_children,
+              max_guests
+            };
+          }
+        });
+
+        if (!formValues) return;
+
+        const updateRes = await apiCall(`/admin/rooms/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify(formValues)
+        });
+
+        if (updateRes.success) {
+          await Swal.fire({
+            icon: 'success',
+            title: 'Cập nhật thành công',
+            text: updateRes.message || 'Thông tin phòng đã được cập nhật!'
+          });
+          refreshRooms();
+        } else {
+          await Swal.fire({
+            icon: 'error',
+            title: 'Thất bại',
+            text: updateRes.message || 'Không thể cập nhật phòng.'
+          });
+        }
+
+      } catch (error) {
+        console.error("❌ Edit room error:", error);
+        await Swal.fire({
+          icon: 'error',
+          title: 'Lỗi hệ thống',
+          text: 'Không thể kết nối tới máy chủ!'
+        });
+      }
     }
 
     async function viewBooking(id) {
@@ -2834,11 +3484,34 @@
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('createBookingDate').value = today;
 
+      // Reset room select
+      document.getElementById('createBookingRoom').innerHTML = '<option value="">-- Chọn homestay trước --</option>';
+      document.getElementById('createBookingRoom').disabled = true;
+
+      // Clear info texts
+      document.getElementById('roomInfoText').textContent = '';
+      document.getElementById('adultsLimitText').textContent = '';
+      document.getElementById('childrenLimitText').textContent = '';
+      document.getElementById('priceBreakdown').textContent = '';
+
       // Load users và homestays
       loadUsersForBooking();
       loadHomestaysForBooking();
 
       new bootstrap.Modal(document.getElementById('createBookingModal')).show();
+      // Setup event listeners
+      const homestaySelect = document.getElementById('createBookingHomestay');
+      const roomSelect = document.getElementById('createBookingRoom');
+
+      if (homestaySelect) {
+        homestaySelect.removeEventListener('change', loadRoomsForHomestay);
+        homestaySelect.addEventListener('change', loadRoomsForHomestay);
+      }
+
+      if (roomSelect) {
+        roomSelect.removeEventListener('change', updateRoomInfo);
+        roomSelect.addEventListener('change', updateRoomInfo);
+      }
     }
 
     async function loadUsersForBooking() {
@@ -2895,9 +3568,51 @@
       }
     }
 
-    function updateHomestayPrice() {
-      calculateTotal();
+    async function loadRoomsForHomestay() {
+      const homestayId = document.getElementById("createBookingHomestay").value;
+      const roomSelect = document.getElementById("createBookingRoom");
+      if (!roomSelect.value) {
+        return Swal.fire({
+          icon: 'error',
+          title: 'Thiếu thông tin',
+          text: 'Vui lòng chọn loại phòng!'
+        });
+      }
+      const roomInfoText = document.getElementById("roomInfoText");
+
+      roomSelect.innerHTML = '<option value="">-- Đang tải danh sách phòng --</option>';
+      roomSelect.disabled = true;
+
+      if (!homestayId) {
+        roomSelect.innerHTML = '<option value="">-- Chọn homestay trước --</option>';
+        return;
+      }
+
+      try {
+        const res = await fetch(`/admin/bookings/homestays/${homestayId}/rooms`);
+        const data = await res.json();
+
+        if (data.success) {
+          roomSelect.innerHTML = '<option value="">-- Chọn loại phòng --</option>';
+          data.rooms.forEach(room => {
+            const option = document.createElement("option");
+            option.value = room.room_type_id;
+            option.textContent = `${room.type_name} - ${room.max_guests} khách - ${room.price_per_night.toLocaleString()} VND`;
+            option.dataset.price = room.price_per_night;
+            option.dataset.maxGuests = room.max_guests;
+            option.dataset.description = room.description;
+            roomSelect.appendChild(option);
+          });
+          roomSelect.disabled = false;
+        } else {
+          roomSelect.innerHTML = '<option value="">-- Không có phòng --</option>';
+        }
+      } catch (error) {
+        console.error("❌ Lỗi khi gọi API phòng:", error);
+        roomSelect.innerHTML = '<option value="">-- Lỗi khi tải danh sách --</option>';
+      }
     }
+
 
     function calculateTotal() {
       const homestaySelect = document.getElementById('createBookingHomestay');
@@ -2921,9 +3636,11 @@
     }
 
     async function createBooking() {
+      console.log("🔄 Bắt đầu tạo booking..."); // THÊM
       try {
         const user_id = document.getElementById('createBookingUser').value;
         const homestay_id = document.getElementById('createBookingHomestay').value;
+        const room_type_id = document.getElementById('createBookingRoom').value; // ✅ THÊM LẠI
         const name = document.getElementById('createBookingName').value.trim();
         const booking_date = document.getElementById('createBookingDate').value;
         const check_in_date = document.getElementById('createBookingCheckin').value;
@@ -2936,9 +3653,9 @@
         const guest_address = document.getElementById('createBookingAddress').value.trim();
         const payment_method = document.getElementById('createBookingPaymentMethod').value;
         const payment_status = document.getElementById('createBookingPaymentStatus').value;
-
+        console.log("📝 Data:", { user_id, room_type_id }); // THÊM
         // Validation
-        if (!user_id || !homestay_id || !name || !booking_date || !check_in_date ||
+        if (!user_id || !homestay_id || !room_type_id || !name || !booking_date || !check_in_date ||
           !check_out_date || !adults || !total_price) {
           return Swal.fire({
             icon: 'error',
@@ -2959,14 +3676,11 @@
           });
         }
 
-        // ✅ XÓA phần lấy homestay_id từ room (vì không còn chọn room)
-        // ✅ homestay_id đã được lấy từ select homestay ở trên
-
-        // Call API - ✅ XÓA room_type_id
+        // Call API
         const bookingData = {
           user_id: parseInt(user_id),
-          homestay_id: parseInt(homestay_id), // ✅ Sử dụng homestay_id từ form
-          // ✅ XÓA room_type_id: parseInt(room_type_id),
+          homestay_id: parseInt(homestay_id),
+          room_type_id: parseInt(room_type_id), // ✅ THÊM LẠI
           name,
           booking_date,
           check_in_date,
@@ -2985,18 +3699,27 @@
           method: 'POST',
           body: JSON.stringify(bookingData)
         });
-
+        console.log("📥 API Response:", response); // THÊM
         if (response.success) {
           // Đóng modal
           bootstrap.Modal.getInstance(document.getElementById('createBookingModal')).hide();
 
-          // Hiển thị thông báo thành công
+          // Hiển thị thông báo thành công với thông tin giá
+          let message = response.message || 'Tạo hóa đơn thành công!';
+          if (response.pricing) {
+            message += `\n\nChi tiết giá:\n- ${response.pricing.nights} đêm × ${new Intl.NumberFormat('vi-VN').format(response.pricing.roomPrice)} VND = ${new Intl.NumberFormat('vi-VN').format(response.pricing.baseAmount)} VND`;
+            if (response.pricing.totalSurcharge > 0) {
+              message += `\n- Phụ thu: ${new Intl.NumberFormat('vi-VN').format(response.pricing.totalSurcharge)} VND`;
+            }
+            message += `\n- Tổng cộng: ${new Intl.NumberFormat('vi-VN').format(response.pricing.totalAmount)} VND`;
+          }
+
           await Swal.fire({
             icon: 'success',
             title: 'Thành công!',
-            text: response.message || 'Tạo hóa đơn thành công!',
-            timer: 2000,
-            showConfirmButton: false
+            text: message,
+            timer: 3000,
+            showConfirmButton: true
           });
 
           // Refresh danh sách bookings
@@ -3050,6 +3773,14 @@
           document.getElementById('editBookingPaymentMethod').value = booking.payment_method;
           document.getElementById('editBookingPaymentStatus').value = booking.payment_status;
 
+          // THÊM sau khi set form values
+          document.getElementById('editBookingRoom').value = booking.room_type_id;
+          await loadRoomsForEditHomestay();
+          // Set lại room sau khi load xong
+          setTimeout(() => {
+            document.getElementById('editBookingRoom').value = booking.room_type_id;
+            updateEditRoomInfo();
+          }, 500);
           // Show modal
           new bootstrap.Modal(document.getElementById('editBookingModal')).show();
         } else {
@@ -3221,6 +3952,943 @@
           icon: 'error',
           title: 'Lỗi hệ thống',
           text: 'Không thể kết nối tới máy chủ!'
+        });
+      }
+    }
+    const calculateRoomPricing = (roomPrice, checkinDate, checkoutDate, adults, children) => {
+      const nights = Math.ceil((checkoutDate - checkinDate) / (1000 * 3600 * 24));
+      const baseAmount = roomPrice * nights;
+
+      const surchargePerNight = adults > 5 ? (adults - 5) * 100000 : 0;
+      const totalSurcharge = surchargePerNight * nights;
+
+      const totalAmount = baseAmount + totalSurcharge;
+
+      return {
+        nights,
+        roomPrice,
+        baseAmount,
+        adults,
+        children,
+        totalGuests: adults + children,
+        surchargeAdults: adults > 5 ? adults - 5 : 0,
+        surchargePerNight,
+        totalSurcharge,
+        totalAmount
+      };
+    };
+
+    // ✅ SỬA FUNCTION LOAD ROOMS THEO HOMESTAY
+    async function loadRoomsForHomestay() {
+      const homestayId = document.getElementById('createBookingHomestay').value;
+      const roomSelect = document.getElementById('createBookingRoom');
+      const roomInfoText = document.getElementById('roomInfoText');
+
+      if (!homestayId) {
+        roomSelect.innerHTML = '<option value="">-- Chọn homestay trước --</option>';
+        roomSelect.disabled = true;
+        roomInfoText.textContent = '';
+        return;
+      }
+
+      try {
+        const response = await apiCall(`/admin/bookings/homestays/${homestayId}/rooms`);
+
+        if (response.success) {
+          roomSelect.innerHTML = '<option value="">-- Chọn loại phòng --</option>';
+          response.rooms.forEach(room => {
+            roomSelect.innerHTML += `<option value="${room.room_type_id}" 
+          data-price="${room.price_per_night}"
+          data-max-adults="${room.max_adults}"
+          data-max-children="${room.max_children}"
+          data-max-guests="${room.max_guests}">
+          ${room.type_name} - ${new Intl.NumberFormat('vi-VN').format(room.price_per_night)} VND/đêm (Tối đa: ${room.max_adults} người lớn, ${room.max_children} trẻ em)
+        </option>`;
+          });
+          roomSelect.disabled = false;
+          roomInfoText.textContent = 'Chọn loại phòng để xem thông tin chi tiết';
+        }
+      } catch (error) {
+        console.error('❌ Lỗi load rooms:', error);
+        roomSelect.innerHTML = '<option value="">-- Lỗi tải dữ liệu --</option>';
+        roomInfoText.textContent = 'Lỗi tải danh sách phòng';
+      }
+    }
+    // ✅ FUNCTION CẬP NHẬT THÔNG TIN PHÒNG
+    function updateRoomInfo() {
+      const roomSelect = document.getElementById('createBookingRoom');
+      const roomInfoText = document.getElementById('roomInfoText');
+      const adultsLimitText = document.getElementById('adultsLimitText');
+      const childrenLimitText = document.getElementById('childrenLimitText');
+
+      if (roomSelect.value) {
+        const selectedOption = roomSelect.options[roomSelect.selectedIndex];
+        const maxAdults = selectedOption.dataset.maxAdults;
+        const maxChildren = selectedOption.dataset.maxChildren;
+        const maxGuests = selectedOption.dataset.maxGuests;
+
+        roomInfoText.textContent = `Sức chứa: ${maxGuests} người (${maxAdults} người lớn, ${maxChildren} trẻ em)`;
+        adultsLimitText.textContent = `Tối đa: ${maxAdults} người`;
+        childrenLimitText.textContent = `Tối đa: ${maxChildren} trẻ`;
+
+        // Reset số người
+        document.getElementById('createBookingAdults').max = maxAdults;
+        document.getElementById('createBookingChildren').max = maxChildren;
+
+        validateGuestsAndCalculate();
+      } else {
+        roomInfoText.textContent = '';
+        adultsLimitText.textContent = '';
+        childrenLimitText.textContent = '';
+      }
+    }
+
+    // ✅ FUNCTION VALIDATE VÀ TÍNH GIÁ
+    function validateGuestsAndCalculate() {
+      const roomSelect = document.getElementById('createBookingRoom');
+      const adultsInput = document.getElementById('createBookingAdults');
+      const childrenInput = document.getElementById('createBookingChildren');
+      const checkinInput = document.getElementById('createBookingCheckin');
+      const checkoutInput = document.getElementById('createBookingCheckout');
+      const priceInput = document.getElementById('createBookingPrice');
+      const priceBreakdown = document.getElementById('priceBreakdown');
+
+      if (!roomSelect.value || !checkinInput.value || !checkoutInput.value) {
+        priceInput.value = '';
+        priceBreakdown.textContent = '';
+        return;
+      }
+
+      const selectedOption = roomSelect.options[roomSelect.selectedIndex];
+      const maxAdults = parseInt(selectedOption.dataset.maxAdults);
+      const maxChildren = parseInt(selectedOption.dataset.maxChildren);
+      const maxGuests = parseInt(selectedOption.dataset.maxGuests);
+
+      const adults = parseInt(adultsInput.value) || 0;
+      const children = parseInt(childrenInput.value) || 0;
+      const totalGuests = adults + children;
+
+      // Validate
+      let errors = [];
+      if (adults > maxAdults) {
+        errors.push(`Số người lớn vượt quá ${maxAdults}`);
+        adultsInput.classList.add('is-invalid');
+      } else {
+        adultsInput.classList.remove('is-invalid');
+      }
+
+      if (children > maxChildren) {
+        errors.push(`Số trẻ em vượt quá ${maxChildren}`);
+        childrenInput.classList.add('is-invalid');
+      } else {
+        childrenInput.classList.remove('is-invalid');
+      }
+
+      if (totalGuests > maxGuests) {
+        errors.push(`Tổng số người vượt quá ${maxGuests}`);
+      }
+
+      if (errors.length > 0) {
+        priceBreakdown.innerHTML = `<span class="text-danger">${errors.join(', ')}</span>`;
+        priceInput.value = '';
+        return;
+      }
+
+      // Tính giá
+      const checkinDate = new Date(checkinInput.value);
+      const checkoutDate = new Date(checkoutInput.value);
+
+      if (checkinDate >= checkoutDate) {
+        priceBreakdown.innerHTML = '<span class="text-danger">Ngày check-out phải sau ngày check-in</span>';
+        priceInput.value = '';
+        return;
+      }
+
+      const pricing = calculateRoomPricing(parseFloat(selectedOption.dataset.price), checkinDate, checkoutDate, adults, children);
+
+      priceInput.value = pricing.totalAmount;
+
+      let breakdown = `${pricing.nights} đêm × ${new Intl.NumberFormat('vi-VN').format(pricing.roomPrice)} VND = ${new Intl.NumberFormat('vi-VN').format(pricing.baseAmount)} VND`;
+
+      if (pricing.surchargeAdults > 0) {
+        breakdown += `<br>Phụ thu ${pricing.surchargeAdults} người × ${new Intl.NumberFormat('vi-VN').format(pricing.surchargePerNight)} VND/đêm × ${pricing.nights} đêm = ${new Intl.NumberFormat('vi-VN').format(pricing.totalSurcharge)} VND`;
+      }
+
+      priceBreakdown.innerHTML = breakdown;
+    }
+    async function loadRoomsForEditHomestay() {
+      const homestayId = document.getElementById('editBookingHomestay').value;
+      const roomSelect = document.getElementById('editBookingRoom');
+      const roomInfoText = document.getElementById('editRoomInfoText');
+
+      if (!homestayId) {
+        roomSelect.innerHTML = '<option value="">-- Chọn homestay trước --</option>';
+        roomSelect.disabled = true;
+        roomInfoText.textContent = '';
+        return;
+      }
+
+      try {
+        roomSelect.innerHTML = '<option value="">-- Đang tải danh sách phòng --</option>';
+        roomSelect.disabled = true;
+
+        const response = await apiCall(`/admin/bookings/homestays/${homestayId}/rooms`);
+
+        if (response.success && response.rooms && response.rooms.length > 0) {
+          roomSelect.innerHTML = '<option value="">-- Chọn loại phòng --</option>';
+          response.rooms.forEach(room => {
+            roomSelect.innerHTML += `<option value="${room.room_type_id}" 
+          data-price="${room.price_per_night}"
+          data-max-adults="${room.max_adults}"
+          data-max-children="${room.max_children}"
+          data-max-guests="${room.max_guests}">
+          ${room.type_name} - ${new Intl.NumberFormat('vi-VN').format(room.price_per_night)} VND/đêm (Tối đa: ${room.max_adults} người lớn, ${room.max_children} trẻ em)
+        </option>`;
+          });
+          roomSelect.disabled = false;
+          roomInfoText.textContent = 'Chọn loại phòng để xem thông tin chi tiết';
+        } else {
+          roomSelect.innerHTML = '<option value="">-- Không có phòng --</option>';
+          roomInfoText.textContent = 'Homestay này chưa có phòng nào';
+        }
+      } catch (error) {
+        console.error('❌ Lỗi load rooms for edit:', error);
+        roomSelect.innerHTML = '<option value="">-- Lỗi tải dữ liệu --</option>';
+        roomInfoText.textContent = 'Lỗi tải danh sách phòng';
+      }
+    }
+    function updateEditRoomInfo() {
+      const roomSelect = document.getElementById('editBookingRoom');
+      const roomInfoText = document.getElementById('editRoomInfoText');
+      const adultsLimitText = document.getElementById('editAdultsLimitText');
+      const childrenLimitText = document.getElementById('editChildrenLimitText');
+
+      if (roomSelect.value) {
+        const selectedOption = roomSelect.options[roomSelect.selectedIndex];
+        const maxAdults = selectedOption.dataset.maxAdults;
+        const maxChildren = selectedOption.dataset.maxChildren;
+        const maxGuests = selectedOption.dataset.maxGuests;
+
+        roomInfoText.textContent = `Sức chứa: ${maxGuests} người (${maxAdults} người lớn, ${maxChildren} trẻ em)`;
+        adultsLimitText.textContent = `Tối đa: ${maxAdults} người`;
+        childrenLimitText.textContent = `Tối đa: ${maxChildren} trẻ`;
+
+        // Set limits
+        document.getElementById('editBookingAdults').max = maxAdults;
+        document.getElementById('editBookingChildren').max = maxChildren;
+
+        validateEditGuestsAndCalculate();
+      } else {
+        roomInfoText.textContent = '';
+        adultsLimitText.textContent = '';
+        childrenLimitText.textContent = '';
+      }
+    }
+
+    function validateEditGuestsAndCalculate() {
+      const roomSelect = document.getElementById('editBookingRoom');
+      const adultsInput = document.getElementById('editBookingAdults');
+      const childrenInput = document.getElementById('editBookingChildren');
+      const checkinInput = document.getElementById('editBookingCheckin');
+      const checkoutInput = document.getElementById('editBookingCheckout');
+      const priceInput = document.getElementById('editBookingPrice');
+      const priceBreakdown = document.getElementById('editPriceBreakdown');
+
+      if (!roomSelect.value || !checkinInput.value || !checkoutInput.value) {
+        priceInput.value = '';
+        priceBreakdown.textContent = '';
+        return;
+      }
+
+      const selectedOption = roomSelect.options[roomSelect.selectedIndex];
+      const maxAdults = parseInt(selectedOption.dataset.maxAdults);
+      const maxChildren = parseInt(selectedOption.dataset.maxChildren);
+      const maxGuests = parseInt(selectedOption.dataset.maxGuests);
+
+      const adults = parseInt(adultsInput.value) || 0;
+      const children = parseInt(childrenInput.value) || 0;
+      const totalGuests = adults + children;
+
+      // Validate
+      let errors = [];
+      if (adults > maxAdults) {
+        errors.push(`Số người lớn vượt quá ${maxAdults}`);
+        adultsInput.classList.add('is-invalid');
+      } else {
+        adultsInput.classList.remove('is-invalid');
+      }
+
+      if (children > maxChildren) {
+        errors.push(`Số trẻ em vượt quá ${maxChildren}`);
+        childrenInput.classList.add('is-invalid');
+      } else {
+        childrenInput.classList.remove('is-invalid');
+      }
+
+      if (totalGuests > maxGuests) {
+        errors.push(`Tổng số người vượt quá ${maxGuests}`);
+      }
+
+      if (errors.length > 0) {
+        priceBreakdown.innerHTML = `<span class="text-danger">${errors.join(', ')}</span>`;
+        priceInput.value = '';
+        return;
+      }
+
+      // Tính giá
+      const checkinDate = new Date(checkinInput.value);
+      const checkoutDate = new Date(checkoutInput.value);
+
+      if (checkinDate >= checkoutDate) {
+        priceBreakdown.innerHTML = '<span class="text-danger">Ngày check-out phải sau ngày check-in</span>';
+        priceInput.value = '';
+        return;
+      }
+
+      const pricing = calculateRoomPricing(parseFloat(selectedOption.dataset.price), checkinDate, checkoutDate, adults, children);
+
+      priceInput.value = pricing.totalAmount;
+
+      let breakdown = `${pricing.nights} đêm × ${new Intl.NumberFormat('vi-VN').format(pricing.roomPrice)} VND = ${new Intl.NumberFormat('vi-VN').format(pricing.baseAmount)} VND`;
+
+      if (pricing.surchargeAdults > 0) {
+        breakdown += `<br>Phụ thu ${pricing.surchargeAdults} người × ${new Intl.NumberFormat('vi-VN').format(pricing.surchargePerNight)} VND/đêm × ${pricing.nights} đêm = ${new Intl.NumberFormat('vi-VN').format(pricing.totalSurcharge)} VND`;
+      }
+
+      priceBreakdown.innerHTML = breakdown;
+    }
+    async function updateBooking() {
+      try {
+        const bookingId = document.getElementById('editBookingId').value;
+        const user_id = document.getElementById('editBookingUser').value;
+        const homestay_id = document.getElementById('editBookingHomestay').value;
+        const room_type_id = document.getElementById('editBookingRoom').value; // THÊM
+        const name = document.getElementById('editBookingName').value.trim();
+        const booking_date = document.getElementById('editBookingDate').value;
+        const check_in_date = document.getElementById('editBookingCheckin').value;
+        const check_out_date = document.getElementById('editBookingCheckout').value;
+        const adults = document.getElementById('editBookingAdults').value;
+        const children = document.getElementById('editBookingChildren').value;
+        const total_price = document.getElementById('editBookingPrice').value;
+        const guest_email = document.getElementById('editBookingEmail').value.trim();
+        const guest_phone = document.getElementById('editBookingPhone').value.trim();
+        const guest_address = document.getElementById('editBookingAddress').value.trim();
+        const payment_method = document.getElementById('editBookingPaymentMethod').value;
+        const payment_status = document.getElementById('editBookingPaymentStatus').value;
+
+        // Validation
+        if (!user_id || !homestay_id || !room_type_id || !name || !booking_date ||
+          !check_in_date || !check_out_date || !adults || !total_price) {
+          return Swal.fire({
+            icon: 'error',
+            title: 'Thiếu thông tin',
+            text: 'Vui lòng điền đầy đủ các trường bắt buộc!'
+          });
+        }
+
+        // Validation ngày
+        const checkinDate = new Date(check_in_date);
+        const checkoutDate = new Date(check_out_date);
+
+        if (checkinDate >= checkoutDate) {
+          return Swal.fire({
+            icon: 'error',
+            title: 'Ngày không hợp lệ',
+            text: 'Ngày trả phòng phải sau ngày nhận phòng!'
+          });
+        }
+
+        // Call API
+        const bookingData = {
+          user_id: parseInt(user_id),
+          homestay_id: parseInt(homestay_id),
+          room_type_id: parseInt(room_type_id), // THÊM
+          name,
+          booking_date,
+          check_in_date,
+          check_out_date,
+          adults: parseInt(adults),
+          children: parseInt(children) || 0,
+          total_price: parseFloat(total_price),
+          guest_email: guest_email || null,
+          guest_phone: guest_phone || null,
+          guest_address: guest_address || null,
+          payment_method,
+          payment_status
+        };
+
+        const response = await apiCall(`/admin/bookings/${bookingId}`, {
+          method: 'PUT',
+          body: JSON.stringify(bookingData)
+        });
+
+        if (response.success) {
+          // Đóng modal
+          bootstrap.Modal.getInstance(document.getElementById('editBookingModal')).hide();
+
+          // Hiển thị thông báo thành công
+          await Swal.fire({
+            icon: 'success',
+            title: 'Thành công!',
+            text: response.message || 'Cập nhật hóa đơn thành công!',
+            timer: 2000,
+            showConfirmButton: false
+          });
+
+          // Refresh danh sách bookings
+          refreshBookings();
+        } else {
+          await Swal.fire({
+            icon: 'error',
+            title: 'Thất bại',
+            text: response.message || 'Không thể cập nhật hóa đơn!'
+          });
+        }
+      } catch (error) {
+        console.error('❌ Update booking error:', error);
+        await Swal.fire({
+          icon: 'error',
+          title: 'Lỗi hệ thống',
+          text: 'Không thể kết nối tới máy chủ!'
+        });
+      }
+    }
+
+    // ===== HOMESTAY CREATE/DELETE FUNCTIONS =====
+    function showCreateHomestayModal() {
+      // Reset form
+      document.getElementById('createHomestayForm').reset();
+      new bootstrap.Modal(document.getElementById('createHomestayModal')).show();
+    }
+
+    async function createHomestay() {
+      try {
+        const name = document.getElementById('createHomestayName').value.trim();
+        const description = document.getElementById('createHomestayDescription').value.trim();
+        const address = document.getElementById('createHomestayAddress').value.trim();
+        const thumbnail_url = document.getElementById('createHomestayThumbnail').value.trim();
+
+        // Validation
+        if (!name || !description || !address) {
+          return Swal.fire({
+            icon: 'error',
+            title: 'Thiếu thông tin',
+            text: 'Vui lòng điền đầy đủ các trường bắt buộc!'
+          });
+        }
+
+        const homestayData = {
+          name,
+          description,
+          address,
+          thumbnail_url: thumbnail_url || ''
+        };
+
+        const response = await apiCall('/admin/homestays', {
+          method: 'POST',
+          body: JSON.stringify(homestayData)
+        });
+
+        if (response.success) {
+          // Đóng modal
+          bootstrap.Modal.getInstance(document.getElementById('createHomestayModal')).hide();
+
+          // Hiển thị thông báo thành công
+          await Swal.fire({
+            icon: 'success',
+            title: 'Thành công!',
+            text: response.message || 'Tạo homestay thành công!',
+            timer: 2000,
+            showConfirmButton: false
+          });
+
+          // Refresh danh sách homestays
+          refreshHomestays();
+        } else {
+          await Swal.fire({
+            icon: 'error',
+            title: 'Thất bại',
+            text: response.message || 'Không thể tạo homestay!'
+          });
+        }
+      } catch (error) {
+        console.error('❌ Create homestay error:', error);
+        await Swal.fire({
+          icon: 'error',
+          title: 'Lỗi hệ thống',
+          text: 'Không thể kết nối tới máy chủ!'
+        });
+      }
+    }
+
+    async function deleteHomestay(homestayId) {
+      try {
+        // Xác nhận trước khi xóa
+        const result = await Swal.fire({
+          title: 'Bạn có chắc chắn?',
+          html: `
+        <p>Bạn muốn xóa homestay này?</p>
+        <div class="alert alert-warning mt-3">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <strong>Cảnh báo:</strong> Việc này sẽ xóa TẤT CẢ dữ liệu liên quan:
+          <ul class="mt-2 text-start">
+            <li>Tất cả loại phòng của homestay</li>
+            <li>Tất cả booking (trừ booking đang pending/paid trong tương lai)</li>
+            <li>Tất cả đánh giá</li>
+            <li>Tất cả hình ảnh phòng</li>
+          </ul>
+        </div>
+      `,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: 'Có, xóa homestay!',
+          cancelButtonText: 'Không, giữ lại',
+          width: '600px'
+        });
+
+        if (!result.isConfirmed) return;
+
+        // Loading state
+        Swal.fire({
+          title: 'Đang xóa...',
+          text: 'Vui lòng đợi trong giây lát',
+          allowOutsideClick: false,
+          showConfirmButton: false,
+          willOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        const response = await apiCall(`/admin/homestays/${homestayId}`, {
+          method: 'DELETE'
+        });
+
+        if (response.success) {
+          // Thành công - hiển thị toast
+          Toastify({
+            text: "✅ Xóa homestay thành công!",
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            backgroundColor: "#28a745",
+          }).showToast();
+
+          // Đóng loading và refresh
+          Swal.close();
+          refreshHomestays();
+        } else {
+          await Swal.fire({
+            icon: 'error',
+            title: 'Không thể xóa',
+            text: response.message || 'Có lỗi xảy ra khi xóa homestay!',
+            confirmButtonColor: '#d33'
+          });
+        }
+      } catch (error) {
+        console.error('❌ Delete homestay error:', error);
+        await Swal.fire({
+          icon: 'error',
+          title: 'Lỗi hệ thống',
+          text: 'Không thể kết nối tới máy chủ!',
+          confirmButtonColor: '#d33'
+        });
+      }
+    }
+    // ===== ROOM MANAGEMENT FUNCTIONS =====
+    function showCreateRoomModal() {
+      document.getElementById('createRoomForm').reset();
+      loadHomestaysForRoom();
+      new bootstrap.Modal(document.getElementById('createRoomModal')).show();
+    }
+
+    async function loadHomestaysForRoom() {
+      try {
+        const response = await apiCall('/admin/homestays/list');
+        const homestaySelect = document.getElementById('createRoomHomestay');
+
+        if (response.success) {
+          homestaySelect.innerHTML = '<option value="">-- Chọn homestay --</option>';
+          response.homestays.forEach(homestay => {
+            homestaySelect.innerHTML += `<option value="${homestay.homestay_id}">${homestay.name} - ${homestay.address}</option>`;
+          });
+        }
+      } catch (error) {
+        console.error('❌ Lỗi load homestays:', error);
+      }
+    }
+
+    async function createRoom() {
+      try {
+        const homestay_id = document.getElementById('createRoomHomestay').value;
+        const type_name = document.getElementById('createRoomName').value.trim();
+        const description = document.getElementById('createRoomDescription').value.trim();
+        const bedroom_count = document.getElementById('createRoomBedroom').value;
+        const toilet_count = document.getElementById('createRoomToilet').value;
+        const price_per_night = document.getElementById('createRoomPrice').value;
+        const min_adults = document.getElementById('createRoomMinAdults').value;
+        const max_adults = document.getElementById('createRoomMaxAdults').value;
+        const max_children = document.getElementById('createRoomMaxChildren').value;
+        const max_guests = document.getElementById('createRoomMaxGuests').value;
+        const slug = document.getElementById('createRoomSlug').value.trim();
+
+        // Validation
+        if (!homestay_id || !type_name || !description || !price_per_night) {
+          return Swal.fire({
+            icon: 'error',
+            title: 'Thiếu thông tin',
+            text: 'Vui lòng điền đầy đủ các trường bắt buộc!'
+          });
+        }
+
+        const roomData = {
+          homestay_id: parseInt(homestay_id),
+          type_name,
+          description,
+          bedroom_count: parseInt(bedroom_count) || 1,
+          toilet_count: parseInt(toilet_count) || 1,
+          max_adults: parseInt(max_adults) || 2,
+          max_children: parseInt(max_children) || 0,
+          max_guests: parseInt(max_guests) || 2,
+          min_adults: parseInt(min_adults) || 1,
+          price_per_night: parseFloat(price_per_night),
+          slug: slug || null
+        };
+
+        const response = await apiCall('/admin/rooms', {
+          method: 'POST',
+          body: JSON.stringify(roomData)
+        });
+
+        if (response.success) {
+          bootstrap.Modal.getInstance(document.getElementById('createRoomModal')).hide();
+
+          await Swal.fire({
+            icon: 'success',
+            title: 'Thành công!',
+            text: response.message || 'Tạo phòng thành công!',
+            timer: 2000,
+            showConfirmButton: false
+          });
+
+          refreshRooms();
+        } else {
+          await Swal.fire({
+            icon: 'error',
+            title: 'Thất bại',
+            text: response.message || 'Không thể tạo phòng!'
+          });
+        }
+      } catch (error) {
+        console.error('❌ Create room error:', error);
+        await Swal.fire({
+          icon: 'error',
+          title: 'Lỗi hệ thống',
+          text: 'Không thể kết nối tới máy chủ!'
+        });
+      }
+    }
+
+    async function deleteRoom(roomId) {
+      try {
+        const result = await Swal.fire({
+          title: 'Bạn có chắc chắn?',
+          html: `
+        <p>Bạn muốn xóa phòng này?</p>
+        <div class="alert alert-warning mt-3">
+          <strong>Cảnh báo:</strong> Việc này sẽ xóa:
+          <ul class="mt-2 text-start">
+            <li>Tất cả ảnh của phòng</li>
+            <li>Tất cả dịch vụ của phòng</li>
+            <li>Tất cả đánh giá</li>
+            <li>Tất cả booking (trừ booking pending/paid trong tương lai)</li>
+          </ul>
+        </div>
+      `,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: 'Có, xóa phòng!',
+          cancelButtonText: 'Hủy',
+          width: '600px'
+        });
+
+        if (!result.isConfirmed) return;
+
+        const response = await apiCall(`/admin/rooms/${roomId}`, {
+          method: 'DELETE'
+        });
+
+        if (response.success) {
+          Toastify({
+            text: "✅ Xóa phòng thành công!",
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            backgroundColor: "#28a745",
+          }).showToast();
+
+          refreshRooms();
+        } else {
+          await Swal.fire({
+            icon: 'error',
+            title: 'Không thể xóa',
+            text: response.message
+          });
+        }
+      } catch (error) {
+        console.error('❌ Delete room error:', error);
+        await Swal.fire({
+          icon: 'error',
+          title: 'Lỗi hệ thống',
+          text: 'Không thể kết nối tới máy chủ!'
+        });
+      }
+    }
+
+    // ===== ROOM IMAGES MANAGEMENT =====
+    async function manageRoomImages(roomId) {
+      document.getElementById('currentRoomId').value = roomId;
+      new bootstrap.Modal(document.getElementById('manageImagesModal')).show();
+      await loadRoomImages(roomId);
+    }
+
+    async function loadRoomImages(roomId) {
+      try {
+        const response = await apiCall(`/admin/rooms/${roomId}/images`);
+        const container = document.getElementById('roomImagesContainer');
+
+        if (response.success) {
+          if (response.images.length === 0) {
+            container.innerHTML = '<div class="text-center text-muted py-4">Chưa có ảnh nào</div>';
+            return;
+          }
+
+          let html = '<div class="row">';
+          response.images.forEach((image, index) => {
+            const thumbnailBadge = image.is_thumbnail ? '<span class="badge bg-primary position-absolute top-0 start-0 m-1">Ảnh đại diện</span>' : '';
+
+            html += `
+          <div class="col-md-6 mb-3">
+            <div class="card">
+              <div class="position-relative">
+                <img src="${image.image_url}" class="card-img-top" style="height: 200px; object-fit: cover;" onerror="this.src='https://via.placeholder.com/300x200?text=Image+Not+Found'">
+                ${thumbnailBadge}
+              </div>
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                  <small class="text-muted">ID: ${image.image_id}</small>
+                  <div>
+                    ${!image.is_thumbnail ? `<button class="btn btn-sm btn-outline-primary" onclick="setThumbnail(${image.image_id}, ${roomId})">Đặt làm đại diện</button>` : ''}
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteRoomImage(${image.image_id}, ${roomId})">Xóa</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+          });
+          html += '</div>';
+
+          container.innerHTML = html;
+        }
+      } catch (error) {
+        console.error('❌ Load images error:', error);
+        document.getElementById('roomImagesContainer').innerHTML = '<div class="alert alert-danger">Lỗi tải ảnh</div>';
+      }
+    }
+
+    async function addRoomImage() {
+      const roomId = document.getElementById('currentRoomId').value;
+      const imageUrl = document.getElementById('newImageUrl').value.trim();
+
+      if (!imageUrl) {
+        return Swal.fire({
+          icon: 'error',
+          title: 'Thiếu thông tin',
+          text: 'Vui lòng nhập URL ảnh!'
+        });
+      }
+
+      try {
+        const response = await apiCall(`/admin/rooms/${roomId}/images`, {
+          method: 'POST',
+          body: JSON.stringify({ image_url: imageUrl })
+        });
+
+        if (response.success) {
+          document.getElementById('newImageUrl').value = '';
+          await loadRoomImages(roomId);
+
+          Toastify({
+            text: "✅ Thêm ảnh thành công!",
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            backgroundColor: "#28a745",
+          }).showToast();
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Thất bại',
+            text: response.message
+          });
+        }
+      } catch (error) {
+        console.error('❌ Add image error:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Lỗi hệ thống',
+          text: 'Không thể thêm ảnh!'
+        });
+      }
+    }
+
+    async function deleteRoomImage(imageId, roomId) {
+      const result = await Swal.fire({
+        title: 'Xác nhận xóa ảnh?',
+        text: 'Bạn có chắc muốn xóa ảnh này?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Xóa',
+        cancelButtonText: 'Hủy'
+      });
+
+      if (!result.isConfirmed) return;
+
+      try {
+        const response = await apiCall(`/admin/rooms/images/${imageId}`, {
+          method: 'DELETE'
+        });
+
+        if (response.success) {
+          await loadRoomImages(roomId);
+
+          Toastify({
+            text: "✅ Xóa ảnh thành công!",
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            backgroundColor: "#28a745",
+          }).showToast();
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Thất bại',
+            text: response.message
+          });
+        }
+      } catch (error) {
+        console.error('❌ Delete image error:', error);
+      }
+    }
+
+    async function setThumbnail(imageId, roomId) {
+      try {
+        const response = await apiCall(`/admin/rooms/${roomId}/thumbnail`, {
+          method: 'PUT',
+          body: JSON.stringify({ image_id: imageId })
+        });
+
+        if (response.success) {
+          await loadRoomImages(roomId);
+
+          Toastify({
+            text: "✅ Đặt ảnh đại diện thành công!",
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            backgroundColor: "#28a745",
+          }).showToast();
+        }
+      } catch (error) {
+        console.error('❌ Set thumbnail error:', error);
+      }
+    }
+
+    // ===== ROOM SERVICES MANAGEMENT =====
+    async function manageRoomServices(roomId) {
+      document.getElementById('currentRoomIdServices').value = roomId;
+      new bootstrap.Modal(document.getElementById('manageServicesModal')).show();
+      await loadRoomServices(roomId);
+    }
+
+    async function loadRoomServices(roomId) {
+      try {
+        const [roomServicesRes, allServicesRes] = await Promise.all([
+          apiCall(`/admin/rooms/${roomId}/services`),
+          apiCall('/admin/services')
+        ]);
+
+        if (roomServicesRes.success && allServicesRes.success) {
+          const roomServiceIds = roomServicesRes.services.map(s => s.service_id);
+          const container = document.getElementById('roomServicesContainer');
+
+          let html = '<div class="row">';
+          allServicesRes.services.forEach(service => {
+            const isChecked = roomServiceIds.includes(service.service_id);
+
+            html += `
+          <div class="col-md-6 mb-2">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="${service.service_id}" id="service${service.service_id}" ${isChecked ? 'checked' : ''}>
+              <label class="form-check-label" for="service${service.service_id}">
+                ${service.service_name}
+              </label>
+            </div>
+          </div>
+        `;
+          });
+          html += '</div>';
+
+          container.innerHTML = html;
+        }
+      } catch (error) {
+        console.error('❌ Load services error:', error);
+        document.getElementById('roomServicesContainer').innerHTML = '<div class="alert alert-danger">Lỗi tải dịch vụ</div>';
+      }
+    }
+
+    async function saveRoomServices() {
+      const roomId = document.getElementById('currentRoomIdServices').value;
+      const checkboxes = document.querySelectorAll('#roomServicesContainer input[type="checkbox"]');
+      const selectedServices = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => parseInt(cb.value));
+
+      try {
+        const response = await apiCall(`/admin/rooms/${roomId}/services`, {
+          method: 'PUT',
+          body: JSON.stringify({ service_ids: selectedServices })
+        });
+
+        if (response.success) {
+          bootstrap.Modal.getInstance(document.getElementById('manageServicesModal')).hide();
+
+          Toastify({
+            text: "✅ Cập nhật dịch vụ thành công!",
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            backgroundColor: "#28a745",
+          }).showToast();
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Thất bại',
+            text: response.message
+          });
+        }
+      } catch (error) {
+        console.error('❌ Save services error:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Lỗi hệ thống',
+          text: 'Không thể lưu dịch vụ!'
         });
       }
     }

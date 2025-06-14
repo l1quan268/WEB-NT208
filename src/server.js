@@ -7,7 +7,7 @@ const connectDB = require("./config/connectDb");
 const passport = require("./config/passport");
 const apiRoutes = require("./route/api");
 require("dotenv").config();
-
+const adminRoutes = require("./route/adminRoutes");  // <-- thêm
 require("dotenv").config();
 
 const app = express();
@@ -50,7 +50,7 @@ app.use((req, res, next) => {
 viewEngine(app);
 initWebRoutes(app);
 app.use("/api", apiRoutes);
-
+app.use("/admin", adminRoutes); 
 connectDB();
 
 const port = process.env.PORT || 6969;
