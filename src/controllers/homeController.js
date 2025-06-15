@@ -1330,7 +1330,6 @@ let postChangePassword = async (req, res) => {
 let getBookedDates = async (req, res) => {
   try {
     const { room_id } = req.params;
-
     if (!room_id) {
       return res.status(400).json({
         success: false,
@@ -1342,41 +1341,68 @@ let getBookedDates = async (req, res) => {
     const bookings = await db.Booking.findAll({
       where: {
         room_type_id: room_id,
-        payment_status: ["paid", "pending"], // Chỉ lấy booking đã thanh toán hoặc đang chờ
+        payment_status: ["paid", "pending"],
         status: {
-          [db.Sequelize.Op.notIn]: ["cancelled", "failed"], // Loại trừ booking đã hủy
+          [db.Sequelize.Op.notIn]: ["cancelled", "failed"],
         },
       },
-      attributes: ["check_in_date", "check_out_date"],
+      attributes: ["booking_id", "check_in_date", "check_out_date"],
       order: [["check_in_date", "ASC"]],
     });
 
-    // Tạo array chứa tất cả ngày đã được đặt
-    let bookedDates = [];
+    // 🔥 DEBUG: In ra tất cả bookings
+    console.log(`🔍 Room ${room_id} - All bookings:`, bookings.map(b => ({
+      id: b.booking_id,
+      checkin: b.check_in_date,
+      checkout: b.check_out_date
+    })));
 
-    bookings.forEach((booking) => {
+    let disabledDates = [];
+
+    bookings.forEach((booking, index) => {
       const checkinDate = new Date(booking.check_in_date);
       const checkoutDate = new Date(booking.check_out_date);
 
-      // Lặp qua tất cả ngày từ check-in đến check-out (không bao gồm check-out)
-      for (
-        let currentDate = new Date(checkinDate);
-        currentDate < checkoutDate;
-        currentDate.setDate(currentDate.getDate() + 1)
-      ) {
-        const dateString = currentDate.toISOString().split("T")[0];
-        if (!bookedDates.includes(dateString)) {
-          bookedDates.push(dateString);
+      console.log(`📅 Booking ${index + 1}:`, {
+        id: booking.booking_id,
+        checkin: booking.check_in_date,
+        checkout: booking.check_out_date
+      });
+
+      // TÍNH NGÀY BẮT ĐẦU DISABLE (NGÀY SAU CHECKIN)
+      const startDisable = new Date(checkinDate);
+      startDisable.setDate(startDisable.getDate() + 1);
+
+      // TÍNH NGÀY KẾT THÚC DISABLE (NGÀY TRƯỚC CHECKOUT)  
+      const endDisable = new Date(checkoutDate);
+      endDisable.setDate(endDisable.getDate() - 1);
+
+      console.log(`🚫 Will disable from ${startDisable.toISOString().split('T')[0]} to ${endDisable.toISOString().split('T')[0]}`);
+
+      // CHỈ DISABLE NẾU CÓ NGÀY Ở GIỮA
+      if (startDisable <= endDisable) {
+        const bookingDisabledDates = [];
+        for (let currentDate = new Date(startDisable); currentDate <= endDisable; currentDate.setDate(currentDate.getDate() + 1)) {
+          const dateString = currentDate.toISOString().split("T")[0];
+          bookingDisabledDates.push(dateString);
+          if (!disabledDates.includes(dateString)) {
+            disabledDates.push(dateString);
+          }
         }
+        console.log(`🚫 Booking ${index + 1} disabled dates:`, bookingDisabledDates);
+      } else {
+        console.log(`✅ Booking ${index + 1} has no dates to disable (consecutive days)`);
       }
     });
 
     // Sắp xếp ngày tăng dần
-    bookedDates.sort();
+    disabledDates.sort();
+
+    console.log(`📅 Room ${room_id} - Final disabled dates:`, disabledDates);
 
     return res.json({
       success: true,
-      bookedDates: bookedDates,
+      bookedDates: disabledDates,
       totalBookings: bookings.length,
     });
   } catch (error) {
