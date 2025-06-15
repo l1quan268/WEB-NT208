@@ -510,6 +510,7 @@
       dateFormat: "Y-m-d",
       disable: bookedDates, // không cho chọn
       locale: "vn",
+      minDate: "today",
       onDayCreate: function(dObj, dStr, fp, dayElem) {
   const dateStr = dayElem.dateObj.toISOString().split('T')[0];
 
