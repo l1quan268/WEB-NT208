@@ -1385,6 +1385,54 @@ let getBookedDates = async (req, res) => {
     });
   }
 };
+let getRoomsPaginated = async (req, res) => {
+  // -------- 1. Đọc & chuẩn hoá tham số ----------
+  const limit = Number.parseInt(req.query.limit) || 4; // mặc định 4
+  const offset = Number.parseInt(req.query.offset) || 0; // mặc định 0
+
+  try {
+    // -------- 2. Truy vấn Sequelize ----------
+    const rooms = await db.RoomType.findAll({
+      limit,
+      offset,
+      order: [["created_at", "DESC"]],
+      include: [
+        { model: db.Homestay, attributes: ["address"], required: true },
+        {
+          model: db.RoomTypeImage,
+          where: { is_thumbnail: true },
+          attributes: ["image_url"],
+          required: false,
+        },
+        { model: db.Service, through: { attributes: [] }, required: false },
+      ],
+    });
+
+    // -------- 3. Chuẩn hoá data trước khi trả ----------
+    const data = rooms.map((r) => ({
+      slug: r.slug,
+      name: r.type_name,
+      price: r.price_per_night,
+      address: r.Homestay?.address || "",
+      thumbnail: r.RoomTypeImages?.[0]?.image_url || "/image/no-image.png",
+      services: r.Services?.map((s) => s.service_name) || [],
+      avg_rating: r.avg_rating || null, // 👈 cần có trường này
+      review_count: r.review_count || 0,
+    }));
+
+    return res.status(200).json({
+      err: 0,
+      msg: "OK",
+      data,
+    });
+  } catch (error) {
+    console.error("getRoomsPaginated >>", error);
+    return res.status(500).json({
+      err: 1,
+      msg: "Internal server error",
+    });
+  }
+};
 
 // Cập nhật module.exports - THÊM getBookedDates vào cuối
 module.exports = {
@@ -1408,4 +1456,5 @@ module.exports = {
   cancelBooking: cancelBooking,
   getBookedDates: getBookedDates, // 🔥 CHỈ THÊM DÒNG NÀY
   getRoomDetailBySlug: getRoomDetailBySlug,
+  getRoomsPaginated: getRoomsPaginated,
 };
