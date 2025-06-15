@@ -23,6 +23,11 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Flatpickr CSS + JS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
 </head>
 <style>
   .suggested-rooms-wrapper {
@@ -311,11 +316,14 @@
             </div>
             <div class="form-group mb-2">
               <label for="checkin">Ngày nhận:</label>
-              <input type="date" id="checkin" class="form-control" />
+              <input type="text" id="checkin" class="form-control flatpickr" placeholder="Chọn ngày nhận" />
+              <small class="form-text text-danger mt-1">
+  <i class="fas fa-calendar-times"></i> Những ngày không chọn được là ngày đã có khách đặt.
+</small>
             </div>
             <div class="form-group mb-2">
               <label for="checkout">Ngày đi:</label>
-              <input type="date" id="checkout" class="form-control" />
+              <input type="text" id="checkout" class="form-control flatpickr" placeholder="Chọn ngày đi" />
             </div>
 
             <!-- ✅ Updated form với adults và children -->
@@ -497,6 +505,32 @@
       .then(data => {
         if (data.success) {
           bookedDates = data.bookedDates || [];
+      console.log("📅 Booked dates: ", bookedDates); // DEBUG
+          flatpickr(".flatpickr", {
+      dateFormat: "Y-m-d",
+      disable: bookedDates, // không cho chọn
+      locale: "vn",
+      onDayCreate: function(dObj, dStr, fp, dayElem) {
+  const dateStr = dayElem.dateObj.toISOString().split('T')[0];
+
+  // Nếu là ngày đã được đặt
+  if (bookedDates.includes(dateStr)) {
+    // Kiểm tra nếu NGÀY SAU đó không nằm trong bookedDates => đây là ngày CUỐI (checkout) => KHÔNG tô đỏ
+    const nextDate = new Date(dayElem.dateObj);
+    nextDate.setDate(nextDate.getDate() + 1);
+    const nextDateStr = nextDate.toISOString().split('T')[0];
+
+    // Chỉ tô đỏ nếu NGÀY TIẾP THEO cũng là ngày đã được đặt (=> không phải ngày checkout)
+    if (bookedDates.includes(nextDateStr)) {
+      dayElem.style.color = 'white';
+      dayElem.style.borderRadius = '50%';
+    }
+  }
+}
+
+
+    });
+    
           console.log('📅 Loaded booked dates:', bookedDates);
           setupDateValidation();
         } else {
