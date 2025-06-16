@@ -122,33 +122,27 @@ const calculateRoomPricing = (room, checkinDate, checkoutDate, adults, children,
   const roomPrice = parseFloat(room.price_per_night || 500000);
   const baseAmount = roomPrice * nights;
   
-  // ✅ REMOVED: Surcharge logic for adults > 5
-  // const surchargePerNight = adults > 5 ? (adults - 5) * 100000 : 0;
-  // const totalSurcharge = surchargePerNight * nights;
-  
   let servicesTotal = 0;
   let servicesBreakdown = [];
   
   if (selectedServices && selectedServices.length > 0) {
     selectedServices.forEach(service => {
-      // ✅ Use price from service data (from database)
-      const servicePrice = parseFloat(service.price || 0);
+      const serviceUnitPrice = parseFloat(service.price || 0);
       const serviceQuantity = parseInt(service.quantity || 1);
-      const serviceTotal = servicePrice * serviceQuantity;
+      const serviceTotalPrice = serviceUnitPrice * serviceQuantity; // ✅ Calculate total
       
-      servicesTotal += serviceTotal;
+      servicesTotal += serviceTotalPrice;
       servicesBreakdown.push({
         service_id: service.service_id,
         name: service.name || getServiceName(service.service_id),
-        price: servicePrice,
+        unit_price: serviceUnitPrice,        // ✅ Keep unit price for display
         quantity: serviceQuantity,
-        unit: getServiceUnit(service.service_id), // ✅ Add unit for display
-        total: serviceTotal
+        unit: getServiceUnit(service.service_id),
+        total_price: serviceTotalPrice       // ✅ Add total price
       });
     });
   }
   
-  // ✅ Simple calculation without surcharge
   const roomTotal = baseAmount;
   const totalAmount = roomTotal + servicesTotal;
 
@@ -324,6 +318,7 @@ const getPaymentPage = async (req, res) => {
 };
 
 // FIXED: Post checkout function with database prices
+// ✅ COMPLETE FIXED postCheckout function với booking_id schema đúng
 const postCheckout = async (req, res) => {
   let transaction;
   try {
@@ -338,193 +333,76 @@ const postCheckout = async (req, res) => {
     const adultsCount = parseInt(req.body.adults) || 0;
     const childrenCount = parseInt(req.body.children) || 0;
 
-    let selectedServices = [];
-    if (services) {
-      try {
-        selectedServices = typeof services === 'string' ? JSON.parse(services) : services;
-      } catch (e) {
-        selectedServices = [];
-      }
-    }
-
-    const requiredFields = {
-      room_id, checkin, checkout, fullname, phone, email
-    };
-
-    const missingFields = [];
-    Object.entries(requiredFields).forEach(([key, value]) => {
-      if (!value || (typeof value === 'string' && value.trim() === '')) {
-        missingFields.push(key);
-      }
+    console.log('🔧 Request data:', {
+      existing_booking_id,
+      paymentMethod,
+      room_id,
+      fullname,
+      email,
+      phone
     });
 
-    if (missingFields.length > 0) {
-      await transaction.rollback();
-      return res.status(400).json({ 
-        success: false, 
-        message: `Thiếu thông tin bắt buộc: ${missingFields.join(', ')}`,
-        missing_fields: missingFields
-      });
-    }
-
-    const finalAddress = address && address.trim() !== '' ? address.trim() : 'Địa chỉ khách hàng';
-    const finalNote = note && note.trim() !== '' ? note.trim() : '';
-
-    if (paymentMethod !== "vnpay" && paymentMethod !== "cash") {
-      await transaction.rollback();
-      return res.status(400).json({ 
-        success: false, 
-        message: "Phương thức thanh toán không hợp lệ." 
-      });
-    }
-
-    if (existing_booking_id) {
-      await transaction.rollback();
-      return res.status(400).json({
-        success: false,
-        message: "Chỉ hỗ trợ thanh toán VNPay cho đặt phòng đã tồn tại"
-      });
-    }
-
-    const room = await db.RoomType.findByPk(room_id, { transaction });
-    if (!room) {
-      await transaction.rollback();
-      return res.status(404).json({ success: false, message: "Không tìm thấy phòng" });
-    }
-
-    const checkinDate = new Date(checkin);
-    const checkoutDate = new Date(checkout);
-
-    if (isNaN(checkinDate.getTime()) || isNaN(checkoutDate.getTime())) {
-      await transaction.rollback();
-      return res.status(400).json({ success: false, message: "Ngày không hợp lệ" });
-    }
-
-    if (checkoutDate <= checkinDate) {
-      await transaction.rollback();
-      return res.status(400).json({ success: false, message: "Ngày checkout phải sau ngày checkin" });
-    }
-
-    // ✅ Validate and process services with database prices
-    let validatedServices = [];
-    if (selectedServices && selectedServices.length > 0) {
-      for (const serviceItem of selectedServices) {
-        const service = await db.Service.findByPk(serviceItem.service_id, { transaction });
-        if (service) {
-          // ✅ Use database price
-          const servicePrice = parseFloat(service.base_price);
-          let maxQuantity = 1;
-          
-          switch(service.service_id) {
-            case 10: maxQuantity = 1; break;
-            case 14: maxQuantity = 5; break; // Motorbike rental allows multiple
-            case 13: maxQuantity = 20; break; // ✅ Laundry allows up to 20kg
-          }
-          
-          const quantity = Math.min(parseInt(serviceItem.quantity) || 1, maxQuantity);
-          
-          validatedServices.push({
-            service_id: service.service_id,
-            name: service.service_name,
-            price: servicePrice, // ✅ Database price
-            quantity: quantity,
-            unit: getServiceUnit(service.service_id) // ✅ Add unit
-          });
-        }
+    // ✅ FIX: Kiểm tra existing_booking_id đúng cách
+    if (existing_booking_id && existing_booking_id.trim() !== '') {
+      // ✅ XỬ LÝ THANH TOÁN CHO BOOKING ĐÃ TỒN TẠI
+      console.log('🔄 Processing payment for existing booking:', existing_booking_id);
+      
+      // Chỉ cho phép VNPay cho existing booking
+      if (paymentMethod !== "vnpay") {
+        await transaction.rollback();
+        return res.status(400).json({
+          success: false,
+          message: "Chỉ hỗ trợ thanh toán VNPay cho đặt phòng đã tồn tại"
+        });
       }
-    }
 
-    const pricing = calculateRoomPricing(room, checkinDate, checkoutDate, adultsCount, childrenCount, validatedServices);
-    
-    const orderId = `HOTEL_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-    const userId = req.session?.user?.id || null;
-
-    const bookingData = {
-      user_id: userId,
-      homestay_id: room.homestay_id || null,
-      room_type_id: parseInt(room_id),
-      name: fullname.trim(),
-      booking_date: new Date(),
-      check_in_date: checkinDate,
-      check_out_date: checkoutDate,
-      adults: adultsCount,
-      children: childrenCount,
-      total_price: pricing.totalAmount,
-      status: 'pending',
-      order_id: orderId,
-      guest_email: email.trim(),
-      guest_phone: phone.trim(),
-      guest_address: finalAddress,
-      payment_method: paymentMethod,
-      payment_status: 'pending',
-      notes: finalNote,
-      created_at: new Date(),
-      updated_at: new Date()
-    };
-
-    const booking = await db.Booking.create(bookingData, { transaction });
-
-    // Save booking services
-    if (validatedServices.length > 0) {
-      for (const service of validatedServices) {
-        await db.BookingService.create({
-          booking_id: booking.id || booking.booking_id,
-          service_id: service.service_id,
-          price: service.price,
-          quantity: service.quantity
-        }, { transaction });
-      }
-    }
-
-    const paymentData = {
-      booking_id: booking.id || booking.booking_id,
-      user_id: userId,
-      amount: pricing.totalAmount,
-      status: 'pending',
-      payment_method: paymentMethod,
-      transaction_id: orderId,
-      created_at: new Date(),
-      updated_at: new Date()
-    };
-
-    await db.Payment.create(paymentData, { transaction });
-    await transaction.commit();
-
-    if (paymentMethod === "cash") {
-      const bookingDetails = {
-        guest_name: fullname.trim(),
-        guest_email: email.trim(),
-        guest_phone: phone.trim(),
-        guest_address: finalAddress,
-        room_type: room.type_name,
-        checkin: checkinDate.toISOString().split('T')[0],
-        checkout: checkoutDate.toISOString().split('T')[0],
-        nights: pricing.nights,
-        adults: adultsCount,
-        children: childrenCount,
-        total_guests: adultsCount + childrenCount,
-        room_total: pricing.roomTotal,
-        services_total: pricing.servicesTotal,
-        services_breakdown: pricing.servicesBreakdown,
-        total_amount: pricing.totalAmount,
-        formatted_amount: pricing.totalAmount.toLocaleString('vi-VN') + ' ₫',
-        notes: finalNote
-      };
-
-      return res.status(200).json({
-        success: true,
-        payment_method: "cash",
-        order_id: orderId,
-        booking_id: booking.id || booking.booking_id,
-        booking_details: bookingDetails,
-        message: "Booking được tạo thành công với phương thức thanh toán tiền mặt"
+      // ✅ FIX: Tìm booking theo booking_id (primary key)
+      const existingBooking = await db.Booking.findOne({
+        where: {
+          booking_id: existing_booking_id  // ✅ Dùng booking_id thay vì id
+        },
+        transaction
       });
-    }
 
-    if (paymentMethod === "vnpay") {
+      if (!existingBooking) {
+        await transaction.rollback();
+        return res.status(404).json({
+          success: false,
+          message: `Không tìm thấy booking với ID: ${existing_booking_id}`
+        });
+      }
+
+      // ✅ FIX: Sử dụng booking_id (primary key) - luôn có giá trị
+      const actualBookingId = existingBooking.booking_id;
+      
+      console.log('📋 Found existing booking:', {
+        booking_id: existingBooking.booking_id,
+        order_id: existingBooking.order_id,
+        payment_status: existingBooking.payment_status,
+        status: existingBooking.status,
+        actualBookingId: actualBookingId
+      });
+
+      // Kiểm tra trạng thái booking
+      if (existingBooking.payment_status === 'paid') {
+        await transaction.rollback();
+        return res.status(400).json({
+          success: false,
+          message: "Booking này đã được thanh toán rồi"
+        });
+      }
+
+      if (existingBooking.status === 'canceled') {
+        await transaction.rollback();
+        return res.status(400).json({
+          success: false,
+          message: "Booking đã bị hủy, không thể thanh toán"
+        });
+      }
+
+      // Tạo VNPay URL cho existing booking
       try {
         const returnUrl = VNP_RETURN_URL;
-        
         const clientIp = req.headers["x-forwarded-for"] || 
                         req.connection?.remoteAddress || 
                         req.socket?.remoteAddress || 
@@ -534,11 +412,11 @@ const postCheckout = async (req, res) => {
         const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
         const validIp = ipRegex.test(cleanIpAddr) ? cleanIpAddr : "127.0.0.1";
         
-        const orderInfo = `Dat phong ${room.type_name.replace(/[^a-zA-Z0-9\s]/g, '')} - ${fullname.replace(/[^a-zA-Z0-9\s]/g, '')} - ${orderId}`;
+        const orderInfo = `Thanh toan dat phong ${existingBooking.order_id} - ${existingBooking.name}`;
 
         const paymentUrl = buildVNPayUrl({
-          amount: pricing.totalAmount,
-          orderId: orderId,
+          amount: existingBooking.total_price,
+          orderId: existingBooking.order_id,
           orderInfo: orderInfo,
           returnUrl: returnUrl,
           ipAddr: validIp,
@@ -547,50 +425,341 @@ const postCheckout = async (req, res) => {
           bankCode: null
         });
 
-        await db.Payment.update({
+        // ✅ FIX: Cập nhật payment record với booking_id chính xác
+        const updateResult = await db.Payment.update({
           gateway_response: JSON.stringify({
             vnpay_url: paymentUrl,
             order_info: orderInfo,
             client_ip: validIp,
             created_at: new Date(),
-            vnp_tmn_code: VNP_TMN_CODE,
-            amount_vnd: pricing.totalAmount,
-            return_url: returnUrl,
-            new_booking: true,
-            services_included: validatedServices.length > 0,
-            services_count: validatedServices.length
+            existing_booking_payment: true,
+            booking_id_used: actualBookingId
           })
         }, {
-          where: { booking_id: booking.id || booking.booking_id, payment_method: 'vnpay' }
+          where: { 
+            booking_id: actualBookingId  // ✅ Sử dụng booking_id thực tế
+          },
+          transaction
         });
+
+        console.log('💳 Payment update result:', updateResult);
+
+        // ✅ FIX: Nếu không có payment record, tạo mới với booking_id đúng
+        if (updateResult[0] === 0) {
+          console.log('⚠️ No existing payment record found, creating new one');
+          
+          await db.Payment.create({
+            booking_id: actualBookingId,  // ✅ Sử dụng booking_id
+            user_id: req.session?.user?.id || null,
+            amount: existingBooking.total_price,
+            status: 'pending',
+            payment_method: 'vnpay',
+            transaction_id: existingBooking.order_id,
+            gateway_response: JSON.stringify({
+              vnpay_url: paymentUrl,
+              order_info: orderInfo,
+              client_ip: validIp,
+              created_at: new Date(),
+              existing_booking_payment: true,
+              new_payment_record: true
+            }),
+            created_at: new Date(),
+            updated_at: new Date()
+          }, { transaction });
+        }
+
+        await transaction.commit();
 
         return res.json({
           success: true,
           payment_method: "vnpay",
           redirect_url: paymentUrl,
-          order_id: orderId,
-          booking_id: booking.id || booking.booking_id,
-          expires_in: "24 hours",
-          amount: pricing.totalAmount,
-          room_total: pricing.roomTotal,
-          services_total: pricing.servicesTotal,
-          services_count: validatedServices.length,
-          message: "Booking được tạo thành công, chuyển hướng tới VNPay"
+          order_id: existingBooking.order_id,
+          booking_id: actualBookingId,  // ✅ Trả về booking_id đúng
+          amount: existingBooking.total_price,
+          message: "Chuyển hướng tới VNPay để thanh toán booking đã tồn tại"
         });
 
       } catch (vnpayError) {
-        await db.Booking.update(
-          { payment_method: 'cash', payment_status: 'pending' },
-          { where: { id: booking.id || booking.booking_id } }
-        );
-
+        await transaction.rollback();
+        console.error('💥 VNPay error for existing booking:', vnpayError);
         return res.status(500).json({
           success: false,
-          message: `Lỗi VNPay: ${vnpayError.message}. Booking đã được tạo với phương thức thanh toán tiền mặt.`,
-          fallback_payment: "cash",
-          order_id: orderId,
-          booking_id: booking.id || booking.booking_id
+          message: `Lỗi VNPay: ${vnpayError.message}`,
+          debug_info: {
+            booking_id: actualBookingId,
+            existing_booking_id: existing_booking_id,
+            error_type: 'vnpay_existing_booking',
+            error_stack: vnpayError.stack
+          }
         });
+      }
+
+    } else {
+      // ✅ XỬ LÝ TẠO BOOKING MỚI (Logic cũ với fix booking_id)
+      console.log('🆕 Creating new booking');
+      
+      // Validation cho booking mới
+      let selectedServices = [];
+      if (services) {
+        try {
+          selectedServices = typeof services === 'string' ? JSON.parse(services) : services;
+        } catch (e) {
+          selectedServices = [];
+        }
+      }
+
+      const requiredFields = {
+        room_id, checkin, checkout, fullname, phone, email
+      };
+
+      const missingFields = [];
+      Object.entries(requiredFields).forEach(([key, value]) => {
+        if (!value || (typeof value === 'string' && value.trim() === '')) {
+          missingFields.push(key);
+        }
+      });
+
+      if (missingFields.length > 0) {
+        await transaction.rollback();
+        return res.status(400).json({ 
+          success: false, 
+          message: `Thiếu thông tin bắt buộc: ${missingFields.join(', ')}`,
+          missing_fields: missingFields
+        });
+      }
+
+      const finalAddress = address && address.trim() !== '' ? address.trim() : 'Địa chỉ khách hàng';
+      const finalNote = note && note.trim() !== '' ? note.trim() : '';
+
+      if (paymentMethod !== "vnpay" && paymentMethod !== "cash") {
+        await transaction.rollback();
+        return res.status(400).json({ 
+          success: false, 
+          message: "Phương thức thanh toán không hợp lệ." 
+        });
+      }
+
+      const room = await db.RoomType.findByPk(room_id, { transaction });
+      if (!room) {
+        await transaction.rollback();
+        return res.status(404).json({ success: false, message: "Không tìm thấy phòng" });
+      }
+
+      const checkinDate = new Date(checkin);
+      const checkoutDate = new Date(checkout);
+
+      if (isNaN(checkinDate.getTime()) || isNaN(checkoutDate.getTime())) {
+        await transaction.rollback();
+        return res.status(400).json({ success: false, message: "Ngày không hợp lệ" });
+      }
+
+      if (checkoutDate <= checkinDate) {
+        await transaction.rollback();
+        return res.status(400).json({ success: false, message: "Ngày checkout phải sau ngày checkin" });
+      }
+
+      // ✅ Validate và xử lý services với database prices
+      let validatedServices = [];
+      if (selectedServices && selectedServices.length > 0) {
+        for (const serviceItem of selectedServices) {
+          const service = await db.Service.findByPk(serviceItem.service_id, { transaction });
+          if (service) {
+            const serviceUnitPrice = parseFloat(service.base_price);
+            let maxQuantity = 1;
+            
+            switch(service.service_id) {
+              case 10: maxQuantity = 1; break;
+              case 14: maxQuantity = 5; break;
+              case 13: maxQuantity = 20; break;
+            }
+            
+            const quantity = Math.min(parseInt(serviceItem.quantity) || 1, maxQuantity);
+            
+            validatedServices.push({
+              service_id: service.service_id,
+              name: service.service_name,
+              price: serviceUnitPrice,
+              quantity: quantity,
+              unit: getServiceUnit(service.service_id)
+            });
+          }
+        }
+      }
+
+      const pricing = calculateRoomPricing(room, checkinDate, checkoutDate, adultsCount, childrenCount, validatedServices);
+      
+      const orderId = `HOTEL_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+      const userId = req.session?.user?.id || null;
+
+      const bookingData = {
+        user_id: userId,
+        homestay_id: room.homestay_id || null,
+        room_type_id: parseInt(room_id),
+        name: fullname.trim(),
+        booking_date: new Date(),
+        check_in_date: checkinDate,
+        check_out_date: checkoutDate,
+        adults: adultsCount,
+        children: childrenCount,
+        total_price: pricing.totalAmount,
+        status: 'pending',
+        order_id: orderId,
+        guest_email: email.trim(),
+        guest_phone: phone.trim(),
+        guest_address: finalAddress,
+        payment_method: paymentMethod,
+        payment_status: 'pending',
+        notes: finalNote,
+        created_at: new Date(),
+        updated_at: new Date()
+      };
+
+      const booking = await db.Booking.create(bookingData, { transaction });
+
+      // ✅ FIX: Sử dụng booking.booking_id thay vì booking.id
+      const newBookingId = booking.booking_id;  // ✅ Primary key chính xác
+
+      console.log('📋 Created new booking:', {
+        booking_id: newBookingId,
+        order_id: orderId,
+        total_price: pricing.totalAmount
+      });
+
+      // ✅ FIX: Lưu booking services với booking_id đúng
+      if (validatedServices.length > 0) {
+        for (const service of validatedServices) {
+          const totalPrice = service.price * service.quantity;
+          
+          await db.BookingService.create({
+            booking_id: newBookingId,  // ✅ Sử dụng booking_id
+            service_id: service.service_id,
+            price: totalPrice,
+            quantity: service.quantity
+          }, { transaction });
+        }
+      }
+
+      const paymentData = {
+        booking_id: newBookingId,  // ✅ Sử dụng booking_id
+        user_id: userId,
+        amount: pricing.totalAmount,
+        status: 'pending',
+        payment_method: paymentMethod,
+        transaction_id: orderId,
+        created_at: new Date(),
+        updated_at: new Date()
+      };
+
+      await db.Payment.create(paymentData, { transaction });
+      await transaction.commit();
+
+      // Xử lý response cho booking mới
+      if (paymentMethod === "cash") {
+        const bookingDetails = {
+          guest_name: fullname.trim(),
+          guest_email: email.trim(),
+          guest_phone: phone.trim(),
+          guest_address: finalAddress,
+          room_type: room.type_name,
+          checkin: checkinDate.toISOString().split('T')[0],
+          checkout: checkoutDate.toISOString().split('T')[0],
+          nights: pricing.nights,
+          adults: adultsCount,
+          children: childrenCount,
+          total_guests: adultsCount + childrenCount,
+          room_total: pricing.roomTotal,
+          services_total: pricing.servicesTotal,
+          services_breakdown: pricing.servicesBreakdown,
+          total_amount: pricing.totalAmount,
+          formatted_amount: pricing.totalAmount.toLocaleString('vi-VN') + ' ₫',
+          notes: finalNote
+        };
+
+        return res.status(200).json({
+          success: true,
+          payment_method: "cash",
+          order_id: orderId,
+          booking_id: newBookingId,  // ✅ Trả về booking_id đúng
+          booking_details: bookingDetails,
+          message: "Booking được tạo thành công với phương thức thanh toán tiền mặt"
+        });
+      }
+
+      if (paymentMethod === "vnpay") {
+        try {
+          const returnUrl = VNP_RETURN_URL;
+          
+          const clientIp = req.headers["x-forwarded-for"] || 
+                          req.connection?.remoteAddress || 
+                          req.socket?.remoteAddress || 
+                          "127.0.0.1";
+          
+          const cleanIpAddr = clientIp.split(',')[0].trim().replace("::ffff:", "");
+          const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+          const validIp = ipRegex.test(cleanIpAddr) ? cleanIpAddr : "127.0.0.1";
+          
+          const orderInfo = `Dat phong ${room.type_name.replace(/[^a-zA-Z0-9\s]/g, '')} - ${fullname.replace(/[^a-zA-Z0-9\s]/g, '')} - ${orderId}`;
+
+          const paymentUrl = buildVNPayUrl({
+            amount: pricing.totalAmount,
+            orderId: orderId,
+            orderInfo: orderInfo,
+            returnUrl: returnUrl,
+            ipAddr: validIp,
+            orderType: "other",
+            locale: "vn",
+            bankCode: null
+          });
+
+          await db.Payment.update({
+            gateway_response: JSON.stringify({
+              vnpay_url: paymentUrl,
+              order_info: orderInfo,
+              client_ip: validIp,
+              created_at: new Date(),
+              vnp_tmn_code: VNP_TMN_CODE,
+              amount_vnd: pricing.totalAmount,
+              return_url: returnUrl,
+              new_booking: true,
+              services_included: validatedServices.length > 0,
+              services_count: validatedServices.length
+            })
+          }, {
+            where: { 
+              booking_id: newBookingId,  // ✅ Sử dụng booking_id
+              payment_method: 'vnpay' 
+            }
+          });
+
+          return res.json({
+            success: true,
+            payment_method: "vnpay",
+            redirect_url: paymentUrl,
+            order_id: orderId,
+            booking_id: newBookingId,  // ✅ Trả về booking_id đúng
+            expires_in: "24 hours",
+            amount: pricing.totalAmount,
+            room_total: pricing.roomTotal,
+            services_total: pricing.servicesTotal,
+            services_count: validatedServices.length,
+            message: "Booking được tạo thành công, chuyển hướng tới VNPay"
+          });
+
+        } catch (vnpayError) {
+          await db.Booking.update(
+            { payment_method: 'cash', payment_status: 'pending' },
+            { where: { booking_id: newBookingId } }  // ✅ Sử dụng booking_id
+          );
+
+          return res.status(500).json({
+            success: false,
+            message: `Lỗi VNPay: ${vnpayError.message}. Booking đã được tạo với phương thức thanh toán tiền mặt.`,
+            fallback_payment: "cash",
+            order_id: orderId,
+            booking_id: newBookingId  // ✅ Trả về booking_id đúng
+          });
+        }
       }
     }
 
@@ -604,13 +773,17 @@ const postCheckout = async (req, res) => {
       await transaction.rollback();
     }
     
+    console.error('💥 Checkout error:', error);
     return res.status(500).json({ 
       success: false, 
-      message: "Lỗi hệ thống: " + error.message
+      message: "Lỗi hệ thống: " + error.message,
+      debug_info: {
+        error_type: 'system_error',
+        error_stack: error.stack
+      }
     });
   }
 };
-
 // VNPay Return Handler
 const handleVNPayReturn = async (req, res) => {
   try {
@@ -758,20 +931,26 @@ const getBookingInfo = async (req, res) => {
         }]
       });
       
-      bookingServices = rawServices.map(bs => ({
-        service_id: bs.service_id,
-        service_name: bs.Service?.service_name || getServiceName(bs.service_id),
-        price: bs.price,
-        quantity: bs.quantity,
-        unit: getServiceUnit(bs.service_id), // ✅ Add unit for display
-        total: bs.price * bs.quantity
-      }));
+      bookingServices = rawServices.map(bs => {
+        const totalPrice = parseFloat(bs.price);
+        const quantity = parseInt(bs.quantity);
+        const unitPrice = quantity > 0 ? totalPrice / quantity : totalPrice;
+        
+        return {
+          service_id: bs.service_id,
+          service_name: bs.Service?.service_name || getServiceName(bs.service_id),
+          unit_price: unitPrice,                   
+          quantity: quantity,
+          unit: getServiceUnit(bs.service_id),
+          total_price: totalPrice                   
+        };
+      });
     } catch (serviceError) {
       console.log('Error loading services:', serviceError.message);
     }
 
     const nights = Math.ceil((new Date(booking.check_out_date) - new Date(booking.check_in_date)) / (1000 * 3600 * 24));
-    const servicesTotal = bookingServices.reduce((sum, service) => sum + service.total, 0);
+    const servicesTotal = bookingServices.reduce((sum, service) => sum + service.total_price, 0);
 
     return res.json({
       success: true,
@@ -796,7 +975,11 @@ const getBookingInfo = async (req, res) => {
         payment_status: booking.payment_status,
         booking_status: booking.status,
         notes: booking.notes,
-        services: bookingServices,
+        services: bookingServices.map(service => ({
+          ...service,
+          formatted_unit_price: service.unit_price.toLocaleString('vi-VN') + ' ₫',
+          formatted_total_price: service.total_price.toLocaleString('vi-VN') + ' ₫'
+        })),
         created_at: booking.created_at
       }
     });
