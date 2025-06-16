@@ -197,77 +197,71 @@
     </div>
   </div>
   <div class="villa-container" id="CH">
-    <h5 class="text-uppercase text-muted">Ưu đãi trong ngày</h5>
-    <!-- Home.ejs - Danh sách 8 phòng + Xem tất cả -->
-    <h2 class="mb-4">Nơi sự thư giãn hòa quyện với sự sang trọng</h2>
-    <div class="row mt-3">
-      <% if (rooms.length===0) { %>
-        <p>Không có phòng nào để hiển thị.</p>
-        <% } %>
-          <% rooms.slice(0, 8).forEach(function(room) { %>
-            <div class="col-md-6 col-lg-3 mb-4">
-              <div class="card h-100 d-flex flex-column shadow-sm border-0" style="transition: 0.3s">
-                <img src="<%= room.thumbnail %>" class="card-img-top" alt="<%= room.name %>"
-                  style="height: 180px; object-fit: cover" />
-                <div class="card-body d-flex flex-column">
-                  <h5 class="card-title mb-2 fw-semibold">
-                    <%= room.name %>
-                  </h5>
+  <h5 class="text-uppercase text-muted">Ưu đãi trong ngày</h5>
+  <h2 class="mb-4">Nơi sự thư giãn hòa quyện với sự sang trọng</h2>
 
-                  <% if (room.price < 500000) { %>
-                    <span class="badge rounded-pill mb-1 px-3 py-1 text-white" style="background-color: #28a745">🌼 Tiết
-                      kiệm</span>
-                    <% } %>
-                      <% if (room.avg_rating && room.avg_rating>= 4.5) { %>
-                        <span class="badge rounded-pill mb-2 px-3 py-1 text-white" style="background-color: #dc3545">🔥
-                          Yêu thích</span>
-                        <% } %>
-                          <% if (room.avg_rating) { %>
-                            <p class="text-warning mb-2">
-                              ⭐ <%= room.avg_rating %>/5
-                                <span class="text-muted">(<%= room.review_count %> đánh giá)</span>
-                            </p>
-                            <% } %>
+  <div id="roomsContainer" class="row mt-3">
+    <% if (rooms.length === 0) { %>
+      <p>Không có phòng nào để hiển thị.</p>
+    <% } %>
+    <% rooms.slice(0, 4).forEach(function (room) { %>
+      <div class="col-md-6 col-lg-3 mb-4">
+        <div class="card room-card h-100 d-flex flex-column shadow-sm border-0" style="transition: 0.3s">
+          <img src="<%= room.thumbnail %>" class="card-img-top" alt="<%= room.name %>"
+            style="height: 180px; object-fit: cover" />
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title mb-2 fw-semibold"><%= room.name %></h5>
 
-                              <p class="card-text flex-grow-1" style="font-size: 0.95rem">
-                                <strong>Giá:</strong>
-                                <%= Number(room.price).toLocaleString('vi-VN', { style: 'currency' , currency: 'VND' })
-                                  %>
-                                  <small class="text-muted"> / đêm</small><br />
+            <% if (room.price < 500000) { %>
+              <span class="badge rounded-pill mb-1 px-3 py-1 text-white" style="background-color: #28a745">🌼 Tiết kiệm</span>
+            <% } %>
 
-                                  <strong>Địa chỉ:</strong>
-                                  <%= room.address %><br />
+            <% if (room.avg_rating && room.avg_rating >= 4.5) { %>
+              <span class="badge rounded-pill mb-2 px-3 py-1 text-white" style="background-color: #dc3545">🔥 Yêu thích</span>
+            <% } %>
 
-                                    <strong>Dịch vụ:</strong>
-                                    <% if (room.services && room.services.length> 0) { %> <%
-                                        room.services.forEach(function(service) { %>
-                                        <span class="badge bg-secondary me-1">
-                                          <%= service %>
-                                        </span>
-                                        <% }) %>
-                                          <% } else { %>
-                                            <span class="text-muted">Không có</span>
-                                            <% } %>
-                              </p>
+            <% if (room.avg_rating) { %>
+              <p class="text-warning mb-2">
+                ⭐ <%= room.avg_rating %>/5
+                <span class="text-muted">(<%= room.review_count %> đánh giá)</span>
+              </p>
+            <% } %>
 
-                              <a href="/room/<%= room.slug %>" class="btn mt-auto px-3 py-2 fw-semibold" style="
-                  background-color: #a59a81;
-                  color: white;
-                  border-radius: 30px;
-                  transition: 0.2s;
-                ">
-                                Xem chi tiết
-                              </a>
-                </div>
-              </div>
-            </div>
-            <% }) %>
-    </div>
+            <p class="card-text flex-grow-1" style="font-size: 0.95rem">
+              <strong>Giá:</strong>
+              <%= Number(room.price).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }) %>
+              <small class="text-muted"> / đêm</small><br />
+              <strong>Địa chỉ:</strong> <%= room.address %><br />
+              <strong>Dịch vụ:</strong>
+              <% if (room.services && room.services.length > 0) { %>
+                <% room.services.forEach(function (service) { %>
+                  <span class="badge bg-secondary me-1"><%= service %></span>
+                <% }) %>
+              <% } else { %>
+                <span class="text-muted">Không có</span>
+              <% } %>
+            </p>
 
-    <div class="text-center mt-4">
-      <a href="/search" class="btn btn-outline-dark px-4 py-2 fw-semibold">XEM TẤT CẢ</a>
-    </div>
+            <a href="/room/<%= room.slug %>" class="btn mt-auto px-3 py-2 fw-semibold"
+              style="background-color: #a59a81; color: white; border-radius: 30px; transition: 0.2s;">
+              Xem chi tiết
+            </a>
+          </div>
+        </div>
+      </div>
+    <% }) %>
   </div>
+
+  <!-- Nút XEM THÊM và XEM TẤT CẢ -->
+  <div class="text-center mt-4">
+    <button id="btnLoadMore" class="btn btn-outline-dark px-4 py-2 fw-semibold">
+      XEM THÊM
+    </button>
+    <a id="btnViewAll" href="/search" class="btn btn-dark px-4 py-2 fw-semibold d-none">
+      XEM TẤT CẢ
+    </a>
+  </div>
+</div>
 
   <div class="service-section">
     <img src="./image/image/bbq.jpg" alt="BBQ Party" />
@@ -619,6 +613,100 @@
       });
     });
   </script>
+  <script>
+  /* ========= CÁC BIẾN DOM ========= */
+  const container  = document.getElementById("roomsContainer");
+  const btnMore    = document.getElementById("btnLoadMore");
+  const btnViewAll = document.getElementById("btnViewAll");
+
+  /* ========= BIẾN PHÂN TRANG ========= */
+  let loaded = 4;          // đã có sẵn 4 phòng render bằng EJS
+  const STEP  = 4;         // mỗi lần tải thêm 4
+
+  /* ========= TẠO THẺ CARD HTML Y HỆT EJS ========= */
+  function cardHtml(r) {
+    /* --- badge “Tiết kiệm” & “Yêu thích” --- */
+    const tietKiem = r.price < 500000
+      ? `<span class="badge rounded-pill mb-1 px-3 py-1 text-white" style="background-color:#28a745">🌼 Tiết kiệm</span>`
+      : "";
+
+    const yeuThich = r.avg_rating >= 4.5
+      ? `<span class="badge rounded-pill mb-2 px-3 py-1 text-white" style="background-color:#dc3545">🔥 Yêu thích</span>`
+      : "";
+
+    /* --- rating --- */
+    const ratingHTML = r.avg_rating
+      ? `<p class="text-warning mb-2">
+           ⭐ ${r.avg_rating}/5
+           <span class="text-muted">(${r.review_count} đánh giá)</span>
+         </p>`
+      : "";
+
+    /* --- dịch vụ --- */
+    const servicesHTML = (r.services?.length)
+      ? r.services.map(s => `<span class="badge bg-secondary me-1">${s}</span>`).join("")
+      : `<span class="text-muted">Không có</span>`;
+
+    /* --- trả về card đầy đủ --- */
+    return `
+      <div class="col-md-6 col-lg-3 mb-4">
+        <div class="card room-card h-100 d-flex flex-column shadow-sm border-0" style="transition:0.3s">
+          <img src="${r.thumbnail}" class="card-img-top" alt="${r.name}"
+               style="height:180px;object-fit:cover" />
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title mb-2 fw-semibold">${r.name}</h5>
+            ${tietKiem}
+            ${yeuThich}
+            ${ratingHTML}
+            <p class="card-text flex-grow-1" style="font-size:0.95rem">
+              <strong>Giá:</strong>
+              ${Number(r.price).toLocaleString('vi-VN',{style:'currency',currency:'VND'})}
+              <small class="text-muted"> / đêm</small><br/>
+              <strong>Địa chỉ:</strong> ${r.address}<br/>
+              <strong>Dịch vụ:</strong> ${servicesHTML}
+            </p>
+            <a href="/room/${r.slug}"
+               class="btn mt-auto px-3 py-2 fw-semibold"
+               style="background-color:#a59a81;color:white;border-radius:30px;transition:0.2s;">
+              Xem chi tiết
+            </a>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  /* ========= GỌI API & CHÈN THÊM PHÒNG ========= */
+  async function loadMore() {
+    btnMore.disabled = true;
+
+    try {
+      const res  = await fetch(`/api/rooms?limit=${STEP}&offset=${loaded}`);
+      const data = await res.json();
+
+      if (data.err !== 0) throw new Error("API trả lỗi");
+
+      data.data.forEach(room =>
+        container.insertAdjacentHTML("beforeend", cardHtml(room))
+      );
+      loaded += data.data.length;
+
+      /* Sau đúng 1 lần (tổng 8 phòng) → ẩn XEM THÊM, hiện XEM TẤT CẢ */
+      btnMore.classList.add("d-none");
+      btnViewAll.classList.remove("d-none");
+    } catch (err) {
+      console.error(err);
+      alert("Không tải được phòng, vui lòng thử lại.");
+      btnMore.disabled = false;
+    }
+  }
+
+  btnMore.addEventListener("click", loadMore);
+</script>
+
+  
+    <script src="https://cdn.botpress.cloud/webchat/v3.0/inject.js" defer></script>
+<script src="https://files.bpcontent.cloud/2025/06/13/11/20250613113629-T5H91F8W.js" defer></script>
+    
 </body>
 
 </html>

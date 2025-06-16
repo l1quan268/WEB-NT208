@@ -278,3 +278,20 @@ input {
   transform: translateY(-50%); /* Dịch chuyển lại một nửa chiều cao */
   width: 8%; /* Tăng vùng bấm */
 }
+.room-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  will-change: transform; /* tối ưu performance */
+}
+
+.room-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+}
+
+/* Zoom nhẹ ảnh bên trong cho “đã” */
+.room-card img {
+  transition: transform 0.3s ease;
+}
+.room-card:hover img {
+  transform: scale(1.05);
+}

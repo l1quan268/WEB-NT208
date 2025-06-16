@@ -6,11 +6,14 @@ const initWebRoutes = require("./route/web");
 const connectDB = require("./config/connectDb");
 const passport = require("./config/passport");
 const apiRoutes = require("./route/api");
+const cors = require("cors");
+
 require("dotenv").config();
 const adminRoutes = require("./route/adminRoutes");  // <-- thêm
 require("dotenv").config();
 
 const app = express();
+app.use(cors());
 
 //Body Parser ĐẶT TRƯỚC SESSION
 app.use(bodyParser.json());
