@@ -452,6 +452,7 @@
       </div>
     </div>
   </footer>
+  
   <script>
   document.getElementById('bookingForm').addEventListener('submit', function (e) {
     if (!isLoggedIn) {
@@ -467,7 +468,7 @@
       return false;
     }
   });
-</script>
+  </script>
 
   <div class="text-center mt-3">
     <p class="mb-0">© 2025 - All Rights Reserved</p>
@@ -475,308 +476,233 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- ----------------------------------- -->
-  <!-- script cho đánh giá  -->
-   
-<script>
+  <!-- ================================= CHỈ SỬA PHẦN CALENDAR ================================= -->
+  <script>
   function formatDateVN(dateStr) {
-  const d = new Date(dateStr);
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const yyyy = d.getFullYear();
-  return `${dd}-${mm}-${yyyy}`;
-}
-  // 🔥 THÊM BIẾN GLOBAL CHO CALENDAR
-  let bookedDates = [];
+    const d = new Date(dateStr);
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${dd}-${mm}-${yyyy}`;
+  }
+
+  // 🔥 BIẾN GLOBAL CHO CALENDAR MỚI - CHỈ SỬA PHẦN NÀY
+  let disabledForCheckin = [];
+  let disabledForCheckout = [];
+  let checkinCalendar = null;
+  let checkoutCalendar = null;
   const roomId = '<%= room.room_type_id %>';
 
-  // 🔥 LOAD BOOKED DATES KHI TRANG TẢI
+  // 🔥 LOAD TRANG
   document.addEventListener('DOMContentLoaded', function () {
-    loadBookedDates();
-    updateStars();
-    setupFormHandlers();
+    loadBookedDates();  // CHỈ SỬA PHẦN NÀY
+    updateStars();      // GIỮ NGUYÊN
+    setupFormHandlers(); // GIỮ NGUYÊN
   });
 
-  // 🔥 FUNCTION LOAD NGÀY ĐÃ ĐẶT TỪ SERVER
+  // 🔥 LOAD NGÀY ĐÃ ĐẶT TỪ SERVER - CHỈ SỬA PHẦN NÀY
   function loadBookedDates() {
-    // Tạo API endpoint giả (bạn cần tạo API này)
     fetch(`/api/room/${roomId}/booked-dates`)
       .then(response => response.json())
       .then(data => {
         if (data.success) {
-          bookedDates = data.bookedDates || [];
-      console.log("📅 Booked dates: ", bookedDates); // DEBUG
-          flatpickr(".flatpickr", {
-      dateFormat: "Y-m-d",
-      disable: bookedDates, // không cho chọn
-      locale: "vn",
-      minDate: "today",
-      onDayCreate: function(dObj, dStr, fp, dayElem) {
-  const dateStr = dayElem.dateObj.toISOString().split('T')[0];
-
-  // Nếu là ngày đã được đặt
-  if (bookedDates.includes(dateStr)) {
-    // Kiểm tra nếu NGÀY SAU đó không nằm trong bookedDates => đây là ngày CUỐI (checkout) => KHÔNG tô đỏ
-    const nextDate = new Date(dayElem.dateObj);
-    nextDate.setDate(nextDate.getDate() + 1);
-    const nextDateStr = nextDate.toISOString().split('T')[0];
-
-    // Chỉ tô đỏ nếu NGÀY TIẾP THEO cũng là ngày đã được đặt (=> không phải ngày checkout)
-    if (bookedDates.includes(nextDateStr)) {
-      dayElem.style.color = 'white';
-      dayElem.style.borderRadius = '50%';
-    }
-  }
-}
-
-
-    });
-    
-          console.log('📅 Loaded booked dates:', bookedDates);
-          setupDateValidation();
+          disabledForCheckin = data.disabledForCheckin || [];
+          disabledForCheckout = data.disabledForCheckout || [];
+          
+          console.log("📅 Disabled for checkin:", disabledForCheckin);
+          console.log("📅 Disabled for checkout:", disabledForCheckout);
+          
+          initializeCalendars();  // CHỈ SỬA PHẦN NÀY
+          setupDateValidation();  // CHỈ SỬA PHẦN NÀY
         } else {
-          console.warn('Could not load booked dates, using empty array');
-          bookedDates = [];
-          setupDateValidation();
+          console.warn('Could not load booked dates');
+          initializeFallbackCalendars(); // CHỈ SỬA PHẦN NÀY
         }
       })
       .catch(error => {
-        console.warn('Error loading booked dates:', error);
-        // Fallback: hardcode một số ngày để test
-        bookedDates = [
-          '2025-06-15',
-          '2025-06-16', 
-          '2025-06-20',
-          '2025-06-21',
-          '2025-06-25'
-        ];
-        setupDateValidation();
+        console.error('❌ Error loading booked dates:', error);
+        initializeFallbackCalendars(); // CHỈ SỬA PHẦN NÀY
       });
   }
 
-  //--------------------------------
-  // 🔥 SETUP DATE VALIDATION VÀ DISABLE DATES
+  // 🔥 KHỞI TẠO 2 CALENDAR RIÊNG BIỆT - CHỈ SỬA PHẦN NÀY
+  function initializeCalendars() {
+    // 🗓️ CALENDAR CHO CHECKIN
+    checkinCalendar = flatpickr("#checkin", {
+      dateFormat: "Y-m-d",
+      disable: disabledForCheckin,
+      minDate: "today",
+      placeholder: "Chọn ngày nhận",
+      onChange: function(selectedDates, dateStr) {
+        if (dateStr) {
+          updateCheckoutCalendar(dateStr);
+          console.log("✅ Checkin selected:", dateStr);
+        }
+      }
+    });
+
+    // 🗓️ CALENDAR CHO CHECKOUT 
+    checkoutCalendar = flatpickr("#checkout", {
+      dateFormat: "Y-m-d",
+      disable: disabledForCheckout,
+      minDate: "today",
+      placeholder: "Chọn ngày đi",
+      onChange: function(selectedDates, dateStr) {
+        if (dateStr) {
+          validateDateRange();
+          console.log("✅ Checkout selected:", dateStr);
+        }
+      }
+    });
+  }
+
+  // 🔄 CẬP NHẬT CHECKOUT CALENDAR KHI CHỌN CHECKIN - CHỈ SỬA PHẦN NÀY
+  function updateCheckoutCalendar(checkinDate) {
+    const checkinDateObj = new Date(checkinDate);
+    const minCheckout = new Date(checkinDateObj);
+    minCheckout.setDate(minCheckout.getDate() + 1);
+    
+    checkoutCalendar.set('minDate', minCheckout);
+    
+    const currentCheckout = document.getElementById('checkout').value;
+    if (currentCheckout && currentCheckout <= checkinDate) {
+      checkoutCalendar.clear();
+    }
+  }
+
+  // ✅ VALIDATE KHOẢNG THỜI GIAN - SỬA LOGIC KIỂM TRA
+  function validateDateRange() {
+    const checkinDate = document.getElementById('checkin').value;
+    const checkoutDate = document.getElementById('checkout').value;
+    
+    if (!checkinDate || !checkoutDate) return;
+    
+    // 🔥 CHỈ KIỂM TRA CÁC NGÀY Ở GIỮA, KHÔNG BAO GỒM CHECKIN VÀ CHECKOUT
+    const startDate = new Date(checkinDate);
+    const endDate = new Date(checkoutDate);
+    const conflicts = [];
+    
+    // ✅ BẮT ĐẦU TỪ NGÀY SAU CHECKIN, KẾT THÚC TRƯỚC CHECKOUT
+    startDate.setDate(startDate.getDate() + 1); // Ngày sau checkin
+    
+    for (let d = new Date(startDate); d < endDate; d.setDate(d.getDate() + 1)) {
+      const dateStr = d.toISOString().split('T')[0];
+      
+      // Kiểm tra nếu ngày này bị disable cho cả checkin VÀ checkout
+      if (disabledForCheckin.includes(dateStr) || disabledForCheckout.includes(dateStr)) {
+        conflicts.push(dateStr);
+      }
+    }
+    
+    if (conflicts.length > 0) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Khoảng thời gian không hợp lệ',
+        html: `
+          <p>Có ngày đã được đặt trong khoảng thời gian này:</p>
+          <p><strong>${conflicts.map(d => formatDateVN(d)).join(', ')}</strong></p>
+          <p>Vui lòng chọn khoảng thời gian khác!</p>
+        `,
+        confirmButtonText: 'OK'
+      });
+      
+      checkoutCalendar.clear();
+      return false;
+    }
+    
+    return true;
+  }
+
+  // 🔍 TÌM NGÀY CONFLICT TRONG RANGE - CHỈ SỬA PHẦN NÀY
+  function getConflictDatesInRange(checkinDate, checkoutDate) {
+    const startDate = new Date(checkinDate);
+    const endDate = new Date(checkoutDate);
+    const conflicts = [];
+    
+    const allDisabledDates = [...new Set([...disabledForCheckin, ...disabledForCheckout])];
+    
+    for (let d = new Date(startDate); d < endDate; d.setDate(d.getDate() + 1)) {
+      const dateStr = d.toISOString().split('T')[0];
+      if (allDisabledDates.includes(dateStr)) {
+        conflicts.push(dateStr);
+      }
+    }
+    
+    return conflicts;
+  }
+
+  // 🔧 FALLBACK CALENDARS - CHỈ SỬA PHẦN NÀY
+  function initializeFallbackCalendars() {
+    checkinCalendar = flatpickr("#checkin", {
+      dateFormat: "Y-m-d",
+      minDate: "today",
+      placeholder: "Chọn ngày nhận"
+    });
+    
+    checkoutCalendar = flatpickr("#checkout", {
+      dateFormat: "Y-m-d", 
+      minDate: "today",
+      placeholder: "Chọn ngày đi"
+    });
+    
+    setupDateValidation();
+  }
+
+  // 🔥 SETUP DATE VALIDATION - SỬA LOGIC
   function setupDateValidation() {
     const checkinInput = document.getElementById("checkin");
     const checkoutInput = document.getElementById("checkout");
 
-    // Set minimum date to today
-    const today = new Date().toISOString().split('T')[0];
-    checkinInput.min = today;
-
-    // 🔥 STYLE CHO NGÀY BỊ DISABLE
-    const style = document.createElement('style');
-    style.textContent = `
-      input[type="date"]::-webkit-calendar-picker-indicator {
-        background: transparent;
-        bottom: 0;
-        color: transparent;
-        cursor: pointer;
-        height: auto;
-        left: 0;
-        position: absolute;
-        right: 0;
-        top: 0;
-        width: auto;
-      }
-      
-      /* Tạo overlay để hiển thị ngày disabled */
-      .date-input-container {
-        position: relative;
-      }
-      
-      .disabled-dates-info {
-        font-size: 0.8em;
-        color: #dc3545;
-        margin-top: 5px;
-      }
-    `;
-    document.head.appendChild(style);
-        // 🔥 THÊM THÔNG BÁO NGÀY BỊ DISABLE
-    const checkinContainer = checkinInput.parentNode;
-    const checkoutContainer = checkoutInput.parentNode;
-    
-    checkinContainer.classList.add('date-input-container');
-    checkoutContainer.classList.add('date-input-container');
-
-    const disabledInfo = document.createElement('div');
-    disabledInfo.className = 'disabled-dates-info';
-
-    checkoutContainer.appendChild(disabledInfo);
-
-    // 🔥 VALIDATION CHO CHECKIN
     checkinInput.addEventListener('change', function () {
       const selectedDate = this.value;
       
-      // Kiểm tra nếu ngày được chọn nằm trong danh sách đã đặt
-      if (bookedDates.includes(selectedDate)) {
-  // 🔥 Tìm khoảng bắt đầu - kết thúc chứa selectedDate
-  let conflictStart = selectedDate;
-  let conflictEnd = selectedDate;
+      if (disabledForCheckin.includes(selectedDate)) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Ngày không khả dụng',
+          html: `
+            Ngày này đã có khách checkin.<br>
+            Vui lòng chọn ngày khác.
+          `,
+          timer: 4000,
+          showConfirmButton: false
+        });
 
-  const sorted = [...bookedDates].sort();
-  const index = sorted.indexOf(selectedDate);
-
-  // Lùi về trước nếu các ngày liên tiếp
-  for (let i = index - 1; i >= 0; i--) {
-    const prev = new Date(sorted[i]);
-    const curr = new Date(conflictStart);
-    prev.setDate(prev.getDate() + 1);
-    if (prev.toISOString().split('T')[0] === curr.toISOString().split('T')[0]) {
-      conflictStart = sorted[i];
-    } else break;
-  }
-
-  // Tiến về sau nếu các ngày liên tiếp
-  for (let i = index + 1; i < sorted.length; i++) {
-    const next = new Date(sorted[i]);
-    const curr = new Date(conflictEnd);
-    curr.setDate(curr.getDate() + 1);
-    if (next.toISOString().split('T')[0] === curr.toISOString().split('T')[0]) {
-      conflictEnd = sorted[i];
-    } else break;
-  }
-
-  function formatDateVN(dateStr) {
-  const d = new Date(dateStr);
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const yyyy = d.getFullYear();
-  return `${dd}-${mm}-${yyyy}`;
-}
-
-Swal.fire({
-  icon: 'warning',
-  title: 'Ngày không khả dụng',
-  html: `
-    Ngày này đã được đặt từ <strong>${formatDateVN(conflictStart)}</strong> đến <strong>${formatDateVN(conflictEnd)}</strong>.<br>
-    Vui lòng chọn khoảng thời gian khác.
-  `,
-  timer: 5000,
-  showConfirmButton: false
-});
-
-  this.value = ''; // Clear
-  return;
-}
-
-
-      const checkinDate = new Date(selectedDate);
-      const minCheckout = new Date(checkinDate);
-      minCheckout.setDate(minCheckout.getDate() + 1);
-      checkoutInput.min = minCheckout.toISOString().split('T')[0];
-
-      // Auto-update checkout if it's invalid
-      if (checkoutInput.value && checkoutInput.value <= selectedDate) {
-        checkoutInput.value = minCheckout.toISOString().split('T')[0];
+        this.value = '';
+        return;
       }
     });
-        // 🔥 VALIDATION CHO CHECKOUT
+
     checkoutInput.addEventListener('change', function () {
       const checkinDate = checkinInput.value;
       const checkoutDate = this.value;
       
-      if (!checkinDate) {
-        Swal.fire({
-          icon: 'info',
-          title: 'Chọn ngày nhận trước',
-          text: 'Vui lòng chọn ngày nhận phòng trước.',
-          timer: 2000,
-          showConfirmButton: false
-        });
-        this.value = '';
-        return;
-      }
+      // ✅ CHỈ VALIDATE NẾU ĐÃ CÓ CẢ CHECKIN VÀ CHECKOUT
+      if (checkinDate && checkoutDate) {
+        // Kiểm tra checkout <= checkin
+        if (checkoutDate <= checkinDate) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Ngày không hợp lệ',
+            text: 'Ngày trả phòng phải sau ngày nhận phòng.',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          this.value = '';
+          return;
+        }
 
-      // 🔥 KIỂM TRA RANGE CÓ CHỨA NGÀY ĐÃ ĐẶT KHÔNG
-      if (hasBookedDatesInRange(checkinDate, checkoutDate)) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Khoảng thời gian không hợp lệ',
-          text: 'Khoảng thời gian bạn chọn có chứa ngày đã được đặt. Vui lòng chọn lại.',
-          timer: 4000,
-          showConfirmButton: false
-        });
-        this.value = '';
-        return;
+        // Validate range
+        if (!validateDateRange()) {
+          return;
+        }
       }
-            // Kiểm tra checkout sau checkin
-      if (checkoutDate <= checkinDate) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Ngày không hợp lệ',
-          text: 'Ngày trả phòng phải sau ngày nhận phòng.',
-          timer: 2000,
-          showConfirmButton: false
-        });
-        this.value = '';
-        return;
-      }
+      // ✅ NẾU CHƯA CÓ CHECKIN THÌ KHÔNG VALIDATE GÌ CẢ, CHỈ CHẤP NHẬN
     });
   }
+  // ================================= HẾT PHẦN SỬA CALENDAR =================================
 
-// Enhanced error handling for edge cases
-window.addEventListener('beforeunload', function(e) {
-  // Clear any pending API requests when user leaves page
-  if (window.pendingBookingCheck) {
-    window.pendingBookingCheck.abort();
-  }
-});
-
-// Show booking tips on page load
-setTimeout(function() {
-  if (!localStorage.getItem('booking_tips_shown')) {
-    Swal.fire({
-      icon: 'info',
-      title: 'Mẹo đặt phòng',
-      html: `
-        <div style="text-align: left;">
-          <p><i class="fas fa-calendar-check text-primary me-2"></i><strong>Lịch đỏ:</strong> Ngày đã có khách đặt</p>
-          <p><i class="fas fa-calendar-plus text-success me-2"></i><strong>Lịch xanh:</strong> Ngày có thể đặt</p>
-          <p><i class="fas fa-lightbulb text-warning me-2"></i><strong>Gợi ý:</strong> Hệ thống sẽ đề xuất ngày phù hợp</p>
-        </div>
-      `,
-      confirmButtonText: 'Đã hiểu',
-      timer: 8000
-    });
-    
-    localStorage.setItem('booking_tips_shown', 'true');
-  }
-}, 2000);
-//--------------------------------
-
-  // 🔥 FUNCTION KIỂM TRA RANGE CÓ CHỨA NGÀY ĐÃ ĐẶT
-  function hasBookedDatesInRange(checkinDate, checkoutDate) {
-    const startDate = new Date(checkinDate);
-    const endDate = new Date(checkoutDate);
-    
-    // Lặp qua từng ngày trong range
-    for (let d = new Date(startDate); d < endDate; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().split('T')[0];
-      if (bookedDates.includes(dateStr)) {
-        console.log('❌ Found booked date in range:', dateStr);
-        return true;
-      }
-    }
-    return false;
-  }
-  // 🔥 FUNCTION LẤY DANH SÁCH CÁC NGÀY TRÙNG
-function getConflictedDatesInRange(checkinDate, checkoutDate) {
-  const startDate = new Date(checkinDate);
-  const endDate = new Date(checkoutDate);
-  const conflicts = [];
-
-  for (let d = new Date(startDate); d < endDate; d.setDate(d.getDate() + 1)) {
-    const dateStr = d.toISOString().split('T')[0];
-    if (bookedDates.includes(dateStr)) {
-      conflicts.push(dateStr);
-    }
-  }
-
-  return conflicts;
-}
-
-  // 🔥 SETUP FORM HANDLERS (CODE CŨ)
+  // 🔥 SETUP FORM HANDLERS - GIỮ NGUYÊN CODE CŨ
   function setupFormHandlers() {
     const form = document.getElementById('bookingForm');
     const checkinInput = document.getElementById("checkin");
@@ -826,27 +752,11 @@ function getConflictedDatesInRange(checkinDate, checkoutDate) {
         return;
       }
 
-      // 🔥 KIỂM TRA LẠI RANGE TRƯỚC KHI SUBMIT
-      const conflicts = getConflictedDatesInRange(checkinInput.value, checkoutInput.value);
-if (conflicts.length > 0) {
-  e.preventDefault();
-
-  const from = conflicts[0];
-  const to = conflicts[conflicts.length - 1];
-
-  Swal.fire({
-    icon: 'error',
-    title: 'Khoảng thời gian đã được đặt',
-    html: `
-      <p>Phòng đã có người đặt từ <strong>${from}</strong> đến <strong>${to}</strong>.</p>
-      <p>Vui lòng chọn thời gian khác!</p>
-    `,
-    confirmButtonText: 'OK'
-  });
-
-  return;
-}
-
+      // 🔥 KIỂM TRA LẠI RANGE TRƯỚC KHI SUBMIT - CHỈ SỬA DÒNG NÀY
+      if (!validateDateRange()) {
+        e.preventDefault();
+        return;
+      }
 
       // Set hidden values
       document.getElementById("hiddenCheckin").value = checkinInput.value;
@@ -864,7 +774,7 @@ if (conflicts.length > 0) {
     });
   }
 
-  // ---- CODE CŨ CHO REVIEW SYSTEM (GIỮ NGUYÊN) ----
+  // ---- CODE CŨ CHO REVIEW SYSTEM (GIỮ NGUYÊN HOÀN TOÀN) ----
 
   // Xử lý chọn sao
   const stars = document.querySelectorAll('#starRating i');
@@ -1081,7 +991,7 @@ if (conflicts.length > 0) {
 
 
 <script>
-// Thay thế script validation hiện tại bằng code này
+// CODE VALIDATION SỐ KHÁCH - GIỮ NGUYÊN HOÀN TOÀN
 document.addEventListener('DOMContentLoaded', function() {
   const maxAdults = <%= room.max_adults %>;
   const maxChildren = <%= room.max_children %>;
@@ -1265,7 +1175,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-  <!-- ----------------------------------- -->
 </body>
 
 </html>

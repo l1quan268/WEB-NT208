@@ -1330,6 +1330,8 @@ let postChangePassword = async (req, res) => {
 let getBookedDates = async (req, res) => {
   try {
     const { room_id } = req.params;
+    console.log('🔍 API called for room_id:', room_id);
+    
     if (!room_id) {
       return res.status(400).json({
         success: false,
@@ -1337,7 +1339,6 @@ let getBookedDates = async (req, res) => {
       });
     }
 
-    // Lấy các booking đã xác nhận cho phòng này
     const bookings = await db.Booking.findAll({
       where: {
         room_type_id: room_id,
@@ -1350,14 +1351,8 @@ let getBookedDates = async (req, res) => {
       order: [["check_in_date", "ASC"]],
     });
 
-    // 🔥 DEBUG: In ra tất cả bookings
-    console.log(`🔍 Room ${room_id} - All bookings:`, bookings.map(b => ({
-      id: b.booking_id,
-      checkin: b.check_in_date,
-      checkout: b.check_out_date
-    })));
-
-    let disabledDates = [];
+    let disabledForCheckin = [];   // Ngày không thể checkin
+    let disabledForCheckout = [];  // Ngày không thể checkout
 
     bookings.forEach((booking, index) => {
       const checkinDate = new Date(booking.check_in_date);
@@ -1369,40 +1364,38 @@ let getBookedDates = async (req, res) => {
         checkout: booking.check_out_date
       });
 
-      // TÍNH NGÀY BẮT ĐẦU DISABLE (NGÀY SAU CHECKIN)
-      const startDisable = new Date(checkinDate);
-      startDisable.setDate(startDisable.getDate() + 1);
-
-      // TÍNH NGÀY KẾT THÚC DISABLE (NGÀY TRƯỚC CHECKOUT)  
-      const endDisable = new Date(checkoutDate);
-      endDisable.setDate(endDisable.getDate() - 1);
-
-      console.log(`🚫 Will disable from ${startDisable.toISOString().split('T')[0]} to ${endDisable.toISOString().split('T')[0]}`);
-
-      // CHỈ DISABLE NẾU CÓ NGÀY Ở GIỮA
-      if (startDisable <= endDisable) {
-        const bookingDisabledDates = [];
-        for (let currentDate = new Date(startDisable); currentDate <= endDisable; currentDate.setDate(currentDate.getDate() + 1)) {
-          const dateString = currentDate.toISOString().split("T")[0];
-          bookingDisabledDates.push(dateString);
-          if (!disabledDates.includes(dateString)) {
-            disabledDates.push(dateString);
-          }
+      // ❌ NGÀY KHÔNG THỂ CHECKIN: từ checkin đến ngày trước checkout
+      for (let d = new Date(checkinDate); d < checkoutDate; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split("T")[0];
+        if (!disabledForCheckin.includes(dateStr)) {
+          disabledForCheckin.push(dateStr);
         }
-        console.log(`🚫 Booking ${index + 1} disabled dates:`, bookingDisabledDates);
-      } else {
-        console.log(`✅ Booking ${index + 1} has no dates to disable (consecutive days)`);
+      }
+
+      // ❌ NGÀY KHÔNG THỂ CHECKOUT: từ ngày sau checkin đến checkout
+      const dayAfterCheckin = new Date(checkinDate);
+      dayAfterCheckin.setDate(dayAfterCheckin.getDate() + 1);
+      
+      for (let d = new Date(dayAfterCheckin); d <= checkoutDate; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split("T")[0];
+        if (!disabledForCheckout.includes(dateStr)) {
+          disabledForCheckout.push(dateStr);
+        }
       }
     });
 
-    // Sắp xếp ngày tăng dần
-    disabledDates.sort();
+    disabledForCheckin.sort();
+    disabledForCheckout.sort();
 
-    console.log(`📅 Room ${room_id} - Final disabled dates:`, disabledDates);
+    console.log(`📅 Room ${room_id} - Disabled for checkin:`, disabledForCheckin);
+    console.log(`📅 Room ${room_id} - Disabled for checkout:`, disabledForCheckout);
 
+    // ✅ TRẢ VỀ CẢ 2 LOẠI NGÀY DISABLE
     return res.json({
       success: true,
-      bookedDates: disabledDates,
+      bookedDates: disabledForCheckin, // ✅ Để frontend tương thích
+      disabledForCheckin: disabledForCheckin,
+      disabledForCheckout: disabledForCheckout,
       totalBookings: bookings.length,
     });
   } catch (error) {
