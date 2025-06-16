@@ -1330,8 +1330,8 @@ let postChangePassword = async (req, res) => {
 let getBookedDates = async (req, res) => {
   try {
     const { room_id } = req.params;
-    console.log('🔍 API called for room_id:', room_id);
-    
+    console.log("🔍 API called for room_id:", room_id);
+
     if (!room_id) {
       return res.status(400).json({
         success: false,
@@ -1351,8 +1351,8 @@ let getBookedDates = async (req, res) => {
       order: [["check_in_date", "ASC"]],
     });
 
-    let disabledForCheckin = [];   // Ngày không thể checkin
-    let disabledForCheckout = [];  // Ngày không thể checkout
+    let disabledForCheckin = []; // Ngày không thể checkin
+    let disabledForCheckout = []; // Ngày không thể checkout
 
     bookings.forEach((booking, index) => {
       const checkinDate = new Date(booking.check_in_date);
@@ -1361,11 +1361,15 @@ let getBookedDates = async (req, res) => {
       console.log(`📅 Booking ${index + 1}:`, {
         id: booking.booking_id,
         checkin: booking.check_in_date,
-        checkout: booking.check_out_date
+        checkout: booking.check_out_date,
       });
 
       // ❌ NGÀY KHÔNG THỂ CHECKIN: từ checkin đến ngày trước checkout
-      for (let d = new Date(checkinDate); d < checkoutDate; d.setDate(d.getDate() + 1)) {
+      for (
+        let d = new Date(checkinDate);
+        d < checkoutDate;
+        d.setDate(d.getDate() + 1)
+      ) {
         const dateStr = d.toISOString().split("T")[0];
         if (!disabledForCheckin.includes(dateStr)) {
           disabledForCheckin.push(dateStr);
@@ -1375,8 +1379,12 @@ let getBookedDates = async (req, res) => {
       // ❌ NGÀY KHÔNG THỂ CHECKOUT: từ ngày sau checkin đến checkout
       const dayAfterCheckin = new Date(checkinDate);
       dayAfterCheckin.setDate(dayAfterCheckin.getDate() + 1);
-      
-      for (let d = new Date(dayAfterCheckin); d <= checkoutDate; d.setDate(d.getDate() + 1)) {
+
+      for (
+        let d = new Date(dayAfterCheckin);
+        d <= checkoutDate;
+        d.setDate(d.getDate() + 1)
+      ) {
         const dateStr = d.toISOString().split("T")[0];
         if (!disabledForCheckout.includes(dateStr)) {
           disabledForCheckout.push(dateStr);
@@ -1387,8 +1395,14 @@ let getBookedDates = async (req, res) => {
     disabledForCheckin.sort();
     disabledForCheckout.sort();
 
-    console.log(`📅 Room ${room_id} - Disabled for checkin:`, disabledForCheckin);
-    console.log(`📅 Room ${room_id} - Disabled for checkout:`, disabledForCheckout);
+    console.log(
+      `📅 Room ${room_id} - Disabled for checkin:`,
+      disabledForCheckin
+    );
+    console.log(
+      `📅 Room ${room_id} - Disabled for checkout:`,
+      disabledForCheckout
+    );
 
     // ✅ TRẢ VỀ CẢ 2 LOẠI NGÀY DISABLE
     return res.json({
@@ -1406,13 +1420,14 @@ let getBookedDates = async (req, res) => {
     });
   }
 };
+// controllers/homeController.js
 let getRoomsPaginated = async (req, res) => {
-  // -------- 1. Đọc & chuẩn hoá tham số ----------
-  const limit = Number.parseInt(req.query.limit) || 4; // mặc định 4
-  const offset = Number.parseInt(req.query.offset) || 0; // mặc định 0
+  /* -------- 1. Đọc & chuẩn hóa tham số ---------- */
+  const limit = parseInt(req.query.limit, 10) || 4; // mặc định 4
+  const offset = parseInt(req.query.offset, 10) || 0; // mặc định 0
 
   try {
-    // -------- 2. Truy vấn Sequelize ----------
+    /* -------- 2. Lấy danh sách RoomType ---------- */
     const rooms = await db.RoomType.findAll({
       limit,
       offset,
@@ -1421,15 +1436,41 @@ let getRoomsPaginated = async (req, res) => {
         { model: db.Homestay, attributes: ["address"], required: true },
         {
           model: db.RoomTypeImage,
-          where: { is_thumbnail: true },
           attributes: ["image_url"],
+          where: { is_thumbnail: true },
           required: false,
         },
         { model: db.Service, through: { attributes: [] }, required: false },
       ],
     });
 
-    // -------- 3. Chuẩn hoá data trước khi trả ----------
+    /* -------- 3. Tính điểm trung bình & số lượt đánh giá ---------- */
+    const roomIds = rooms.map((r) => r.room_type_id);
+
+    const ratingRows = await db.Review.findAll({
+      where: { room_type_id: roomIds },
+      attributes: [
+        "room_type_id",
+        [db.sequelize.fn("AVG", db.sequelize.col("rating")), "avg_rating"],
+        [
+          db.sequelize.fn("COUNT", db.sequelize.col("review_id")),
+          "review_count",
+        ],
+      ],
+      group: ["room_type_id"],
+      raw: true,
+    });
+
+    // Tạo map để truy cập nhanh
+    const ratingMap = {};
+    ratingRows.forEach((row) => {
+      ratingMap[row.room_type_id] = {
+        avg_rating: (+row.avg_rating).toFixed(1), // “3.7”
+        review_count: +row.review_count, // 12
+      };
+    });
+
+    /* -------- 4. Chuẩn hóa data trả về ---------- */
     const data = rooms.map((r) => ({
       slug: r.slug,
       name: r.type_name,
@@ -1437,21 +1478,14 @@ let getRoomsPaginated = async (req, res) => {
       address: r.Homestay?.address || "",
       thumbnail: r.RoomTypeImages?.[0]?.image_url || "/image/no-image.png",
       services: r.Services?.map((s) => s.service_name) || [],
-      avg_rating: r.avg_rating || null, // 👈 cần có trường này
-      review_count: r.review_count || 0,
+      avg_rating: ratingMap[r.room_type_id]?.avg_rating || null,
+      review_count: ratingMap[r.room_type_id]?.review_count || 0,
     }));
 
-    return res.status(200).json({
-      err: 0,
-      msg: "OK",
-      data,
-    });
-  } catch (error) {
-    console.error("getRoomsPaginated >>", error);
-    return res.status(500).json({
-      err: 1,
-      msg: "Internal server error",
-    });
+    return res.status(200).json({ err: 0, msg: "OK", data });
+  } catch (err) {
+    console.error("getRoomsPaginated >>", err);
+    return res.status(500).json({ err: 1, msg: "Internal server error" });
   }
 };
 
