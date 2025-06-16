@@ -208,7 +208,9 @@ let initWebRoutes = (app) => {
   // ✅ Admin routes - Mount tất cả admin routes với prefix /admin
   router.use("/admin", adminRoutes);
 
+  router.get("/danh-gia", homeController.getReviewPage);
+  router.post("/danh-gia", homeController.postReviewForm);
+
   return app.use("/", router);
 };
-
 module.exports = initWebRoutes;

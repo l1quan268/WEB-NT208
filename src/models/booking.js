@@ -8,6 +8,7 @@ module.exports = (sequelize, DataTypes) => {
       Booking.belongsTo(models.Homestay, { foreignKey: "homestay_id" });
       Booking.belongsTo(models.RoomType, { foreignKey: "room_type_id" });
       Booking.hasOne(models.Payment, { foreignKey: "booking_id" });
+      Booking.hasMany(models.BookingService, { foreignKey: "booking_id" });
     }
   }
 
@@ -20,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       user_id: {
         type: DataTypes.BIGINT,
-        allowNull: true, // Cho phép null nếu là khách vãng lai
+        allowNull: true,
       },
       homestay_id: {
         type: DataTypes.BIGINT,
@@ -49,6 +50,10 @@ module.exports = (sequelize, DataTypes) => {
       },
       guest_address: {
         type: DataTypes.STRING,
+        allowNull: true,
+      },
+      notes: {
+        type: DataTypes.TEXT,
         allowNull: true,
       },
       booking_date: {

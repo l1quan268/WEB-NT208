@@ -19,6 +19,7 @@
       padding: 30px;
       border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
     }
     .section-title {
       font-size: 18px;
@@ -225,6 +226,174 @@
       font-weight: 500;
       margin: 2px;
     }
+    
+    /* Updated Services Section Styles */
+    .services-section {
+      background: white;
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      border-left: 4px solid #28a745;
+    }
+    .service-item {
+      background: #f8f9fa;
+      border: 2px solid #dee2e6;
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .service-item:hover {
+      border-color: #28a745;
+      background-color: #f0fff4;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .service-item.selected {
+      border-color: #28a745;
+      background-color: #e8f5e9;
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+    }
+    .service-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .service-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .service-name {
+      font-weight: 600;
+      color: #333;
+      font-size: 15px;
+    }
+    .service-price {
+      font-weight: 600;
+      color: #e74c3c;
+      font-size: 14px;
+    }
+    .service-description {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+    .service-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 15px;
+    }
+    .quantity-control {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: white;
+      padding: 8px 15px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+    .quantity-btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .quantity-btn:hover {
+      background: #5a6fd8;
+      transform: scale(1.1);
+    }
+    .quantity-btn:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .quantity-input {
+      width: 50px;
+      text-align: center;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 6px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .service-checkbox {
+      transform: scale(1.3);
+      margin-right: 8px;
+    }
+    .service-total-display {
+      background: #d4edda;
+      color: #155724;
+      padding: 8px 15px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .services-total {
+      background: #e8f5e9;
+      border: 2px solid #28a745;
+      border-radius: 10px;
+      padding: 18px;
+      margin-top: 20px;
+      display: none;
+    }
+    .services-total.show {
+      display: block;
+    }
+    .services-total-title {
+      font-weight: 600;
+      color: #28a745;
+      margin-bottom: 15px;
+      font-size: 16px;
+      text-align: center;
+    }
+    .service-summary-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      padding: 5px 0;
+      font-size: 14px;
+      color: #333;
+      border-bottom: 1px dashed #28a745;
+    }
+    .service-summary-total {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      font-size: 16px;
+      color: #28a745;
+      border-top: 2px solid #28a745;
+      padding-top: 10px;
+      margin-top: 10px;
+    }
+    
+    /* Contact Note for Airport Service */
+    .contact-note {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+    .contact-note i {
+      color: #f39c12;
+      margin-right: 8px;
+    }
   </style>
 </head>
 <body>
@@ -236,9 +405,11 @@
       <input type="hidden" name="checkout" id="hiddenCheckout" value="<%= checkout %>">
       <input type="hidden" name="adults" id="hiddenAdults" value="<%= adults %>">
       <input type="hidden" name="children" id="hiddenChildren" value="<%= children %>">
+      <input type="hidden" name="services" id="hiddenServices" value="">
 
       <div class="row">
         <div class="col-lg-6 col-md-6">
+          <!-- Customer Information -->
           <div class="form-section">
             <h5 class="section-title">THÔNG TIN THANH TOÁN</h5>
 
@@ -265,19 +436,103 @@
               <input type="email" class="form-control" id="email" name="email" 
                      value="<%= user?.email || '' %>" required />
             </div>
+          </div>
 
-            <div class="form-check">
-              <input type="checkbox" class="form-check-input" id="createAccount" name="createAccount" />
-              <label class="form-check-label" for="createAccount">Tạo tài khoản mới?</label>
+          <!-- Updated Services Section -->
+          <div class="services-section">
+            <h5 class="section-title">
+              <i class="fas fa-concierge-bell me-2 text-success"></i>
+              DỊCH VỤ BỔ SUNG
+            </h5>
+            <p class="text-muted mb-3">Chọn các dịch vụ bổ sung để trải nghiệm hoàn hảo hơn</p>
+
+            <div id="servicesContainer">
+              <% if (services && services.length > 0) { %>
+                <% services.forEach(function(service) { %>
+                  <div class="service-item" data-service-id="<%= service.service_id %>">
+                    <div class="service-header">
+                      <div class="service-title">
+                        <input type="checkbox" class="service-checkbox" 
+                               id="service_<%= service.service_id %>" 
+                               data-service-id="<%= service.service_id %>"
+                               data-service-name="<%= service.service_name %>"
+                               data-service-price="<%= service.price %>"
+                               data-allow-quantity="<%= service.allow_quantity %>"
+                               data-max-quantity="<%= service.max_quantity %>">
+                        <div>
+                          <% if (service.service_id === 10) { %>
+                            <i class="fas fa-plane text-primary me-2"></i>
+                          <% } else if (service.service_id === 14) { %>
+                            <i class="fas fa-motorcycle text-warning me-2"></i>
+                          <% } else if (service.service_id === 13) { %>
+                            <i class="fas fa-tshirt text-info me-2"></i>
+                          <% } %>
+                          <span class="service-name"><%= service.service_name %></span>
+                        </div>
+                      </div>
+                      <div class="service-price"><%= Number(service.price).toLocaleString('vi-VN') %> ₫/<%= service.unit %></div>
+                    </div>
+                    
+                    <div class="service-description">
+                      <%= service.description %>
+                    </div>
+                    
+                    <% if (service.service_id === 10) { %>
+                      <div class="contact-note">
+                        <i class="fas fa-phone"></i>
+                        <strong>Lưu ý:</strong> Chúng tôi sẽ liên hệ qua số điện thoại đăng ký phòng để xác nhận thời gian và địa điểm đón/trả.
+                      </div>
+                    <% } %>
+                    
+                    <div class="service-controls" style="display: none;">
+                      <% if (service.allow_quantity) { %>
+                        <div class="quantity-control">
+                          <label class="form-label mb-0 me-2">Số lượng:</label>
+                          <button type="button" class="quantity-btn" onclick="changeQuantity('<%= service.service_id %>', -1)">-</button>
+                          <input type="number" class="quantity-input" 
+                                 id="quantity_<%= service.service_id %>" 
+                                 value="1" min="1" max="<%= service.max_quantity %>" readonly>
+                          <button type="button" class="quantity-btn" onclick="changeQuantity('<%= service.service_id %>', 1)">+</button>
+                          <span class="text-muted">(Tối đa <%= service.max_quantity %> <%= service.unit %>)</span>
+                        </div>
+                      <% } else { %>
+                        <div class="text-muted">Dịch vụ theo yêu cầu</div>
+                      <% } %>
+                      <div class="service-total-display" id="serviceTotal_<%= service.service_id %>">
+                        <strong><%= Number(service.price).toLocaleString('vi-VN') %> ₫</strong>
+                      </div>
+                    </div>
+                  </div>
+                <% }); %>
+              <% } else { %>
+                <div class="alert alert-info">
+                  <i class="fas fa-info-circle me-2"></i>
+                  Hiện tại chưa có dịch vụ bổ sung nào.
+                </div>
+              <% } %>
             </div>
 
-            <div class="additional-info">
-              <h6 class="section-title">THÔNG TIN BỔ SUNG</h6>
-              <div class="mb-3">
-                <label for="notes" class="form-label">Ghi chú đặt phòng (tuỳ chọn)</label>
-                <textarea class="form-control" id="notes" name="note" rows="4" 
-                          placeholder="Ghi chú đặt phòng: Ví dụ: Tôi sẽ đến khách sạn vào lúc chiều, Tôi sẵn sàng chờ hai tiếng..v.v."></textarea>
+            <!-- Services Summary -->
+            <div class="services-total" id="servicesTotal">
+              <div class="services-total-title">
+                <i class="fas fa-receipt me-2"></i>
+                TỔNG KẾT DỊCH VỤ
               </div>
+              <div id="servicesSummary"></div>
+              <div class="service-summary-total">
+                <span>Tổng tiền dịch vụ:</span>
+                <span id="totalServicesAmount">0 ₫</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Additional Information -->
+          <div class="form-section">
+            <h6 class="section-title">GHI CHÚ ĐẶT PHÒNG</h6>
+            <div class="mb-3">
+              <label for="notes" class="form-label">Ghi chú đặt phòng (tuỳ chọn)</label>
+              <textarea class="form-control" id="notes" name="note" rows="4" 
+                        placeholder="Ghi chú đặt phòng: Ví dụ: Tôi sẽ đến khách sạn vào lúc chiều, Tôi sẵn sàng chờ hai tiếng..v.v."></textarea>
             </div>
           </div>
         </div>
@@ -319,12 +574,7 @@
                   <span>└ Trẻ em:</span>
                   <span id="childrenDisplay"><%= children %></span>
                 </div>
-                <% if (adults > 5) { %>
-                <div class="d-flex justify-content-between text-warning">
-                  <span><i class="fas fa-exclamation-triangle me-1"></i> Phụ thu (người lớn > 5):</span>
-                  <span><%= (adults - 5) %> người lớn</span>
-                </div>
-                <% } %>
+                <!-- ✅ REMOVED: Surcharge display for adults > 5 -->
                 <% if (children > 0) { %>
                 <div class="d-flex justify-content-between text-info">
                   <span><i class="fas fa-child me-1"></i> Trẻ em miễn phụ thu</span>
@@ -354,22 +604,21 @@
                   <span id="baseAmount"><%= Number(pricing?.baseAmount || 500000).toLocaleString('vi-VN') %> ₫</span>
                 </div>
                 
-                <% if (pricing && pricing.surchargeAdults > 0) { %>
-                <div class="breakdown-item highlight">
-                  <span>Phụ thu (<%= pricing.surchargeAdults %> người lớn × <%= pricing.nights %> đêm):</span>
-                  <span id="surchargeAmount">+<%= Number(pricing.totalSurcharge).toLocaleString('vi-VN') %> ₫</span>
-                </div>
-                <div class="breakdown-item" style="font-size: 12px; color: #666;">
-                  <span>└ Chỉ tính phụ thu cho người lớn thứ 6 trở lên</span>
-                  <span></span>
-                </div>
-                <% } %>
+                <!-- ✅ REMOVED: Surcharge logic display -->
+
+                <!-- Services breakdown will be added here dynamically -->
+                <div id="servicesBreakdown"></div>
               </div>
 
               <!-- Price Summary -->
               <div class="price-row">
-                <span>Tạm tính:</span>
-                <span id="subtotalAmount"><%= Number(pricing?.totalAmount || 500000).toLocaleString('vi-VN') %> ₫</span>
+                <span>Tạm tính phòng:</span>
+                <span id="subtotalAmount"><%= Number(pricing?.roomTotal || 500000).toLocaleString('vi-VN') %> ₫</span>
+              </div>
+
+              <div class="price-row" id="servicesSubtotal" style="display: none;">
+                <span>Tạm tính dịch vụ:</span>
+                <span id="servicesSubtotalAmount">0 ₫</span>
               </div>
 
               <div class="price-total">
@@ -470,10 +719,9 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    const API_BASE_URL = "/api";
-    const CHECKOUT_ENDPOINT = `${API_BASE_URL}/checkout`;
+    const CHECKOUT_ENDPOINT = "/checkout"; // Updated to match controller
 
-    // Get pricing data from server
+    // ✅ Get pricing data from server (without surcharge)
     const PRICING_DATA = {
       roomPrice: <%= room?.price_per_night || 500000 %>,
       nights: <%= pricing?.nights || 1 %>,
@@ -481,31 +729,203 @@
       children: <%= children %>,
       totalGuests: <%= (adults + children) %>,
       baseAmount: <%= pricing?.baseAmount || 500000 %>,
-      surchargePerNight: <%= pricing?.surchargePerNight || 0 %>,
-      totalSurcharge: <%= pricing?.totalSurcharge || 0 %>,
+      roomTotal: <%= pricing?.roomTotal || 500000 %>,
       totalAmount: <%= pricing?.totalAmount || 500000 %>
     };
 
-    async function testAPIConnectivity() {
-      try {
-        const response = await fetch(`${API_BASE_URL}/health`, { method: "GET", headers: { Accept: "application/json" } });
-        if (response.ok) {
-          const result = await response.json();
-          return true;
-        } else {
-          return false;
-        }
-      } catch (error) {
-        return false;
+    // ✅ Services data from controller with database prices
+    const SERVICES_DATA = {
+      <% if (services && services.length > 0) { %>
+        <% services.forEach(function(service, index) { %>
+          <%= service.service_id %>: {
+            id: <%= service.service_id %>,
+            name: "<%= service.service_name %>",
+            price: <%= service.price %>, // ✅ Database price
+            unit: "<%= service.unit %>",
+            allowQuantity: <%= service.allow_quantity %>,
+            maxQuantity: <%= service.max_quantity || 1 %>
+          }<%= index < services.length - 1 ? ',' : '' %>
+        <% }); %>
+      <% } %>
+    };
+
+    let selectedServices = [];
+    let currentTotalAmount = PRICING_DATA.totalAmount;
+
+    // Service quantity management - Updated for specific services
+    function changeQuantity(serviceId, change) {
+      const service = SERVICES_DATA[serviceId];
+      if (!service || !service.allowQuantity) return;
+
+      const quantityInput = document.getElementById(`quantity_${serviceId}`);
+      let currentQuantity = parseInt(quantityInput.value);
+      let newQuantity = currentQuantity + change;
+      
+      // Enforce limits
+      if (newQuantity < 1) newQuantity = 1;
+      if (newQuantity > service.maxQuantity) newQuantity = service.maxQuantity;
+      
+      quantityInput.value = newQuantity;
+      
+      // Update button states
+      const serviceItem = document.querySelector(`[data-service-id="${serviceId}"]`);
+      const minusBtn = serviceItem.querySelector('.quantity-btn');
+      const plusBtn = serviceItem.querySelectorAll('.quantity-btn')[1];
+      
+      if (minusBtn) minusBtn.disabled = newQuantity <= 1;
+      if (plusBtn) plusBtn.disabled = newQuantity >= service.maxQuantity;
+      
+      updateServiceTotal(serviceId);
+      updateSelectedServices();
+    }
+
+    function updateServiceTotal(serviceId) {
+      const service = SERVICES_DATA[serviceId];
+      const quantityInput = document.getElementById(`quantity_${serviceId}`);
+      const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
+      const total = service.price * quantity;
+      
+      const totalElement = document.getElementById(`serviceTotal_${serviceId}`);
+      if (totalElement) {
+        totalElement.innerHTML = `<strong>${total.toLocaleString('vi-VN')} ₫</strong>`;
       }
+    }
+
+    function updateSelectedServices() {
+      selectedServices = [];
+      let servicesTotal = 0;
+      
+      // Clear previous breakdown
+      document.getElementById('servicesBreakdown').innerHTML = '';
+      document.getElementById('servicesSummary').innerHTML = '';
+      
+      // Get all checked services
+      const checkedServices = document.querySelectorAll('.service-checkbox:checked');
+      
+      checkedServices.forEach(checkbox => {
+        const serviceId = checkbox.dataset.serviceId;
+        const serviceName = checkbox.dataset.serviceName;
+        const servicePrice = parseInt(checkbox.dataset.servicePrice);
+        const allowQuantity = checkbox.dataset.allowQuantity === 'true';
+        
+        let quantity = 1;
+        if (allowQuantity) {
+          const quantityInput = document.getElementById(`quantity_${serviceId}`);
+          quantity = quantityInput ? parseInt(quantityInput.value) : 1;
+        }
+        
+        const total = servicePrice * quantity;
+        
+        selectedServices.push({
+          service_id: parseInt(serviceId),
+          name: serviceName,
+          price: servicePrice,
+          quantity: quantity
+        });
+        
+        servicesTotal += total;
+        
+        // Add to services breakdown in pricing section
+        const breakdownHTML = `
+          <div class="breakdown-item">
+            <span>${serviceName}${quantity > 1 ? ` × ${quantity}` : ''}:</span>
+            <span>+${total.toLocaleString('vi-VN')} ₫</span>
+          </div>
+        `;
+        document.getElementById('servicesBreakdown').innerHTML += breakdownHTML;
+        
+        // Add to services summary
+        const summaryHTML = `
+          <div class="service-summary-item">
+            <span>${serviceName}${quantity > 1 ? ` × ${quantity}` : ''}</span>
+            <span>${total.toLocaleString('vi-VN')} ₫</span>
+          </div>
+        `;
+        document.getElementById('servicesSummary').innerHTML += summaryHTML;
+      });
+      
+      // Update services total display
+      const servicesTotalElement = document.getElementById('servicesTotal');
+      const servicesSubtotal = document.getElementById('servicesSubtotal');
+      const servicesSubtotalAmount = document.getElementById('servicesSubtotalAmount');
+      const totalServicesAmount = document.getElementById('totalServicesAmount');
+      
+      if (servicesTotal > 0) {
+        servicesTotalElement.classList.add('show');
+        servicesSubtotal.style.display = 'flex';
+        servicesSubtotalAmount.textContent = `${servicesTotal.toLocaleString('vi-VN')} ₫`;
+        totalServicesAmount.textContent = `${servicesTotal.toLocaleString('vi-VN')} ₫`;
+      } else {
+        servicesTotalElement.classList.remove('show');
+        servicesSubtotal.style.display = 'none';
+      }
+      
+      // ✅ Update total amount (no surcharge calculation)
+      currentTotalAmount = PRICING_DATA.roomTotal + servicesTotal;
+      document.getElementById('totalAmount').textContent = `${currentTotalAmount.toLocaleString('vi-VN')} ₫`;
+      
+      // Update hidden services input
+      document.getElementById('hiddenServices').value = JSON.stringify(selectedServices);
     }
 
     document.addEventListener("DOMContentLoaded", () => {
       const form = document.getElementById("checkoutForm");
       const bookBtn = document.getElementById("bookBtn");
 
-      testAPIConnectivity();
+      // Initialize service event listeners
+      const serviceCheckboxes = document.querySelectorAll('.service-checkbox');
+      serviceCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+          const serviceItem = this.closest('.service-item');
+          const serviceControls = serviceItem.querySelector('.service-controls');
+          const serviceId = this.dataset.serviceId;
+          const allowQuantity = this.dataset.allowQuantity === 'true';
+          
+          if (this.checked) {
+            serviceItem.classList.add('selected');
+            serviceControls.style.display = 'flex';
+            
+            // Show quantity control only for services that allow it (like motorbike rental)
+            const quantityControl = serviceItem.querySelector('.quantity-control');
+            if (allowQuantity && quantityControl) {
+              quantityControl.style.display = 'flex';
+              // Initialize quantity controls
+              const quantityInput = document.getElementById(`quantity_${serviceId}`);
+              if (quantityInput) {
+                const service = SERVICES_DATA[serviceId];
+                const minusBtn = serviceItem.querySelector('.quantity-btn');
+                const plusBtn = serviceItem.querySelectorAll('.quantity-btn')[1];
+                
+                if (minusBtn) minusBtn.disabled = parseInt(quantityInput.value) <= 1;
+                if (plusBtn) plusBtn.disabled = parseInt(quantityInput.value) >= service.maxQuantity;
+              }
+            }
+          } else {
+            serviceItem.classList.remove('selected');
+            serviceControls.style.display = 'none';
+            
+            // Reset quantity to 1 when unchecked
+            const quantityInput = document.getElementById(`quantity_${serviceId}`);
+            if (quantityInput) {
+              quantityInput.value = 1;
+            }
+          }
+          
+          updateSelectedServices();
+        });
+      });
 
+      // Initialize quantity inputs change events
+      const quantityInputs = document.querySelectorAll('.quantity-input');
+      quantityInputs.forEach(input => {
+        input.addEventListener('change', function() {
+          const serviceId = this.id.replace('quantity_', '');
+          updateServiceTotal(serviceId);
+          updateSelectedServices();
+        });
+      });
+
+      // Payment method selection
       const paymentOptions = document.querySelectorAll(".form-check[data-payment]");
       const paymentRadios = document.querySelectorAll('input[name="paymentMethod"]');
 
@@ -519,12 +939,14 @@
         });
       });
 
+      // Initialize selected payment method
       const checkedRadio = document.querySelector('input[name="paymentMethod"]:checked');
       if (checkedRadio) {
         const initialOption = document.querySelector(`.form-check[data-payment="${checkedRadio.value}"]`);
         if (initialOption) initialOption.classList.add("selected");
       }
 
+      // Form submission
       form.addEventListener("submit", function (e) {
         e.preventDefault();
         if (validateForm()) processBooking();
@@ -555,7 +977,7 @@
         });
 
         if (!isValid) {
-          alert("Vui lòng điền đầy đủ thông tin bắt buộc!");
+          showErrorMessage("Vui lòng điền đầy đủ thông tin bắt buộc!");
         }
 
         return isValid;
@@ -571,6 +993,24 @@
         return phoneRegex.test(phone.replace(/\s+/g, ""));
       }
 
+      function showErrorMessage(message) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+        errorDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        errorDiv.innerHTML = `
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          ${message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(errorDiv);
+        
+        setTimeout(() => {
+          if (errorDiv.parentNode) {
+            errorDiv.parentNode.removeChild(errorDiv);
+          }
+        }, 5000);
+      }
+
       function processBooking() {
         const originalText = bookBtn.innerHTML;
         bookBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
@@ -581,6 +1021,9 @@
         for (let [key, value] of formData.entries()) {
           bookingData[key] = value;
         }
+
+        // Ensure services data is included
+        bookingData.services = document.getElementById('hiddenServices').value;
 
         fetch(CHECKOUT_ENDPOINT, {
           method: "POST",
@@ -598,7 +1041,7 @@
             const contentType = response.headers.get("content-type");
             if (!contentType || !contentType.includes("application/json")) {
               const text = await response.text();
-              throw new Error("Server returned non-JSON response: " + text.substring(0, 100));
+              throw new Error("Server returned non-JSON response");
             }
             return response.json();
           })
@@ -620,7 +1063,7 @@
             } else {
               errorMessage = error.message;
             }
-            alert(errorMessage);
+            showErrorMessage(errorMessage);
           })
           .finally(() => {
             bookBtn.innerHTML = originalText;
@@ -636,7 +1079,7 @@
         } else if (paymentMethod === "cash") {
           showCashPaymentConfirmation(result);
         } else {
-          alert("Lỗi: Không nhận được thông tin thanh toán");
+          showErrorMessage("Lỗi: Không nhận được thông tin thanh toán");
         }
       }
 
@@ -680,8 +1123,8 @@
                           <p class="mb-1"><strong>Check-out:</strong> ${result.booking_details?.checkout || "N/A"}</p>
                           <p class="mb-1"><strong>Số đêm:</strong> ${result.booking_details?.nights || "N/A"}</p>
                           <p class="mb-1"><strong>Số khách:</strong> ${result.booking_details?.total_guests || "N/A"} người</p>
-                          ${result.booking_details?.total_surcharge > 0 ? 
-                            `<p class="mb-1 text-warning"><strong>Phụ thu:</strong> ${Number(result.booking_details?.total_surcharge).toLocaleString('vi-VN')} ₫</p>` : ''}
+                          ${result.booking_details?.services_total > 0 ? 
+                            `<p class="mb-1 text-info"><strong>Dịch vụ:</strong> ${Number(result.booking_details?.services_total).toLocaleString('vi-VN')} ₫</p>` : ''}
                           <p class="mb-0"><strong>Tổng tiền:</strong> <span class="text-danger">${result.booking_details?.formatted_amount || "N/A"}</span></p>
                         </div>
                       </div>
@@ -695,16 +1138,13 @@
                           Chi tiết thanh toán
                         </h6>
                         <div class="text-start">
-                          ${result.booking_details?.price_breakdown ? `
-                            <p class="mb-1 small">Giá phòng: ${Number(result.booking_details.price_breakdown.room_price_per_night).toLocaleString('vi-VN')} ₫/đêm</p>
-                            <p class="mb-1 small">Số đêm: ${result.booking_details.price_breakdown.nights}</p>
-                            <p class="mb-1 small">Thành tiền phòng: ${Number(result.booking_details.price_breakdown.base_total).toLocaleString('vi-VN')} ₫</p>
-                            ${result.booking_details.price_breakdown.surcharge_adults > 0 ? 
-                              `<p class="mb-1 small text-warning">Phụ thu ${result.booking_details.price_breakdown.surcharge_adults} người lớn: +${Number(result.booking_details.price_breakdown.total_surcharge).toLocaleString('vi-VN')} ₫</p>
-                               <p class="mb-1 small text-muted">└ Trẻ em không tính phụ thu</p>` : ''}
-                            <hr class="my-2">
-                            <p class="mb-1 small"><strong>Tổng cộng: ${Number(result.booking_details.price_breakdown.final_total).toLocaleString('vi-VN')} ₫</strong></p>
-                          ` : '<p class="small">Thanh toán khi check-in</p>'}
+                          ${result.booking_details?.services_breakdown && result.booking_details.services_breakdown.length > 0 ? 
+                            `<p class="mb-1 small text-info">Dịch vụ bổ sung:</p>
+                             ${result.booking_details.services_breakdown.map(service => 
+                               `<p class="mb-1 small text-muted">└ ${service.name}${service.quantity > 1 ? ` × ${service.quantity}` : ''}: ${Number(service.total).toLocaleString('vi-VN')} ₫</p>`
+                             ).join('')}
+                             <hr class="my-2">` : ''}
+                          <p class="mb-1 small"><strong>Thanh toán khi check-in</strong></p>
                         </div>
                       </div>
                     </div>
@@ -719,6 +1159,8 @@
                   <p class="mb-1 small">1. Vui lòng chuẩn bị đủ tiền mặt khi check-in</p>
                   <p class="mb-1 small">2. Mang theo CMND/CCCD khi nhận phòng</p>
                   <p class="mb-1 small">3. Check-in từ 14:00, Check-out trước 12:00</p>
+                  ${result.booking_details?.notes ? 
+                    `<p class="mb-1 small">4. Ghi chú: ${result.booking_details.notes}</p>` : ''}
                   <p class="mb-0 small">Hotline hỗ trợ: <strong>1900-1234</strong></p>
                 </div>
                 
@@ -796,6 +1238,9 @@
           }
         }, 200);
       }
+
+      // Initialize services totals on page load
+      updateSelectedServices();
     });
   </script>
 </body>

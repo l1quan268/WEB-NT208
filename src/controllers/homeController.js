@@ -460,13 +460,14 @@ let searchRoom = async (req, res) => {
     let rooms = await db.RoomType.findAll({
       where: roomWhere,
       include: [
+        /*        
         {
           model: db.Booking,
           required: false,
           where: {
-            status: { [Op.ne]: "canceled" }, // Chỉ tính booking chưa bị hủy
+            status: { [Op.ne]: "canceled" },  Chỉ tính booking chưa bị hủy
             [Op.and]: [
-              // Kiểm tra nếu có ngày checkin và checkout thì mới áp dụng điều kiện
+               Kiểm tra nếu có ngày checkin và checkout thì mới áp dụng điều kiện
               checkin && checkout
                 ? {
                     [Op.or]: [
@@ -494,6 +495,7 @@ let searchRoom = async (req, res) => {
             ],
           },
         },
+        */
         {
           model: db.Homestay,
           required: true,
@@ -1328,7 +1330,8 @@ let postChangePassword = async (req, res) => {
 let getBookedDates = async (req, res) => {
   try {
     const { room_id } = req.params;
-
+    console.log('🔍 API called for room_id:', room_id);
+    
     if (!room_id) {
       return res.status(400).json({
         success: false,
@@ -1336,45 +1339,63 @@ let getBookedDates = async (req, res) => {
       });
     }
 
-    // Lấy các booking đã xác nhận cho phòng này
     const bookings = await db.Booking.findAll({
       where: {
         room_type_id: room_id,
-        payment_status: ["paid", "pending"], // Chỉ lấy booking đã thanh toán hoặc đang chờ
+        payment_status: ["paid", "pending"],
         status: {
-          [db.Sequelize.Op.notIn]: ["cancelled", "failed"], // Loại trừ booking đã hủy
+          [db.Sequelize.Op.notIn]: ["cancelled", "failed"],
         },
       },
-      attributes: ["check_in_date", "check_out_date"],
+      attributes: ["booking_id", "check_in_date", "check_out_date"],
       order: [["check_in_date", "ASC"]],
     });
 
-    // Tạo array chứa tất cả ngày đã được đặt
-    let bookedDates = [];
+    let disabledForCheckin = [];   // Ngày không thể checkin
+    let disabledForCheckout = [];  // Ngày không thể checkout
 
-    bookings.forEach((booking) => {
+    bookings.forEach((booking, index) => {
       const checkinDate = new Date(booking.check_in_date);
       const checkoutDate = new Date(booking.check_out_date);
 
-      // Lặp qua tất cả ngày từ check-in đến check-out (không bao gồm check-out)
-      for (
-        let currentDate = new Date(checkinDate);
-        currentDate < checkoutDate;
-        currentDate.setDate(currentDate.getDate() + 1)
-      ) {
-        const dateString = currentDate.toISOString().split("T")[0];
-        if (!bookedDates.includes(dateString)) {
-          bookedDates.push(dateString);
+      console.log(`📅 Booking ${index + 1}:`, {
+        id: booking.booking_id,
+        checkin: booking.check_in_date,
+        checkout: booking.check_out_date
+      });
+
+      // ❌ NGÀY KHÔNG THỂ CHECKIN: từ checkin đến ngày trước checkout
+      for (let d = new Date(checkinDate); d < checkoutDate; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split("T")[0];
+        if (!disabledForCheckin.includes(dateStr)) {
+          disabledForCheckin.push(dateStr);
+        }
+      }
+
+      // ❌ NGÀY KHÔNG THỂ CHECKOUT: từ ngày sau checkin đến checkout
+      const dayAfterCheckin = new Date(checkinDate);
+      dayAfterCheckin.setDate(dayAfterCheckin.getDate() + 1);
+      
+      for (let d = new Date(dayAfterCheckin); d <= checkoutDate; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split("T")[0];
+        if (!disabledForCheckout.includes(dateStr)) {
+          disabledForCheckout.push(dateStr);
         }
       }
     });
 
-    // Sắp xếp ngày tăng dần
-    bookedDates.sort();
+    disabledForCheckin.sort();
+    disabledForCheckout.sort();
 
+    console.log(`📅 Room ${room_id} - Disabled for checkin:`, disabledForCheckin);
+    console.log(`📅 Room ${room_id} - Disabled for checkout:`, disabledForCheckout);
+
+    // ✅ TRẢ VỀ CẢ 2 LOẠI NGÀY DISABLE
     return res.json({
       success: true,
-      bookedDates: bookedDates,
+      bookedDates: disabledForCheckin, // ✅ Để frontend tương thích
+      disabledForCheckin: disabledForCheckin,
+      disabledForCheckout: disabledForCheckout,
       totalBookings: bookings.length,
     });
   } catch (error) {
@@ -1434,6 +1455,36 @@ let getRoomsPaginated = async (req, res) => {
   }
 };
 
+let getReviewPage = async (req, res) => {
+  try {
+    res.render("Home/Review", {
+      title: "Đánh giá khách hàng",
+      user: req.user || null,
+    });
+  } catch (err) {
+    console.error("❌ Lỗi hiển thị trang đánh giá:", err);
+    res.status(500).send("Lỗi server");
+  }
+};
+
+let postReviewForm = async (req, res) => {
+  const { name, email, phone, message } = req.body;
+
+  try {
+    if (!name || !email || !message) {
+      return res.status(400).send("Thiếu thông tin bắt buộc");
+    }
+
+    // TODO: bạn có thể lưu vào DB, gửi email, v.v.
+    console.log("📨 Đánh giá mới:", { name, email, phone, message });
+
+    res.redirect("/danh-gia?success=1");
+  } catch (err) {
+    console.error("❌ Lỗi gửi form đánh giá:", err);
+    res.status(500).send("Lỗi server khi gửi đánh giá");
+  }
+};
+
 // Cập nhật module.exports - THÊM getBookedDates vào cuối
 module.exports = {
   getHomePage: getHomePage,
@@ -1457,4 +1508,6 @@ module.exports = {
   getBookedDates: getBookedDates, // 🔥 CHỈ THÊM DÒNG NÀY
   getRoomDetailBySlug: getRoomDetailBySlug,
   getRoomsPaginated: getRoomsPaginated,
+  getReviewPage: getReviewPage,
+  postReviewForm: postReviewForm,
 };
