@@ -227,7 +227,7 @@
       margin: 2px;
     }
     
-    /* Updated Services Section Styles */
+    /* Services Section Styles */
     .services-section {
       background: white;
       padding: 25px;
@@ -438,7 +438,7 @@
             </div>
           </div>
 
-          <!-- Updated Services Section -->
+          <!-- Services Section -->
           <div class="services-section">
             <h5 class="section-title">
               <i class="fas fa-concierge-bell me-2 text-success"></i>
@@ -470,7 +470,10 @@
                           <span class="service-name"><%= service.service_name %></span>
                         </div>
                       </div>
-                      <div class="service-price"><%= Number(service.price).toLocaleString('vi-VN') %> ₫/<%= service.unit %></div>
+                      <!-- ✅ FIX: Ensure proper number formatting for service price -->
+                      <div class="service-price">
+                        <%= Number(service.price).toLocaleString('vi-VN') %> ₫/<%= service.unit %>
+                      </div>
                     </div>
                     
                     <div class="service-description">
@@ -574,7 +577,6 @@
                   <span>└ Trẻ em:</span>
                   <span id="childrenDisplay"><%= children %></span>
                 </div>
-                <!-- ✅ REMOVED: Surcharge display for adults > 5 -->
                 <% if (children > 0) { %>
                 <div class="d-flex justify-content-between text-info">
                   <span><i class="fas fa-child me-1"></i> Trẻ em miễn phụ thu</span>
@@ -604,8 +606,6 @@
                   <span id="baseAmount"><%= Number(pricing?.baseAmount || 500000).toLocaleString('vi-VN') %> ₫</span>
                 </div>
                 
-                <!-- ✅ REMOVED: Surcharge logic display -->
-
                 <!-- Services breakdown will be added here dynamically -->
                 <div id="servicesBreakdown"></div>
               </div>
@@ -626,7 +626,7 @@
                 <span id="totalAmount"><%= Number(pricing?.totalAmount || 500000).toLocaleString('vi-VN') %> ₫</span>
               </div>
 
-              <!-- Payment Methods - Only VNPay and Cash -->
+              <!-- Payment Methods -->
               <div class="payment-methods">
                 <div class="payment-method-header">
                   <i class="fas fa-credit-card me-2"></i>
@@ -719,9 +719,10 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    const CHECKOUT_ENDPOINT = "/checkout"; // Updated to match controller
+    // ✅ FIXED: Updated endpoint path to match controller
+    const CHECKOUT_ENDPOINT = "/api/checkout";
 
-    // ✅ Get pricing data from server (without surcharge)
+    // ✅ Get pricing data from server
     const PRICING_DATA = {
       roomPrice: <%= room?.price_per_night || 500000 %>,
       nights: <%= pricing?.nights || 1 %>,
@@ -733,14 +734,14 @@
       totalAmount: <%= pricing?.totalAmount || 500000 %>
     };
 
-    // ✅ Services data from controller with database prices
+    // ✅ FIXED: Services data from controller with proper database prices
     const SERVICES_DATA = {
       <% if (services && services.length > 0) { %>
         <% services.forEach(function(service, index) { %>
           <%= service.service_id %>: {
             id: <%= service.service_id %>,
             name: "<%= service.service_name %>",
-            price: <%= service.price %>, // ✅ Database price
+            price: <%= parseFloat(service.price) || 0 %>,
             unit: "<%= service.unit %>",
             allowQuantity: <%= service.allow_quantity %>,
             maxQuantity: <%= service.max_quantity || 1 %>
@@ -749,28 +750,29 @@
       <% } %>
     };
 
+    console.log('🔧 SERVICES_DATA:', SERVICES_DATA);
+
     let selectedServices = [];
     let currentTotalAmount = PRICING_DATA.totalAmount;
 
-    // Service quantity management - Updated for specific services
+    // ✅ Service quantity management
     function changeQuantity(serviceId, change) {
       const service = SERVICES_DATA[serviceId];
       if (!service || !service.allowQuantity) return;
 
       const quantityInput = document.getElementById(`quantity_${serviceId}`);
-      let currentQuantity = parseInt(quantityInput.value);
+      let currentQuantity = parseInt(quantityInput.value) || 1;
       let newQuantity = currentQuantity + change;
       
-      // Enforce limits
       if (newQuantity < 1) newQuantity = 1;
       if (newQuantity > service.maxQuantity) newQuantity = service.maxQuantity;
       
       quantityInput.value = newQuantity;
       
-      // Update button states
       const serviceItem = document.querySelector(`[data-service-id="${serviceId}"]`);
-      const minusBtn = serviceItem.querySelector('.quantity-btn');
-      const plusBtn = serviceItem.querySelectorAll('.quantity-btn')[1];
+      const quantityButtons = serviceItem.querySelectorAll('.quantity-btn');
+      const minusBtn = quantityButtons[0];
+      const plusBtn = quantityButtons[1];
       
       if (minusBtn) minusBtn.disabled = newQuantity <= 1;
       if (plusBtn) plusBtn.disabled = newQuantity >= service.maxQuantity;
@@ -779,11 +781,24 @@
       updateSelectedServices();
     }
 
+    // ✅ Service total calculation
     function updateServiceTotal(serviceId) {
       const service = SERVICES_DATA[serviceId];
+      if (!service) {
+        console.error('Service not found:', serviceId);
+        return;
+      }
+
       const quantityInput = document.getElementById(`quantity_${serviceId}`);
-      const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
-      const total = service.price * quantity;
+      const quantity = quantityInput ? parseInt(quantityInput.value) || 1 : 1;
+      const unitPrice = parseFloat(service.price) || 0;
+      const total = unitPrice * quantity;
+      
+      console.log(`🔧 Service ${serviceId} calculation:`, {
+        unitPrice,
+        quantity,
+        total
+      });
       
       const totalElement = document.getElementById(`serviceTotal_${serviceId}`);
       if (totalElement) {
@@ -791,33 +806,32 @@
       }
     }
 
+    // ✅ Update selected services
     function updateSelectedServices() {
       selectedServices = [];
       let servicesTotal = 0;
       
-      // Clear previous breakdown
       document.getElementById('servicesBreakdown').innerHTML = '';
       document.getElementById('servicesSummary').innerHTML = '';
       
-      // Get all checked services
       const checkedServices = document.querySelectorAll('.service-checkbox:checked');
       
       checkedServices.forEach(checkbox => {
-        const serviceId = checkbox.dataset.serviceId;
+        const serviceId = parseInt(checkbox.dataset.serviceId);
         const serviceName = checkbox.dataset.serviceName;
-        const servicePrice = parseInt(checkbox.dataset.servicePrice);
+        const servicePrice = parseFloat(checkbox.dataset.servicePrice) || 0;
         const allowQuantity = checkbox.dataset.allowQuantity === 'true';
         
         let quantity = 1;
         if (allowQuantity) {
           const quantityInput = document.getElementById(`quantity_${serviceId}`);
-          quantity = quantityInput ? parseInt(quantityInput.value) : 1;
+          quantity = quantityInput ? parseInt(quantityInput.value) || 1 : 1;
         }
         
         const total = servicePrice * quantity;
         
         selectedServices.push({
-          service_id: parseInt(serviceId),
+          service_id: serviceId,
           name: serviceName,
           price: servicePrice,
           quantity: quantity
@@ -825,7 +839,6 @@
         
         servicesTotal += total;
         
-        // Add to services breakdown in pricing section
         const breakdownHTML = `
           <div class="breakdown-item">
             <span>${serviceName}${quantity > 1 ? ` × ${quantity}` : ''}:</span>
@@ -834,7 +847,6 @@
         `;
         document.getElementById('servicesBreakdown').innerHTML += breakdownHTML;
         
-        // Add to services summary
         const summaryHTML = `
           <div class="service-summary-item">
             <span>${serviceName}${quantity > 1 ? ` × ${quantity}` : ''}</span>
@@ -844,7 +856,6 @@
         document.getElementById('servicesSummary').innerHTML += summaryHTML;
       });
       
-      // Update services total display
       const servicesTotalElement = document.getElementById('servicesTotal');
       const servicesSubtotal = document.getElementById('servicesSubtotal');
       const servicesSubtotalAmount = document.getElementById('servicesSubtotalAmount');
@@ -860,51 +871,51 @@
         servicesSubtotal.style.display = 'none';
       }
       
-      // ✅ Update total amount (no surcharge calculation)
       currentTotalAmount = PRICING_DATA.roomTotal + servicesTotal;
       document.getElementById('totalAmount').textContent = `${currentTotalAmount.toLocaleString('vi-VN')} ₫`;
       
-      // Update hidden services input
       document.getElementById('hiddenServices').value = JSON.stringify(selectedServices);
     }
 
     document.addEventListener("DOMContentLoaded", () => {
+      console.log('🚀 Page loaded, initializing...');
+      
       const form = document.getElementById("checkoutForm");
       const bookBtn = document.getElementById("bookBtn");
 
-      // Initialize service event listeners
+      // ✅ Initialize service event listeners
       const serviceCheckboxes = document.querySelectorAll('.service-checkbox');
       serviceCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
           const serviceItem = this.closest('.service-item');
           const serviceControls = serviceItem.querySelector('.service-controls');
-          const serviceId = this.dataset.serviceId;
+          const serviceId = parseInt(this.dataset.serviceId);
           const allowQuantity = this.dataset.allowQuantity === 'true';
           
           if (this.checked) {
             serviceItem.classList.add('selected');
             serviceControls.style.display = 'flex';
             
-            // Show quantity control only for services that allow it (like motorbike rental)
             const quantityControl = serviceItem.querySelector('.quantity-control');
             if (allowQuantity && quantityControl) {
               quantityControl.style.display = 'flex';
-              // Initialize quantity controls
               const quantityInput = document.getElementById(`quantity_${serviceId}`);
               if (quantityInput) {
                 const service = SERVICES_DATA[serviceId];
-                const minusBtn = serviceItem.querySelector('.quantity-btn');
-                const plusBtn = serviceItem.querySelectorAll('.quantity-btn')[1];
+                const quantityButtons = serviceItem.querySelectorAll('.quantity-btn');
+                const minusBtn = quantityButtons[0];
+                const plusBtn = quantityButtons[1];
                 
                 if (minusBtn) minusBtn.disabled = parseInt(quantityInput.value) <= 1;
                 if (plusBtn) plusBtn.disabled = parseInt(quantityInput.value) >= service.maxQuantity;
               }
             }
+            
+            updateServiceTotal(serviceId);
           } else {
             serviceItem.classList.remove('selected');
             serviceControls.style.display = 'none';
             
-            // Reset quantity to 1 when unchecked
             const quantityInput = document.getElementById(`quantity_${serviceId}`);
             if (quantityInput) {
               quantityInput.value = 1;
@@ -915,11 +926,11 @@
         });
       });
 
-      // Initialize quantity inputs change events
+      // Initialize quantity inputs
       const quantityInputs = document.querySelectorAll('.quantity-input');
       quantityInputs.forEach(input => {
         input.addEventListener('change', function() {
-          const serviceId = this.id.replace('quantity_', '');
+          const serviceId = parseInt(this.id.replace('quantity_', ''));
           updateServiceTotal(serviceId);
           updateSelectedServices();
         });
@@ -1022,8 +1033,9 @@
           bookingData[key] = value;
         }
 
-        // Ensure services data is included
         bookingData.services = document.getElementById('hiddenServices').value;
+
+        console.log('🚀 Submitting booking data:', bookingData);
 
         fetch(CHECKOUT_ENDPOINT, {
           method: "POST",
@@ -1035,7 +1047,14 @@
         })
           .then(async (response) => {
             if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
+              let errorData;
+              try {
+                errorData = await response.json();
+              } catch (e) {
+                const errorText = await response.text();
+                errorData = { message: errorText };
+              }
+              throw new Error(errorData.message || `HTTP ${response.status}`);
             }
 
             const contentType = response.headers.get("content-type");
@@ -1046,6 +1065,7 @@
             return response.json();
           })
           .then((result) => {
+            console.log('✅ Booking response:', result);
             if (result.success) {
               handlePaymentSuccess(result);
             } else {
@@ -1053,7 +1073,9 @@
             }
           })
           .catch((error) => {
+            console.error('💥 Booking error:', error);
             let errorMessage = "Có lỗi xảy ra khi đặt phòng.";
+            
             if (error.message.includes("HTTP error")) {
               errorMessage = "Lỗi kết nối server. Vui lòng thử lại.";
             } else if (error.message.includes("non-JSON response")) {
@@ -1141,7 +1163,7 @@
                           ${result.booking_details?.services_breakdown && result.booking_details.services_breakdown.length > 0 ? 
                             `<p class="mb-1 small text-info">Dịch vụ bổ sung:</p>
                              ${result.booking_details.services_breakdown.map(service => 
-                               `<p class="mb-1 small text-muted">└ ${service.name}${service.quantity > 1 ? ` × ${service.quantity}` : ''}: ${Number(service.total).toLocaleString('vi-VN')} ₫</p>`
+                               `<p class="mb-1 small text-muted">└ ${service.name}${service.quantity > 1 ? ` × ${service.quantity}` : ''}: ${Number(service.total_price || service.total).toLocaleString('vi-VN')} ₫</p>`
                              ).join('')}
                              <hr class="my-2">` : ''}
                           <p class="mb-1 small"><strong>Thanh toán khi check-in</strong></p>
