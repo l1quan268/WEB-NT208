@@ -23,13 +23,13 @@ let initWebRoutes = (app) => {
   router.post("/login", homeController.postLogin);
   router.get("/logout", homeController.getLogout);
 
-  // ✅ Search routes
+  //Search routes
   router.get("/search", homeController.searchRoom);
   router.get("/search/ajax", homeController.searchRoomAjax);
   // router.get("/room/:id", homeController.getRoomDetail);
   router.get("/room/:slug", homeController.getRoomDetailBySlug);
 
-  // ✅ Payment routes
+  // Payment routes
   router.get("/payment", getPaymentPage);
   router.post("/payment", postCheckout);
   router.post("/checkout", postCheckout);
@@ -37,13 +37,13 @@ let initWebRoutes = (app) => {
   router.get("/vnpay_ipn", handleVNPayIPN);
   router.post("/vnpay_ipn", handleVNPayIPN);
 
-  // ✅ API routes cho payment
+  //API routes cho payment
   router.get("/api/vnpay_return", handleVNPayReturn);
   router.get("/api/vnpay_ipn", handleVNPayIPN);
   router.post("/api/vnpay_ipn", handleVNPayIPN);
   router.post("/api/checkout", postCheckout);
 
-  // ✅ Payment result pages
+  //Payment result pages
   router.get("/payment-success", (req, res) => {
     const { order_id, transaction_id, amount } = req.query;
 
@@ -68,12 +68,12 @@ let initWebRoutes = (app) => {
     });
   });
 
-  // ✅ Booking management routes
+  //Booking management routes
   router.get("/booking/:order_id", getBookingInfo);
   router.post("/booking/:order_id/confirm-cash", confirmCashPayment);
   router.get("/cash-report", getCashPaymentReport);
 
-  // ✅ API endpoint để check trạng thái payment
+  //API endpoint để check trạng thái payment
   router.get("/api/payment-status/:order_id", async (req, res) => {
     try {
       const { order_id } = req.params;
@@ -105,7 +105,7 @@ let initWebRoutes = (app) => {
     }
   });
 
-  // ✅ Google Auth routes
+  //Google Auth routes
   router.get(
     "/auth/google",
     passport.authenticate("google", { scope: ["profile", "email"] })
@@ -138,22 +138,22 @@ let initWebRoutes = (app) => {
     }
   );
 
-  // ✅ Password reset routes
+  //Password reset routes
   router.get("/forget-password", homeController.getForgotPassword);
   router.post("/forget-password", homeController.postForgotPassword);
   router.get("/reset-password/:token", homeController.getResetPassword);
   router.post("/reset-password/:token", homeController.postResetPassword);
 
-  // ✅ User account routes
+  //User account routes
   router.get("/account", homeController.getUserInfoPage);
   router.get("/bookings", homeController.getUserInfoPage);
   router.post("/account/update", homeController.postUpdateUserInfo);
   router.post("/change-password", homeController.postChangePassword);
 
-  // ✅ Booking management
+  //Booking management
   router.post("/booking/cancel", homeController.cancelBooking);
 
-  // ✅ Test routes (có thể xóa trong production)
+  //Test routes (có thể xóa trong production)
   router.get("/test-payment-success", (req, res) => {
     res.redirect(
       "/payment-success?order_id=TEST123&transaction_id=VNP123&amount=500000"
@@ -177,7 +177,7 @@ let initWebRoutes = (app) => {
     );
   });
 
-  // ✅ Health check route
+  // Health check route
   router.get("/health", (req, res) => {
     res.json({
       status: "OK",
@@ -188,7 +188,7 @@ let initWebRoutes = (app) => {
     });
   });
 
-  // ✅ API info route
+  //API info route
   router.get("/api", (req, res) => {
     res.json({
       message: "Sweet Home Vũng Tàu API",
@@ -205,7 +205,7 @@ let initWebRoutes = (app) => {
     });
   });
 
-  // ✅ Admin routes - Mount tất cả admin routes với prefix /admin
+  //Admin routes - Mount tất cả admin routes với prefix /admin
   router.use("/admin", adminRoutes);
 
   router.get("/danh-gia", homeController.getReviewPage);

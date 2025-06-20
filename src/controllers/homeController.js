@@ -164,7 +164,7 @@ let postLogin = async (req, res) => {
         id: result.user.user_id,
         name: result.user.name,
         email: result.user.email,
-        role: result.user.role, // ✅ Thêm role vào session
+        role: result.user.role, // Thêm role vào session
       };
 
       req.session.save((err) => {
@@ -178,7 +178,7 @@ let postLogin = async (req, res) => {
 
         console.log("✅ SESSION SAVED SUCCESSFULLY:", req.session.user);
 
-        // ✅ Kiểm tra nếu user là admin thì redirect đến trang admin
+        //Kiểm tra nếu user là admin thì redirect đến trang admin
         if (result.user.role === "admin") {
           return res.redirect("/admin");
         } else {
@@ -805,7 +805,7 @@ let getRoomDetail = async (req, res) => {
 
     if (!room) return res.status(404).send("Không tìm thấy phòng");
 
-    // ✅ SỬA: Dùng raw query để lấy reviews
+    //Dùng raw query để lấy reviews
     const reviewQuery = `
       SELECT 
         r.review_id,
@@ -893,7 +893,7 @@ let getRoomDetail = async (req, res) => {
       room,
       images: room.RoomTypeImages,
       services: room.Services,
-      reviews: formattedReviews, // ✅ Dùng raw query results
+      reviews: formattedReviews,
       homestay: room.Homestay,
       avgRating,
       suggestedRooms: mappedSuggestedRooms,
@@ -930,7 +930,7 @@ let getRoomDetailBySlug = async (req, res) => {
 
     if (!room) return res.status(404).send("Không tìm thấy phòng");
 
-    // ✅ Lấy reviews qua raw query
+    //Lấy reviews qua raw query
     const reviewQuery = `
       SELECT 
         r.review_id,
@@ -1029,7 +1029,7 @@ let getRoomDetailBySlug = async (req, res) => {
   }
 };
 
-// ✅ CẬP NHẬT postReview để cho phép tạo mới sau khi xóa
+//CẬP NHẬT postReview để cho phép tạo mới sau khi xóa
 let postReview = async (req, res) => {
   try {
     console.log("=== REVIEW REQUEST DEBUG ===");
@@ -1088,7 +1088,7 @@ let postReview = async (req, res) => {
       });
     }
 
-    // ✅ KIỂM TRA đã đánh giá chưa
+    //KIỂM TRA đã đánh giá chưa
     const existingReviewQuery = `
       SELECT review_id FROM reviews 
       WHERE user_id = ? AND room_type_id = ? 
@@ -1103,7 +1103,7 @@ let postReview = async (req, res) => {
     let newReviewId;
 
     if (existingReviews && existingReviews.length > 0) {
-      // ✅ CẬP NHẬT review cũ
+      //CẬP NHẬT review cũ
       console.log("🔄 Updating existing review...");
       const updateQuery = `
         UPDATE reviews 
@@ -1119,7 +1119,7 @@ let postReview = async (req, res) => {
       newReviewId = existingReviews[0].review_id;
       console.log("✅ Review updated with ID:", newReviewId);
     } else {
-      // ✅ TẠO review mới
+      //TẠO review mới
       console.log("➕ Creating new review...");
       const insertQuery = `
         INSERT INTO reviews (user_id, room_type_id, rating, comment, created_at) 
@@ -1218,7 +1218,7 @@ let getUserInfoPage = async (req, res) => {
       dobFormatted,
     },
     message,
-    bookings, // ✅ truyền bookings xuống view
+    bookings, //truyền bookings xuống view
   });
 };
 let cancelBooking = async (req, res) => {
@@ -1280,14 +1280,14 @@ let postChangePassword = async (req, res) => {
       return res.redirect("/account");
     }
 
-    // ✅ Không cho đổi nếu tài khoản không có mật khẩu (tài khoản Google)
+    // Không cho đổi nếu tài khoản không có mật khẩu (tài khoản Google)
     if (!user.password_hash) {
       req.session.message =
         "Tài khoản này không hỗ trợ đổi mật khẩu (có thể đăng nhập bằng Google).";
       return res.redirect("/account");
     }
 
-    // ✅ So sánh mật khẩu hiện tại
+    // So sánh mật khẩu hiện tại
     const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
     console.log("✅ So sánh mật khẩu:", {
       inputPassword: currentPassword,
@@ -1300,18 +1300,18 @@ let postChangePassword = async (req, res) => {
       return res.redirect("/account");
     }
 
-    // ✅ So sánh mật khẩu mới và xác nhận
+    //So sánh mật khẩu mới và xác nhận
     if (newPassword !== confirmPassword) {
       req.session.message = "❌ Mật khẩu mới và xác nhận không khớp.";
       return res.redirect("/account");
     }
 
-    // ✅ Hash và cập nhật mật khẩu mới
+    //Hash và cập nhật mật khẩu mới
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
     await user.update({ password_hash: hashedNewPassword });
     console.log("✅ Mật khẩu mới đã được cập nhật:", hashedNewPassword);
 
-    // ✅ Đăng xuất sau khi đổi mật khẩu
+    //Đăng xuất sau khi đổi mật khẩu
     req.session.destroy((err) => {
       if (err) {
         console.error("❌ Lỗi khi đăng xuất sau đổi mật khẩu:", err);
@@ -1404,7 +1404,7 @@ let getBookedDates = async (req, res) => {
       disabledForCheckout
     );
 
-    // ✅ TRẢ VỀ CẢ 2 LOẠI NGÀY DISABLE
+    //TRẢ VỀ CẢ 2 LOẠI NGÀY DISABLE
     return res.json({
       success: true,
       bookedDates: disabledForCheckin, // ✅ Để frontend tương thích
@@ -1509,7 +1509,6 @@ let postReviewForm = async (req, res) => {
       return res.status(400).send("Thiếu thông tin bắt buộc");
     }
 
-    // TODO: bạn có thể lưu vào DB, gửi email, v.v.
     console.log("📨 Đánh giá mới:", { name, email, phone, message });
 
     res.redirect("/danh-gia?success=1");

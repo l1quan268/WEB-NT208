@@ -3,7 +3,7 @@
 const express = require("express");
 const homeController = require("../controllers/homeController");
 const chatController = require("../controllers/chatController");
-const paymentRoutes = require("./paymentRoutes"); // ✅ Import CommonJS style
+const paymentRoutes = require("./paymentRoutes"); // Import CommonJS style
 
 const router = express.Router();
 
@@ -43,10 +43,10 @@ router.get("/rooms", homeController.getRoomsPaginated);
 
 router.get("/room/:room_id/booked-dates", homeController.getBookedDates);
 
-// ✅ Route cho chatbot
+// Route cho chatbot
 router.post("/chat-query", chatController.handleChatQuery);
 
-// ✅ Mount các route con từ paymentRoutes.js
+//Mount các route con từ paymentRoutes.js
 router.use("/", paymentRoutes);
 
 module.exports = router;

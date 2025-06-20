@@ -374,33 +374,33 @@
                                                                             </button>
                                                                         </form>
                                                                         
-                                                                        <!-- ✅ FORM THANH TOÁN ĐƯỢC SỬA -->
+                                                                        <!--  FORM THANH TOÁN ĐƯỢC SỬA -->
                                                                         <form id="payment-form-<%= index %>" action="/api/checkout" method="POST">
-                                                                            <!-- ✅ DEBUG: Hiển thị thông tin để kiểm tra -->
+                                                                            <!-- Hiển thị thông tin để kiểm tra -->
                                                                             <input type="hidden" name="debug_info" value="booking_id:<%= b.booking_id %>,room_type_id:<%= b.room_type_id %>,name:<%= b.name %>">
                                                                             
-                                                                            <!-- ✅ SỬA: Đảm bảo room_id có giá trị -->
+                                                                            <!-- Đảm bảo room_id có giá trị -->
                                                                             <input type="hidden" name="room_id" value="<%= b.room_type_id || b.room_id || '1' %>">
                                                                             
-                                                                            <!-- ✅ SỬA: Format ngày đúng và kiểm tra null -->
+                                                                            <!-- Format ngày đúng và kiểm tra null -->
                                                                             <input type="hidden" name="checkin" value="<%= b.check_in_date ? new Date(b.check_in_date).toISOString().split('T')[0] : '2024-12-20' %>">
                                                                             <input type="hidden" name="checkout" value="<%= b.check_out_date ? new Date(b.check_out_date).toISOString().split('T')[0] : '2024-12-21' %>">
                                                                             
-                                                                            <!-- ✅ SỬA: Đảm bảo adults/children có giá trị -->
+                                                                            <!--  Đảm bảo adults/children có giá trị -->
                                                                             <input type="hidden" name="adults" value="<%= b.adults || '1' %>">
                                                                             <input type="hidden" name="children" value="<%= b.children || '0' %>">
                                                                             
-                                                                            <!-- ✅ SỬA: Đảm bảo fullname có giá trị -->
+                                                                            <!--  Đảm bảo fullname có giá trị -->
                                                                             <input type="hidden" name="fullname" value="<%= b.name || 'Khách hàng' %>">
                                                                             
-                                                                            <!-- ✅ SỬA: Đảm bảo email và phone có giá trị -->
+                                                                            <!--  Đảm bảo email và phone có giá trị -->
                                                                             <input type="hidden" name="email" value="<%= b.guest_email || user.email || 'customer@example.com' %>">
                                                                             <input type="hidden" name="phone" value="<%= b.guest_phone || user.phone || '0123456789' %>">
                                                                             
-                                                                            <!-- ✅ SỬA: Đảm bảo address có giá trị -->
+                                                                            <!--  Đảm bảo address có giá trị -->
                                                                             <input type="hidden" name="address" value="<%= b.guest_address || user.address || 'Địa chỉ khách hàng' %>">
                                                                             
-                                                                            <!-- ✅ THÊM: Trường note -->
+                                                                            <!--  Trường note -->
                                                                             <input type="hidden" name="note" value="Thanh toán từ lịch sử giao dịch - Booking ID: <%= b.booking_id %>">
                                                                             
                                                                             <input type="hidden" name="paymentMethod" value="vnpay">
@@ -411,7 +411,7 @@
                                                                             </button>
                                                                         </form>
 
-                                                                        <!-- ✅ DEBUG: Script để log thông tin booking -->
+                                                                        <!-- Script để log thông tin booking -->
                                                                         <script>
                                                                             console.log('🔍 Booking <%= index %> Debug Info:', {
                                                                                 booking_id: '<%= b.booking_id %>',
@@ -515,9 +515,9 @@
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // ✅ ENHANCED VNPAY PAYMENT FUNCTION WITH DEBUG
+        // ENHANCED VNPAY PAYMENT FUNCTION WITH DEBUG
         function processVNPayPayment(index) {
-            // ✅ THÊM: Debug form data trước khi validate
+            //THÊM: Debug form data trước khi validate
             const form = document.getElementById(`payment-form-${index}`);
             const formData = new FormData(form);
             
@@ -547,7 +547,7 @@
                         }
                     });
 
-                    // ✅ SỬA: Tạo object và validate từng trường với fallback
+                    // SỬA: Tạo object và validate từng trường với fallback
                     const paymentData = {
                         room_id: formData.get('room_id') || '1',
                         checkin: formData.get('checkin') || '2024-12-20',
@@ -563,7 +563,7 @@
                         existing_booking_id: formData.get('existing_booking_id') || ''
                     };
 
-                    // ✅ THÊM: Validate và clean dữ liệu
+                    // THÊM: Validate và clean dữ liệu
                     console.log('🔧 CLEANED PAYMENT DATA:');
                     Object.entries(paymentData).forEach(([key, value]) => {
                         // Trim whitespace cho string values
@@ -573,7 +573,7 @@
                         console.log(`  ${key}: "${paymentData[key]}"`);
                     });
 
-                    // ✅ THÊM: Validate required fields với thông báo cụ thể
+                    // THÊM: Validate required fields với thông báo cụ thể
                     const requiredFields = ['room_id', 'checkin', 'checkout', 'fullname', 'email', 'phone', 'address'];
                     const missingFields = [];
                     const emptyFields = [];
@@ -607,7 +607,7 @@
                         return;
                     }
 
-                    // ✅ THÊM: Validate định dạng email
+                    // THÊM: Validate định dạng email
                     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                     if (!emailRegex.test(paymentData.email)) {
                         Swal.close();
@@ -619,7 +619,7 @@
                         return;
                     }
 
-                    // ✅ THÊM: Validate số điện thoại
+                    // THÊM: Validate số điện thoại
                     const phoneRegex = /^[0-9]{10,11}$/;
                     if (!phoneRegex.test(paymentData.phone.replace(/\s+/g, ''))) {
                         Swal.close();
@@ -631,7 +631,7 @@
                         return;
                     }
 
-                    // ✅ THÊM: Validate room_id là số
+                    //  Validate room_id là số
                     if (isNaN(parseInt(paymentData.room_id))) {
                         Swal.close();
                         Swal.fire({
@@ -642,7 +642,7 @@
                         return;
                     }
 
-                    console.log('✅ FINAL PAYMENT DATA (validated):', paymentData);
+                    console.log('FINAL PAYMENT DATA (validated):', paymentData);
 
                     fetch('/api/checkout', {
                         method: 'POST',
@@ -679,7 +679,7 @@
                         return response.json();
                     })
                     .then(data => {
-                        console.log('✅ Payment response:', data);
+                        console.log('Payment response:', data);
                         Swal.close();
                         
                         if (data.success && data.payment_method === 'vnpay' && data.redirect_url) {
@@ -812,7 +812,7 @@
             }
         }
 
-        // ✅ Kiểm tra xác nhận mật khẩu
+        //Kiểm tra xác nhận mật khẩu
         function validatePassword() {
             const newPassword = document.getElementById("newPassword").value;
             const confirmPassword = document.getElementById("confirmPassword").value;

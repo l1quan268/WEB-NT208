@@ -403,7 +403,7 @@
         const html = await res.text();
         resultDiv.innerHTML = html;
 
-        // ✅ Cập nhật URL cho đẹp
+        
         history.pushState(null, '', `/search?${params}`);
       } catch (err) {
         console.error("Fetch error:", err);

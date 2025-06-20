@@ -326,7 +326,7 @@
               <input type="text" id="checkout" class="form-control flatpickr" placeholder="Chọn ngày đi" />
             </div>
 
-            <!-- ✅ Updated form với adults và children -->
+            <!-- Updated form với adults và children -->
             <form action="/payment" method="GET" id="bookingForm">
               <input type="hidden" name="room_id" value="<%= room.room_type_id %>" />
               <input type="hidden" name="checkin" id="hiddenCheckin" />
@@ -570,19 +570,19 @@
     }
   }
 
-  // ✅ VALIDATE KHOẢNG THỜI GIAN - SỬA LOGIC KIỂM TRA
+  // VALIDATE KHOẢNG THỜI GIAN - SỬA LOGIC KIỂM TRA
   function validateDateRange() {
     const checkinDate = document.getElementById('checkin').value;
     const checkoutDate = document.getElementById('checkout').value;
     
     if (!checkinDate || !checkoutDate) return;
     
-    // 🔥 CHỈ KIỂM TRA CÁC NGÀY Ở GIỮA, KHÔNG BAO GỒM CHECKIN VÀ CHECKOUT
+    //  CHỈ KIỂM TRA CÁC NGÀY Ở GIỮA, KHÔNG BAO GỒM CHECKIN VÀ CHECKOUT
     const startDate = new Date(checkinDate);
     const endDate = new Date(checkoutDate);
     const conflicts = [];
     
-    // ✅ BẮT ĐẦU TỪ NGÀY SAU CHECKIN, KẾT THÚC TRƯỚC CHECKOUT
+    // BẮT ĐẦU TỪ NGÀY SAU CHECKIN, KẾT THÚC TRƯỚC CHECKOUT
     startDate.setDate(startDate.getDate() + 1); // Ngày sau checkin
     
     for (let d = new Date(startDate); d < endDate; d.setDate(d.getDate() + 1)) {
@@ -613,7 +613,7 @@
     return true;
   }
 
-  // 🔍 TÌM NGÀY CONFLICT TRONG RANGE - CHỈ SỬA PHẦN NÀY
+  //  TÌM NGÀY CONFLICT TRONG RANGE - CHỈ SỬA PHẦN NÀY
   function getConflictDatesInRange(checkinDate, checkoutDate) {
     const startDate = new Date(checkinDate);
     const endDate = new Date(checkoutDate);
@@ -631,7 +631,7 @@
     return conflicts;
   }
 
-  // 🔧 FALLBACK CALENDARS - CHỈ SỬA PHẦN NÀY
+  //  FALLBACK CALENDARS - CHỈ SỬA PHẦN NÀY
   function initializeFallbackCalendars() {
     checkinCalendar = flatpickr("#checkin", {
       dateFormat: "Y-m-d",
@@ -648,7 +648,7 @@
     setupDateValidation();
   }
 
-  // 🔥 SETUP DATE VALIDATION - SỬA LOGIC
+  //SETUP DATE VALIDATION - SỬA LOGIC
   function setupDateValidation() {
     const checkinInput = document.getElementById("checkin");
     const checkoutInput = document.getElementById("checkout");
@@ -677,7 +677,7 @@
       const checkinDate = checkinInput.value;
       const checkoutDate = this.value;
       
-      // ✅ CHỈ VALIDATE NẾU ĐÃ CÓ CẢ CHECKIN VÀ CHECKOUT
+      // CHỈ VALIDATE NẾU ĐÃ CÓ CẢ CHECKIN VÀ CHECKOUT
       if (checkinDate && checkoutDate) {
         // Kiểm tra checkout <= checkin
         if (checkoutDate <= checkinDate) {
@@ -697,7 +697,7 @@
           return;
         }
       }
-      // ✅ NẾU CHƯA CÓ CHECKIN THÌ KHÔNG VALIDATE GÌ CẢ, CHỈ CHẤP NHẬN
+      //NẾU CHƯA CÓ CHECKIN THÌ KHÔNG VALIDATE GÌ CẢ, CHỈ CHẤP NHẬN
     });
   }
   // ================================= HẾT PHẦN SỬA CALENDAR =================================

@@ -4,7 +4,7 @@ let handleChatQuery = async (req, res) => {
   const message = req.body.message.toLowerCase();
   const kbAnswer = req.body.kbAnswer || null; // Nhận từ workflow
 
-  // 🔍 Kiểm tra có cần API không
+  //Kiểm tra có cần API không
   const needsAPI =
     /\d+\s*(người|khách|nguoi)|phòng.*trống|lịch.*phòng|phòng.*lịch|hôm nay|today/.test(
       message
@@ -18,7 +18,7 @@ let handleChatQuery = async (req, res) => {
 
   let apiReply = null;
 
-  // 🎯 Case 1: Hỏi số người cụ thể
+  //Case 1: Hỏi số người cụ thể
   const match = message.match(/(\d+)\s*(người|khách|người|nguoi)/);
   if (message.includes("phòng") && match) {
     const guestCount = parseInt(match[1]);
@@ -52,7 +52,7 @@ let handleChatQuery = async (req, res) => {
     }
   }
 
-  // 🎯 Case 2: Phòng trống hôm nay (ưu tiên cao nhất)
+  //Case 2: Phòng trống hôm nay (ưu tiên cao nhất)
   else if (
     message.includes("trống") &&
     (message.includes("hôm nay") || message.includes("today"))
@@ -92,7 +92,7 @@ let handleChatQuery = async (req, res) => {
     }
   }
 
-  // 🎯 Case 3: Hỏi lịch phòng cụ thể (ưu tiên cao nhất trong else)
+  //Case 3: Hỏi lịch phòng cụ thể (ưu tiên cao nhất trong else)
   else {
     let roomMatch =
       message.match(
@@ -298,7 +298,7 @@ let handleChatQuery = async (req, res) => {
       }
     }
 
-    // 🎯 Case 5: Hỏi về homestay cụ thể
+    //Case 5: Hỏi về homestay cụ thể
     else if (
       message.includes("homestay") ||
       message.includes("villa") ||
@@ -343,7 +343,7 @@ let handleChatQuery = async (req, res) => {
     }
   }
 
-  // 🔗 Merge KB + API responses
+  //Merge KB + API responses
   let finalReply = "";
   if (kbAnswer && apiReply) {
     finalReply = `${kbAnswer}\n\n📊 **Thông tin chi tiết:**\n${apiReply}`;

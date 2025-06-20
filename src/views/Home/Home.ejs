@@ -542,7 +542,7 @@
     function logout() {
       fetch('/logout')
         .then(() => {
-          window.location.href = '/'; // ✅ chuyển về trang chủ và render lại
+          window.location.href = '/'; // chuyển về trang chủ và render lại
         })
         .catch(() => {
           alert('Lỗi đăng xuất');

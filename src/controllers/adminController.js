@@ -66,7 +66,7 @@ let getAdminDashboard = async (req, res) => {
       ]
     });
 
-    // ✅ Tính thêm một số thống kê chi tiết về doanh thu
+    // Tính thêm một số thống kê chi tiết về doanh thu
     const revenueStats = await Promise.all([
       // Doanh thu hôm nay
       db.Booking.sum('total_price', {
@@ -103,7 +103,7 @@ let getAdminDashboard = async (req, res) => {
         totalUsers: stats[0] || 0,
         totalHomestays: stats[1] || 0,
         totalBookings: stats[2] || 0,
-        totalRevenue: stats[3] || 0, // ✅ Chỉ tính booking đã paid
+        totalRevenue: stats[3] || 0, // Chỉ tính booking đã paid
         // Thêm thống kê chi tiết
         todayRevenue: revenueStats[0] || 0,
         monthRevenue: revenueStats[1] || 0,
@@ -570,10 +570,10 @@ let updateUserInfo = async (req, res) => {
     const user = await db.User.findByPk(userId);
     if (!user) return res.status(404).json({ success: false, message: "Không tìm thấy người dùng" });
 
-    // ✅ Cập nhật thông tin cơ bản
+    // Cập nhật thông tin cơ bản
     await user.update({ name, dob, phone, gender, email });
 
-    // ✅ Nếu đổi mật khẩu → phải xác minh
+    // Nếu đổi mật khẩu phải xác minh
     if (newPassword && currentPassword) {
       const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
       if (!isMatch) {
@@ -720,7 +720,7 @@ let getRoomsByHomestay = async (req, res) => {
 let getUsersForBooking = async (req, res) => {
   try {
     const users = await db.User.findAll({
-      where: { role: 'user' }, // ✅ CHỈ LẤY USER CÓ ROLE 'user'
+      where: { role: 'user' }, // CHỈ LẤY USER CÓ ROLE 'user'
       attributes: ['user_id', 'name', 'email'],
       order: [['name', 'ASC']]
     });
@@ -819,7 +819,7 @@ console.log("📥 Headers:", req.headers);
       });
     }
 
-    // ✅ KIỂM TRA SỐ NGƯỜI
+    // KIỂM TRA SỐ NGƯỜI
     const totalGuests = parseInt(adults) + parseInt(children || 0);
     if (parseInt(adults) > roomType.max_adults) {
       return res.status(400).json({
@@ -861,7 +861,7 @@ console.log("📥 Headers:", req.headers);
       });
     }
 
-    // ✅ KIỂM TRA CONFLICT BOOKING CHO ROOM TYPE CỤ THỂ
+    //KIỂM TRA CONFLICT BOOKING CHO ROOM TYPE CỤ THỂ
     const conflictBooking = await db.Booking.findOne({
       where: {
         room_type_id: room_type_id,
@@ -892,7 +892,7 @@ console.log("📥 Headers:", req.headers);
       });
     }
 
-    // ✅ TÍNH GIÁ THEO CÔNG THỨC MỚI
+    // TÍNH GIÁ THEO CÔNG THỨC MỚI
     const nights = Math.ceil((checkoutDate - checkinDate) / (1000 * 3600 * 24));
     const roomPrice = parseFloat(roomType.price_per_night || 500000);
     const baseAmount = roomPrice * nights;
@@ -916,8 +916,8 @@ console.log("📥 Headers:", req.headers);
       check_out_date,
       adults: parseInt(adults),
       children: parseInt(children) || 0,
-      total_price: calculatedTotalAmount, // ✅ SỬ DỤNG GIÁ TÍNH TOÁN
-      order_id: order_id, // ✅ THÊM DÒNG NÀY
+      total_price: calculatedTotalAmount, //SỬ DỤNG GIÁ TÍNH TOÁN
+      order_id: order_id, 
       guest_email: guest_email || null,
       guest_phone: guest_phone || null,
       guest_address: guest_address || null,
@@ -1075,7 +1075,7 @@ let updateBooking = async (req, res) => {
   }
 };
 
-// THÊM function lấy chi tiết booking để edit
+// lấy chi tiết booking để edit
 let getBookingForEdit = async (req, res) => {
   try {
     const { bookingId } = req.params;
@@ -1238,7 +1238,7 @@ let deleteHomestay = async (req, res) => {
       });
     }
 
-    // ✅ KIỂM TRA BOOKING PENDING/PAID TRONG TƯƠNG LAI
+    //KIỂM TRA BOOKING PENDING/PAID TRONG TƯƠNG LAI
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 

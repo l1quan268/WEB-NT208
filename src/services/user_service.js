@@ -43,7 +43,7 @@ let hashUserPassword = (password) => {
   });
 };
 
-// ✅ SỬA HÀM LOGIN - Trả về đúng field name
+//Trả về đúng field name
 let handleUserLogin = async (email, password) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -82,13 +82,12 @@ let handleUserLogin = async (email, password) => {
 
       console.log("8. Đăng nhập thành công với user_id:", user.user_id);
 
-      // ✅ SỬA: Trả về đúng field name theo database schema
       resolve({
         success: true,
         message: "Đăng nhập thành công",
         user: {
-          user_id: user.user_id, // ✅ SỬA: dùng user_id thay vì id
-          id: user.user_id, // ✅ THÊM: backup cho compatibility
+          user_id: user.user_id,
+          id: user.user_id, // THÊM: backup cho compatibility
           name: user.name,
           email: user.email,
           role: user.role,
@@ -101,11 +100,10 @@ let handleUserLogin = async (email, password) => {
   });
 };
 
-// ✅ SỬA HÀM getUserById - Sử dụng đúng field name
 let getUserById = async (user_id) => {
   try {
     const user = await db.User.findOne({
-      where: { user_id: user_id }, // ✅ SỬA: sử dụng user_id thay vì id
+      where: { user_id: user_id },
     });
     return user;
   } catch (error) {
@@ -113,7 +111,6 @@ let getUserById = async (user_id) => {
   }
 };
 
-// ✅ SỬA HÀM findOrCreateGoogleUser
 let findOrCreateGoogleUser = async (profile) => {
   try {
     let user = await db.User.findOne({
