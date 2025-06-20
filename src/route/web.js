@@ -210,6 +210,17 @@ let initWebRoutes = (app) => {
 
   router.get("/danh-gia", homeController.getReviewPage);
   router.post("/danh-gia", homeController.postReviewForm);
+  router.get("/about", (req, res) => {
+    res.render("About/about", {
+      title: "Giới thiệu",
+      user: req.session?.user || null,
+    });
+  });
+  router.get("/intro", (req, res) => {
+    res.render("Rooms/intro", {
+      user: req.session?.user || null,
+    });
+  });
 
   return app.use("/", router);
 };

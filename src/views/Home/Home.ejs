@@ -52,10 +52,10 @@
             <a class="nav-link" href="/" style="font-weight: bold">TRANG CHỦ</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#intro" style="font-weight: bold">GIỚI THIỆU</a>
+            <a class="nav-link" href="/about" style="font-weight: bold">GIỚI THIỆU</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#CH" style="font-weight: bold">CĂN HỘ</a>
+            <a class="nav-link" href="/intro" style="font-weight: bold">CĂN HỘ</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="#LH" style="font-weight: bold">LIÊN HỆ</a>
@@ -542,7 +542,7 @@
     function logout() {
       fetch('/logout')
         .then(() => {
-          window.location.href = '/'; // chuyển về trang chủ và render lại
+          window.location.href = '/'; //  chuyển về trang chủ và render lại
         })
         .catch(() => {
           alert('Lỗi đăng xuất');

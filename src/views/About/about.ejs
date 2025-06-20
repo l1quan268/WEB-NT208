@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Giới thiệu - SweetHome</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/about.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <nav
+      class="navbar navbar-expand-lg navbar-light bg-light"
+      style="
+        width: 100%;
+        opacity: 80%;
+        position: fixed;
+        z-index: 1000;
+        top: 0;
+        left: 0;
+      "
+    >
+      <!-- Logo bên trái -->
+      <a class="navbar-brand" href="/">
+        <img
+          src="./image/image/logo/logo.jpg"
+          alt="Logo"
+          style="
+            margin: 0px;
+            padding: 0px;
+            width: 100px;
+            height: 100px;
+            position: absolute;
+            margin-top: -50px;
+            margin-left: 70px;
+          "
+          class="logo"
+        />
+      </a>
+      <div class="container kt">
+        <!-- Nút Toggle khi màn hình nhỏ -->
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Danh mục menu (Căn giữa) -->
+        <div
+          class="collapse navbar-collapse justify-content-center"
+          id="navbarNav"
+          style="margin-left: 100px"
+        >
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" href="/" style="font-weight: bold"
+                >TRANG CHỦ</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/about" style="font-weight: bold"
+                >GIỚI THIỆU</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/intro" style="font-weight: bold"
+                >CĂN HỘ</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#LH" style="font-weight: bold"
+                >LIÊN HỆ</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/#DG" style="font-weight: bold"
+                >ĐÁNH GIÁ</a
+              >
+            </li>
+          </ul>
+        </div>
+
+        <!-- Nút Đăng nhập/Đăng xuất (Bên phải) -->
+        <% if (user) { %>
+        <div class="dropdown">
+          <button
+            class="btn p-0 border-0 bg-transparent"
+            type="button"
+            id="userDropdown"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <img
+              src="https://i.postimg.cc/rF3Fh10Y/avatar-trang-4.jpg"
+              alt="Avatar"
+              class="rounded-circle"
+              width="40"
+              height="40"
+            />
+          </button>
+          <ul
+            class="dropdown-menu dropdown-menu-end shadow"
+            aria-labelledby="userDropdown"
+          >
+            <li>
+              <span class="dropdown-item text-primary fw-bold">
+                <%= user.email %>
+              </span>
+            </li>
+            <li>
+              <a class="dropdown-item" href="/account">Thông tin tài khoản</a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="/bookings">Lịch sử đặt phòng</a>
+            </li>
+            <li><hr class="dropdown-divider" /></li>
+            <li>
+              <a class="dropdown-item text-danger" href="/logout">Đăng xuất</a>
+            </li>
+          </ul>
+        </div>
+        <% } else { %>
+        <button class="btn btn-primary" onclick="window.location.href='/login'">
+          ĐĂNG NHẬP
+        </button>
+        <% } %>
+      </div>
+    </nav>
+
+    <div class="container mt-5 pt-5">
+      <div class="card shadow rounded-4 p-4">
+        <h1
+          class="text-center fw-bold mb-4"
+          style="color: #5a4e42; font-size: 2.3rem"
+        >
+          Giới thiệu về dự án SweetHome
+        </h1>
+
+        <p class="text-center text-muted fs-5 mb-5">
+          Dự án được thực hiện bởi sinh viên lớp NT208 – Trường Đại học Công
+          nghệ Thông tin (ĐHQG TP.HCM). Đây là sản phẩm đồ án môn học với mục
+          tiêu áp dụng toàn diện kiến thức về lập trình web, cơ sở dữ liệu,
+          UX/UI và triển khai thực tế.
+        </p>
+
+        <div class="row mb-5">
+          <!-- Mục tiêu dự án -->
+          <div class="col-md-6 pe-md-5 mb-4">
+            <h4 class="fw-bold mb-3">
+              <i class="fas fa-bullseye text-danger me-2"></i> Mục tiêu dự án
+            </h4>
+            <p>
+              SweetHome là nền tảng đặt homestay trực tuyến được phát triển nhằm
+              giải quyết các vấn đề thường gặp của người dùng như khó tìm phòng
+              phù hợp, thiếu minh bạch về giá, và quy trình đặt phòng phức tạp.
+            </p>
+            <p>
+              Dự án được định hướng trở thành một giải pháp toàn diện, không chỉ
+              giúp người dùng tìm phòng nhanh chóng mà còn tạo điều kiện để các
+              chủ homestay nhỏ lẻ có cơ hội tiếp cận khách hàng thông qua hệ
+              thống quản lý thân thiện.
+            </p>
+            <p>
+              Ngoài ra, SweetHome cũng hướng đến việc nâng cao trải nghiệm cá
+              nhân hóa bằng các gợi ý thông minh dựa trên hành vi người dùng,
+              đồng thời đảm bảo yếu tố bảo mật và quyền riêng tư trong suốt quá
+              trình sử dụng.
+            </p>
+          </div>
+
+          <!-- Chức năng chính -->
+          <div class="col-md-6 ps-md-5">
+            <h4 class="fw-bold mb-3">
+              <i class="fas fa-cogs text-primary me-2"></i> Chức năng chính
+            </h4>
+            <ul class="list-unstyled fs-6">
+              <li class="mb-3">
+                🔍 <strong>Tìm kiếm & lọc thông minh:</strong> Lọc phòng theo
+                thời gian, số lượng người, giá, tiện ích, và đánh giá
+              </li>
+              <li class="mb-3">
+                💬 <strong>Đánh giá & phản hồi:</strong> Hệ thống nhận xét giúp
+                xây dựng lòng tin và cải thiện chất lượng dịch vụ
+              </li>
+              <li class="mb-3">
+                💳 <strong>Thanh toán linh hoạt:</strong> Tích hợp VNPay, hỗ trợ
+                thanh toán tiền mặt tại nơi ở
+              </li>
+              <li class="mb-3">
+                🧾 <strong>Quản lý đặt phòng:</strong> Cả người dùng và chủ nhà
+                đều có thể theo dõi và cập nhật trạng thái đơn hàng
+              </li>
+              <li class="mb-3">
+                📊 <strong>Thống kê & báo cáo:</strong> Chủ homestay có thể xem
+                biểu đồ doanh thu, lượt đặt phòng theo tuần/tháng
+              </li>
+              <li class="mb-3">
+                🛠 <strong>Hệ thống quản trị:</strong> Admin có thể quản lý người
+                dùng, homestay, và xử lý báo cáo vi phạm
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Định hướng mở rộng -->
+        <div class="rounded-4 p-4 text-dark" style="background-color: #e0f7f3">
+          <h5 class="fw-bold text-center text-success mb-3">
+            💡 Định hướng mở rộng
+          </h5>
+          <p>
+            Dự án SweetHome không chỉ dừng lại ở mô hình đặt phòng đơn giản.
+            Nhóm phát triển đặt mục tiêu tiếp tục hoàn thiện hệ thống với các
+            tính năng nâng cao như:
+          </p>
+          <ul>
+            <li>
+              📍 Tích hợp bản đồ tương tác giúp khách dễ dàng xem vị trí thực tế
+              của homestay
+            </li>
+            <li>
+              🤖 Triển khai chatbot AI để tư vấn phòng và giải đáp thắc mắc tự
+              động 24/7
+            </li>
+            <li>
+              🌐 Hỗ trợ đa ngôn ngữ (tiếng Việt – Anh) nhằm phục vụ cả khách
+              trong và ngoài nước
+            </li>
+            <li>
+              📱 Phát triển ứng dụng di động (Android/iOS) đồng bộ với hệ thống
+              web
+            </li>
+            <li>
+              ☁️ Triển khai hệ thống trên nền tảng Cloud (Render/Heroku/EC2) để
+              đảm bảo khả năng mở rộng
+            </li>
+            <li>
+              🔐 Nâng cấp các tính năng bảo mật như xác thực 2 bước, mã hóa dữ
+              liệu người dùng
+            </li>
+          </ul>
+          <p class="mt-3">
+            Mục tiêu cuối cùng là xây dựng một nền tảng tin cậy, hiệu quả và
+            thân thiện, có thể triển khai thực tế hoặc làm nền tảng khởi nghiệp
+            sau khi tốt nghiệp.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ✅ FOOTER GIỮ NGUYÊN -->
+    <footer class="bg-light py-4 mt-5" id="LH">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4">
+            <h5 class="fw-bold">LIÊN HỆ CHÚNG TÔI</h5>
+            <p>
+              <i class="fas fa-envelope text-warning"></i> Email:
+              23521265@gm.uit.edu.vn
+            </p>
+            <p>
+              <i class="fas fa-phone text-success"></i> Số điện thoại:
+              080-678-963-210
+            </p>
+            <p>
+              <i class="fas fa-map-marker-alt text-danger"></i> Địa chỉ:
+              183B/19, Quận Cam, TP. Sài Gòn
+            </p>
+          </div>
+          <div class="col-md-4">
+            <h5 class="fw-bold">MẠNG XÃ HỘI</h5>
+            <a
+              href="https://www.instagram.com"
+              class="d-block text-dark mb-2"
+              target="_blank"
+              ><i class="fab fa-instagram"></i> Instagram</a
+            >
+            <a
+              href="https://www.facebook.com"
+              class="d-block text-dark mb-2"
+              target="_blank"
+              ><i class="fab fa-facebook"></i> Facebook</a
+            >
+            <a
+              href="https://www.youtube.com"
+              class="d-block text-dark mb-2"
+              target="_blank"
+              ><i class="fab fa-youtube"></i> YouTube</a
+            >
+          </div>
+          <div class="col-md-4">
+            <h5 class="fw-bold">MAPS</h5>
+            <iframe
+              src="https://www.google.com/maps?q=Vũng+Tàu&output=embed"
+              width="100%"
+              height="150"
+              style="border: 0"
+              allowfullscreen
+              loading="lazy"
+            ></iframe>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <div class="text-center mt-3">
+      <p class="mb-0">© 2025 - All Rights Reserved</p>
+    </div>
+
+    <!-- JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script
+      src="https://cdn.botpress.cloud/webchat/v3.0/inject.js"
+      defer
+    ></script>
+    <script
+      src="https://files.bpcontent.cloud/2025/06/13/11/20250613113629-T5H91F8W.js"
+      defer
+    ></script>
+  </body>
+</html>
